@@ -4,10 +4,6 @@ classdef PNAXAnalyzer < handle
     properties (SetAccess = private, GetAccess = public)
         address;    % GPIB address
         instrhandle;    % gpib object for the instrument
-        transtrace1 = 'CH1_TR1';    % Default measurement names
-        transtrace2 = 'CH1_TR2';
-        spectrace1 = 'CH2_TR3';
-        spectrace2 = 'CH2_TR4';
     end
     properties (Access = public)
         transparams = struct('start', 5e9, ...
@@ -26,8 +22,15 @@ classdef PNAXAnalyzer < handle
                             'cwfreq', 7e9, ...
                             'cwpower', -50);    % Parameters for spectroscopy measurement
     end
+    properties (Access = private)
+        channels;
+        transtrace1 = 'CH1_TR1';    % Default measurement names
+        transtrace2 = 'CH1_TR2';
+        spectrace1 = 'CH2_TR3';
+        spectrace2 = 'CH2_TR4';
+    end
     
-    methods
+    methods (Access = public)
         function pnax = PNAXAnalyzer(address)
         % Open instrument
             pnax.address = address;
@@ -48,4 +51,9 @@ classdef PNAXAnalyzer < handle
         data = Read(pnax); % Return the currently active trace
         xaxis = GetAxis(pnax);  % Return the x-axis of the currently active channel
     end
+    methods (Access = protected)
+        GetChannels(pnax);  % Get the existing channels
+    end
+    
+    
 end

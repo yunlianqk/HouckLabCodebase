@@ -5,12 +5,13 @@ if isempty(varargin)
 else
     setvoltage = varargin{1};
 end
+    yoko.PowerOn();
     yoko.GetVoltage();
     steps = round(abs(setvoltage - yoko.voltage)/yoko.rampstep);
     for tempvolt = linspace(yoko.voltage, setvoltage, steps)
-        fprintf(yoko.instrhandle, [':SOURce:LEVel ', num2str(tempvolt)]);
+        fprintf(yoko.instrhandle, ['S', num2str(tempvolt), ';E;']);
         pause(yoko.rampinterval);
     end
     yoko.voltage = setvoltage;
-    yoko.PowerOn();
+
 end

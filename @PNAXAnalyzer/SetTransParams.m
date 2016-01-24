@@ -2,6 +2,15 @@ function SetTransParams(pnax)
 % Perform transmission measurement
     instr = pnax.instrhandle;
     transparams = pnax.transparams;
+
+    pnax.GetChannels();
+    % If channel 1 does not exist
+    if (~ismember(1, pnax.channels))
+        fprintf(instr, ['CALCulate1:PARameter:EXTended ', pnax.transtrace1, ', S21']);
+        fprintf(instr, ['DISPlay:WINDow:TRACe1:feed ', pnax.transtrace1]);
+        fprintf(instr, ['CALCulate1:PARameter:SELect ', pnax.transtrace1]);
+        fprintf(instr, 'CALCulate1:FORMat MLOG');
+    end
     
     % Select the first measurement in channel 1
     fprintf(instr, 'CALCulate1:PARameter:CATalog:EXTended?');

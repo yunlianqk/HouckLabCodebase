@@ -32,7 +32,7 @@ triggen = AWG33250A(address.triggen);
 global card;
 card = U1082ADigitizer(address.card);
 
-% global pulsegen;
-% pulsegen = M9330AWG(address.pulsegen);
+global pulsegen;
+pulsegen = M9330AWG(address.pulsegen);
 
 clear('address', 'path');

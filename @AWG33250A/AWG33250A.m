@@ -5,8 +5,14 @@ classdef AWG33250A < handle
         address;    % GPIB address
         instrhandle;    % gpib object for the instrument
     end
+    properties (Access = private)
+        waveoptions = {'square', 'sin'};
+    end
     properties (Access = public)
-        period = 20e-6; 
+        waveform = 'square';    % Can be either square or sine
+        period = 20e-6; % Period in seconds
+        vpp = 2.0;  % Peak-peak voltage in volts
+        voffset = 1.0;  % Offset voltage in volts
     end
     
     methods
@@ -26,6 +32,7 @@ classdef AWG33250A < handle
         % Declaration of all methods
         % Each method is defined in a separate file
         Finalize(triggen);  % Close instrhandle
-        SetPeriod(triggen, period);	% Set period
+        SetParams(triggen);	% Set parameters and generate waveform
+        SetPeriod(triggen, varargin);   % Set period
     end
 end

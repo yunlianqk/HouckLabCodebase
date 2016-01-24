@@ -3,6 +3,15 @@ function SetSpecParams(pnax)
     instr = pnax.instrhandle;
     specparams = pnax.specparams;
     
+    pnax.GetChannels();
+    % If channel 2 does not exist
+    if (~ismember(2, pnax.channels))
+        fprintf(instr, ['CALCulate2:PARameter:EXTended ', pnax.spectrace1, ', S21']);
+        fprintf(instr, ['DISPlay:WINDow:TRACe3:feed ', pnax.spectrace1]);
+        fprintf(instr, ['CALCulate2:PARameter:SELect ', pnax.spectrace1]);
+        fprintf(instr, 'CALCulate2:FORMat MLOG');
+        fprintf(instr, 'SENSe2:SWEep:TYPE CW');
+    end    
     % Select the first measurement in channel 2
     fprintf(instr, 'CALCulate2:PARameter:CATalog:EXTended?');
     tempstr = fscanf(instr, '%s');

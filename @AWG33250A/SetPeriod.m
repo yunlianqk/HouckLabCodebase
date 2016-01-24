@@ -1,5 +1,7 @@
-function SetPeriod(triggen, period)
+function SetPeriod(triggen, varargin)
 % Set period
-    fprintf(triggen.instrhandle,['APPL:SQUARE ', num2str(1/period), ...
-                                 ' HZ, 2.0 VPP, 1.0 V']);
+    if (~isempty(varargin))
+        triggen.period = varargin{1};
+    end
+    triggen.SetParams();
 end
