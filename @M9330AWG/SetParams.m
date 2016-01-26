@@ -24,19 +24,23 @@ function SetParams(pulsegen)
         waveforms(2, newlength) = 0;
         taxis = linspace(taxis(1), taxis(1)+dt*(newlength-1), newlength);
     end
-    % Normalize waveforms if max value > 1.0
-    if max(abs(pulsegen.waveform1)) > 1.0
-        pulsegen.waveform1 = pulsegen.waveform1 / max(abs(pulsegen.waveform1));
-    end
-    if max(abs(pulsegen.waveform2)) > 1.0
-        pulsegen.waveform2 = pulsegen.waveform2 / max(abs(pulsegen.waveform2));
-    end
-
-    % Define markers
+    
+    % Create rawdata sample values for AWG
+    markers = zeros(2, length(taxis));
     offset = [pulsegen.mkr1offset, pulsegen.mkr2offset];
+    amp = [pulsegen.CH1MAXAMP, pulsegen.CH2MAXAMP];
     for ch = 1:2
+        % Waveforms
+        % Normalize waveforms if max value > 1.0
+        if max(abs(waveforms(ch,:))) > 1.0
+            waveforms(ch,:) = waveforms(ch,:)/max(abs(waveforms(ch,:)));
+        end
+        % Create waveform rawdata for AWG
+        waveforms(ch,:) = int16(waveforms(ch,:)*amp(ch));
+        
+        % Markers
         % Mark none-zero parts of waveform
-        markers(ch,:) = (abs(waveforms(ch,:)) > pulsegen.mkrthreshold);
+        markers(ch,:) = (waveforms(ch,:) ~= 0);
         % Find jump positions of marker
         jumpindex = find(diff(markers(ch,:)));
         % Increase marker width by 2*mkraddwidth
@@ -50,15 +54,18 @@ function SetParams(pulsegen)
         % Shift marker by mkroffset
         if offset(ch) >= 0
             markers(ch,:) = [zeros(1, offset(ch)), ...
-                              markers(ch, 1:end-offset(ch))];
+                             markers(ch, 1:end-offset(ch))];
         else
             markers(ch,:) = [markers(ch, 1-offset(ch):end), ...
-                              zeros(1, -offset(ch))];
+                             zeros(1, -offset(ch))];
         end
+        markers(ch,:) = uint8(markers(ch,:)*2^6);
+        
     end
     % Update markers according to the original time axis
-    pulsegen.marker1 = interp1(taxis, double(markers(1,:)), pulsegen.timeaxis);
-    pulsegen.marker2 = interp1(taxis, double(markers(2,:)), pulsegen.timeaxis);
+    pulsegen.marker1 = interp1(taxis, double(markers(1,:) ~= 0), pulsegen.timeaxis);
+    pulsegen.marker2 = interp1(taxis, double(markers(2,:) ~= 0), pulsegen.timeaxis);
+    
     % Generate waveforms
-    pulsegen.Generate(waveforms, markers);
+    pulsegen.GenerateRaw(waveforms, markers);
 end

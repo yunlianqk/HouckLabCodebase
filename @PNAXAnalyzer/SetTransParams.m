@@ -2,12 +2,10 @@ function SetTransParams(pnax)
 % Perform transmission measurement
     instr = pnax.instrhandle;
     transparams = pnax.transparams;
-    
-    % Select the first measurement in channel 1
-    fprintf(instr, 'CALCulate1:PARameter:CATalog:EXTended?');
-    tempstr = fscanf(instr, '%s');
-    tempstr = strsplit(tempstr(2:end-1), ',');
-    fprintf(instr, ['CALCulate1:PARameter:SELect ', tempstr{1}]);
+    % Create measurement and trace
+    pnax.CheckParams(transparams);
+    pnax.CreateMeas(pnax.transchannel, transparams.trace, transparams.meastype, ...
+                    transparams.format); 
     
     % Set parameters
     fprintf(instr, ['SENSe1:FREQuency:STARt ' num2str(transparams.start)]);
@@ -18,6 +16,6 @@ function SetTransParams(pnax)
     fprintf(instr, 'SENSe1:AVERage ON');
     fprintf(instr, ['SENSe1:AVERage:COUNt ' num2str(transparams.averages)]);
     
-    fprintf(instr, 'OUTPut ON');
+    fprintf(instr, 'OUTPut ON');    
     fprintf(instr, 'SENSe1:SWEep:MODE CONTinuous');
 end
