@@ -14,5 +14,6 @@ Equipments that have been implemented:
 - E8267D microwave generator
 - PNAX network analyzer
 - YOKOGAWA GS200 voltgae/current source
+- YOKOGAWA 7621 voltgae/current source
 - U1082A digitizer
 - M9330A AWG
