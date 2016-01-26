@@ -5,9 +5,6 @@ classdef AWG33250A < handle
         address;    % GPIB address
         instrhandle;    % gpib object for the instrument
     end
-    properties (Access = private)
-        waveoptions = {'square', 'sin'};
-    end
     properties (Access = public)
         waveform = 'square';    % Can be either square or sine
         period = 20e-6; % Period in seconds

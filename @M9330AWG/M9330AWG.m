@@ -1,5 +1,21 @@
 classdef M9330AWG < handle
 % Contains paramaters and methods for M9930A AWG
+% To generate waveforms, fill the fields waveform1, waveform2 and timeaxis.
+% Running SetParams() will set up the device and generate the waveforms.
+% The three fields should have the same length, but does not need to
+% be multiple of 8.
+% The amplitude of the waveforms should be in the range between -1 and +1.
+% If max(abs(waveform)) > 1, the program will normalize it to 1. 
+% timeaxis is in unit of seconds. The sampling rate does not need to be the
+% sampling rate of the device. The program will automatically interpolate
+% the timeaxis and waveforms according to the real sampling rate and
+% increase the length to multiple of 8.
+% Markers will be generated automatically wherever the waveform is non-zeros.
+% Use mkr1offset, mkr2offset and mkraddwidth to modify markers. See the pic
+% in the folder for their meanings.
+% When necessary, GenerateRaw() method can be used to directly generate
+% waveforms using the rawdata type. Consult the manual for specifications
+% for rawdata waveform.
 
     properties (SetAccess = private, GetAccess = public)
         address;    % GPIB address

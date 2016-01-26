@@ -1,5 +1,5 @@
 ## Version 0.1, 01/24/2015
-- Fixed bug: pnax.SetTransParams() and pnax.SetSpecParams() can now run even when channel 1 or 2 does not exist.
+- Enhanced support for PNAX
 - Added yoko 7621
 - Added change log and bug report
 
