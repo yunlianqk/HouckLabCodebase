@@ -39,6 +39,22 @@ if (exist('pulsegen', 'var'))
     clear('pulsegen');
 end
 
+if (exist('yoko1', 'var'))
+    yoko1.Finalize();
+    clear('yoko1');
+end
+
+if (exist('yoko2', 'var'))
+    yoko2.Finalize();
+    clear('yoko2');
+end
+
+if (exist('yoko3', 'var'))
+    yoko3.Finalize();
+    clear('yoko3');
+end
+
+
 % Final house keeping
 if (~isempty(instrfind))
     fclose(instrfind);

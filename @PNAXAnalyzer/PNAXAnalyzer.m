@@ -50,6 +50,8 @@ classdef PNAXAnalyzer < handle
         SetSpecParams(pnax);    % Perform spectroscopy measurement
         data = Read(pnax); % Return the currently active trace
         xaxis = GetAxis(pnax);  % Return the x-axis of the currently active channel
+        data = ReadBothTraces(pnax); % Return both traces of current channel
+        AutoscaleAll(pnax); % Autoscales Y axes of all traces
     end
     methods (Access = protected)
         GetChannels(pnax);  % Get the existing channels
