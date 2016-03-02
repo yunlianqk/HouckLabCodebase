@@ -5,7 +5,6 @@ if isempty(varargin)
 else
     setvoltage = varargin{1};
 end
-    yoko.PowerOn();
     yoko.GetVoltage();
     steps = round(abs(setvoltage - yoko.voltage)/yoko.rampstep);
     for tempvolt = linspace(yoko.voltage, setvoltage, steps)
@@ -13,5 +12,5 @@ end
         pause(yoko.rampinterval);
     end
     yoko.voltage = setvoltage;
-
+    yoko.PowerOn();
 end

@@ -54,10 +54,10 @@ function SetParams(pulsegen)
         % Shift marker by mkroffset
         if offset(ch) >= 0
             markers(ch,:) = [zeros(1, offset(ch)), ...
-                              markers(ch, 1:end-offset(ch))];
+                             markers(ch, 1:end-offset(ch))];
         else
             markers(ch,:) = [markers(ch, 1-offset(ch):end), ...
-                              zeros(1, -offset(ch))];
+                             zeros(1, -offset(ch))];
         end
         markers(ch,:) = uint8(markers(ch,:)*2^6);
         
