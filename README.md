@@ -37,7 +37,7 @@ $ git push origin master
 Click the instrument to see the documents.
 
 - E8267D microwave generator
-- [PNAX network analyzer](#./@PNAXAnalyzer/README.md)
+- [PNAX network analyzer](./@PNAXAnalyzer/README.md)
 - YOKOGAWA GS200 voltgae/current source
 - YOKOGAWA 7621 voltage/current source
 - U1082A digitizer
@@ -53,14 +53,13 @@ Then set up the parameters:
 ```matlab
 yoko.rampstep = 0.002;      % Increment for each step
 yoko.rampinterval = 0.01;   % Time between 2 steps
-yoko.voltage = 0.5;         % Desired voltage  
 ```
 Finally call the `SetVoltage` method:
 ```matlab
-yoko.SetVoltage();
+yoko.SetVoltage(0.5);
 ```
 You can also use
 ```matlab
-yoko.SetVoltage(0.5);
+yoko.voltage= 0.5;
 ```
 to directly set the voltage.
