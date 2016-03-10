@@ -108,7 +108,9 @@ Contains the following fields:
 `trlist = pnax.GetTraceList()` returns an *array* `trlist` containing the number for each trace.
 
 ##### GetMeasList
-`measlist = pnax.GetMeasList(channel)` returns an *string cell array* `mealist` containing the name of each measurement in `channel`. If `channel` is missing, the active channel will be used.
+`measlist = pnax.GetMeasList(channel)` returns an *string cell array* `mealist` containing the name of each measurement in `channel`.
+
+If `channel` is missing, the active channel will be used.
 
 ##### GetActiveChannel
 `channel = pnax.GetActiveChannel()` returns the active channel number to *integer* `channel`.
@@ -126,10 +128,16 @@ Contains the following fields:
 `xaxis = pnax.ReadAxis()` reads the x-axis of the active trace and returns `xaxis`.
 
 ##### ReadTrace
-`data = ReadTrace(pnax, trace)` reads the trace specified by *integer* `trace` and returns `data`.  If `trace` is missing, the active trace will be used.
+`data = ReadTrace(pnax, trace)` reads the trace specified by *integer* `trace` and returns `data`. 
+
+If `trace` is missing, the active trace will be used.
 
 ##### ReadChannel
-`dataarray = ReadChannel(channel)` reads all the measurements in the channel specified by *integer* `channel` and returns `dataarray`. `dataaaray` contains n lines of data, where n is the number of measurements in `channel` and each line contains the data for one measurement. If `channel` is miising, the active channel will be used.
+`dataarray = ReadChannel(channel)` reads all the measurements in the channel specified by *integer* `channel` and returns `dataarray`.
+
+`dataaaray` contains n lines of data, where n is the number of measurements in `channel` and each line contains the data for one measurement.
+
+If `channel` is miising, the active channel will be used.
 
 ##### CreateMeas
 `pnax.CreateMeas(channel, trace, meas, meastype)` creates a measurement according to the input parameters.
