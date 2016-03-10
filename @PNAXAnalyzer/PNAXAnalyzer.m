@@ -1,61 +1,106 @@
-classdef PNAXAnalyzer < handle
+classdef PNAXAnalyzer < GPIBINSTR
 % Contains paramaters and methods for PNA-X Network Analyzer
 
-    properties (SetAccess = private, GetAccess = public)
-        address;    % GPIB address
-        instrhandle;    % gpib object for the instrument
-    end
-    properties (Access = public)
-        transparams = struct('start', 5e9, ...
-                             'stop', 6e9, ...
-                             'points', 1001, ...
-                             'power', -50, ...
-                             'averages', 1000, ...
-                             'ifbandwidth', 5e3);   % Parameters for transmission measurement
-                         
-        specparams = struct('start', 4e9, ...
-                            'stop', 5e9, ...
-                            'points', 1001, ...
-                            'power', -50, ...
-                            'averages', 1000, ...
-                            'ifbandwidth', 5e3, ...
-                            'cwfreq', 7e9, ...
-                            'cwpower', -50);    % Parameters for spectroscopy measurement
+    properties (Dependent)
+        transparams;
+        specparams;
     end
     properties (Access = private)
-        channels;
-        transtrace1 = 'CH1_TR1';    % Default measurement names
-        transtrace2 = 'CH1_TR2';
-        spectrace1 = 'CH2_TR3';
-        spectrace2 = 'CH2_TR4';
+        defaulttransparams = struct('start', 5e9, ...
+                                    'stop', 6e9, ...
+                                    'points', 1001, ...
+                                    'power', -50, ...
+                                    'averages', 1000, ...
+                                    'ifbandwidth', 5e3, ...
+                                    'channel', 1, ...
+                                    'trace', 1, ...
+                                    'meastype', 'S21', ...
+                                    'format', 'MLOG');
+        defaultspecparams = struct('start', 4e9, ...
+                                   'stop', 5e9, ...
+                                   'points', 1001, ...
+                                   'power', -50, ...
+                                   'averages', 1000, ...
+                                   'ifbandwidth', 5e3, ...
+                                   'cwfreq', 7e9, ...
+                                   'cwpower', -50, ...
+                                   'channel', 2, ...
+                                   'trace', 3, ...
+                                   'meastype', 'S21', ...
+                                   'format', 'MLOG');
+        timeout = 10;
     end
-    
-    methods (Access = public)
+    methods
         function pnax = PNAXAnalyzer(address)
-        % Open instrument
-            pnax.address = address;
-            pnax.instrhandle = instrfind('Name', ['GPIB0-', num2str(pnax.address)], ...
-                                        'Status', 'open');
-            if isempty(pnax.instrhandle)
-                pnax.instrhandle = gpib('ni', 0, pnax.address);
-                fopen(pnax.instrhandle);
-            end
+            pnax = pnax@GPIBINSTR(address);
         end
-        
-        % Declaration of all methods
+        function Finalize(pnax)
+            Finalize@GPIBINSTR(pnax);
+        end
+        function set.transparams(pnax, transparams)
+            SetTransParams(pnax, transparams);
+        end
+        function transparams = get.transparams(pnax)
+            transparams = GetParams(pnax);
+        end
+        function set.specparams(pnax, specparams)
+            SetSpecParams(pnax, specparams);
+        end
+        function specparams = get.specparams(pnax)
+            specparams = GetParams(pnax);
+        end
+        function transparams = GetTransParams(pnax)
+            transparams = GetParams(pnax);
+        end
+        function specparams = GetSpecParams(pnax)
+            specparams = GetParams(pnax);
+        end
+        % Declaration of all other methods
         % Each method is defined in a separate file
-        Finalize(pnax); % Close instrument
-        SetDefault(pnax);   % Configure PNAX to default settings
-        SetTransParams(pnax);   % Perform transmission measurement
-        SetSpecParams(pnax);    % Perform spectroscopy measurement
-        data = Read(pnax); % Return the currently active trace
-        xaxis = GetAxis(pnax);  % Return the x-axis of the currently active channel
-        data = ReadBothTraces(pnax); % Return both traces of current channel
-        AutoscaleAll(pnax); % Autoscales Y axes of all traces
+        SetTransParams(pnax, transparams);
+        SetSpecParams(pnax, specparams);
+        SetActiveChannel(pnax, channel);
+        SetActiveTrace(pnax, trace);
+        SetActiveMeas(pnax, meas);
+        
+        xaxis = GetAxis(pnax);
+        params = GetParams(pnax);
+        chlist = GetChannelList(pnax);
+        trlist = GetTraceList(pnax);
+        measlist = GetMeasList(pnax, varargin);
+        channel = GetActiveChannel(pnax);
+        trace = GetActiveTrace(pnax);
+        meas = GetActiveMeas(pnax);
+
+        data = Read(pnax);
+        data = ReadTrace(pnax, varargin);
+        dataarray = ReadChannel(pnax, varargin);
+        
+        CreateMeas(pnax, channel, trace, meas, format);
+        DeleteChannel(pnax, channel);
+        DeleteMeas(pnax, channel, meas);
+        DeleteTrace(pnax, trace);
+        
+        PowerOn(pnax);
+        PowerOff(pnax);
+        
+        TrigContinous(pnax);
+        TrigHold(pnax);
+        TrigSingle(pnax);
+        TrigHoldAll(pnax);
+        
+        AvgOn(pnax);
+        AvgOff(pnax);
+        AvgClear(pnax);
+        
+        AutoScale(pnax);
+        AutoScaleAll(pnax);
+
+        Reset(pnax);
     end
     methods (Access = protected)
-        GetChannels(pnax);  % Get the existing channels
+        CheckParams(pnax, params);
+        measname = MeasName(pnax, channel, trace, meastype);
+        meastype = GetMeasType(pnax, meas);
     end
-    
-    
 end

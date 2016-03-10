@@ -1,5 +1,4 @@
-function AutoscaleAll(pnax) 
-% Performs autoscale on PNAX display for all traces y axes
-    instr = pnax.instrhandle;
-    fprintf(instr, 'DISPlay:WINDow:Y:AUTO');
+function AutoScaleAll(pnax)
+% Auto scale ALL traces
+    fprintf(pnax.instrhandle, 'DISPlay:WINDow:Y:AUTO');
 end

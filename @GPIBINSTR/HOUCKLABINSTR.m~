@@ -1,0 +1,40 @@
+classdef HOUCKLABINSTR < handle
+    % A superclass for GPIB instrument that other classes can inherit.
+    % Contains properties and methods that are common to all GPIB
+    % instruments.
+    
+    properties
+        address;    % address
+        instrhandle;    % oject to communicate with instrument
+    end
+    
+    methods
+        function self = HOUCKLABINSTR(address)
+        % Construct an object with its address
+            self.address = address;
+        end
+        
+        function OpenGPIB(self)
+            %  Open GPIB instrument
+            
+            % If already opened, do nothing
+            self.instrhandle = instrfind('Name', ['GPIB0-', num2str(self.address)], ...
+                                         'Status', 'open');
+            % If not opened, open it
+            if isempty(self.instrhandle)
+                self.instrhandle = gpib('ni', 0, self.address);
+                fopen(self.instrhandle);
+            end
+        end
+        
+        function CloseGPIB(self)
+            % Close GPIB instrument
+            
+            if strcmp(self.instrhandle.Status, 'open')
+                fclose(self.instrhandle);
+            end
+        end
+    end
+    
+end
+

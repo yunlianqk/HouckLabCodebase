@@ -1,16 +1,11 @@
-function SetVoltage(yoko, varargin)
+function SetVoltage(yoko, voltage)
 % Set voltage
-if isempty(varargin)
-    setvoltage = yoko.voltage;
-else
-    setvoltage = varargin{1};
-end
     yoko.PowerOn();
-    yoko.GetVoltage();
-    steps = round(abs(setvoltage - yoko.voltage)/yoko.rampstep);
-    for tempvolt = linspace(yoko.voltage, setvoltage, steps)
-        fprintf(yoko.instrhandle, ['S', num2str(tempvolt), ';E;']);
+    start = yoko.GetVoltage();
+    stop = voltage;
+    steps = round(abs(stop - start)/yoko.rampstep);
+    for tempvolt = linspace(start, stop, steps)
+        fprintf(yoko.instrhandle, 'S%g;E;', tempvolt);
         pause(yoko.rampinterval);
     end
-    yoko.voltage = setvoltage;
 end
