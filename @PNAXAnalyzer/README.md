@@ -14,13 +14,11 @@
 
 * **Methods**:
   * [**PNAXAnalyzer**](#pnaxanalyzer)
-
   * [**SetTransParams**](#settransparams)
   * [**SetSpecParams**](#setspecparams)
   * [**SetActiveChannel**](#setactivechannel)
   * [**SetActiveTrace**](#setactivetrace)
   * [**SetActiveMeas**](#setactivemeas)
-
   * [**GetTransParams**](#gettransparams)
   * [**GetSpecparams**](#getspecparams)
   * [**GetChannelList**](#getchannellist)
@@ -29,31 +27,24 @@
   * [**GetActiveChannel**](#getactivechannel)
   * [**GetActiveTrace**](#getactivetrace)
   * [**GetActiveMeas**](#getactivemeas)
-
   * [**Read**](#read)
   * [**ReadAxis**](#readaxis)
   * [**ReadTrace**](#readtrace)
   * [**ReadChannel**](#readchannel)
-  
   * [**CreateMeas**](#createmeas)
   * [**DeleteChannel**](#deletechannel)
   * [**DeleteTrace**](#deletetrace)
   * [**DeleteMeas**](#deletemeas)
-
   * [**PowerOn**](#poweron)
   * [**PowerOff**](#poweroff)
-
   * [**TrigContinuous**](#trigcontinuous)
   * [**TrigHold**](#trighold)
   * [**TrigSingle**](#trigsingle)
   * [**TrigHoldAll**](#trigholdall)
-
   * [**AvgOn**](#avgon)
   * [**AvgOff**](#avgoff)
-
   * [**AutoScale**](#autoscale)
   * [**AutoScaleAll**](#autoscaleall)
-  
   * [**Reset**](#reset)
   * [**Finalize**](#finalize)
 
