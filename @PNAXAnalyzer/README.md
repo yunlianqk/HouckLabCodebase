@@ -1,5 +1,73 @@
 # PNA-X Network Analyzer
 ## Usage
+### Open instrument
+To open the instrument:
+```matlab
+address = 16; % GPIB address for PNAX
+pnax = PNAXAnalzyer(address);
+```
+### Create measurement and set parameters 
+To set up a transmission scan, first create a *struct* that contains the parameters:
+```matlab
+transparams = struct('start', 5e9, ...
+                     'stop', 6e9, ...
+                     'points', 1001, ...
+                     'power', -50, ...
+                     'averages', 1000, ...
+                     'ifbandwidth', 5e3, ...
+                     'channel', 1, ...
+                     'trace', 1, ...
+                     'meastype', 'S21', ...
+                     'format', 'MLOG');
+```
+Then either use the `SetTransParams` method
+```matlab
+pnax.SetTransParams(transparams);
+```
+or use the assignment
+```matlab
+pnax.transparams = transparams;
+```
+to pass the parameters to the instrument. If there are missing fields in `transparams`, the default setting will be used.
+
+
+You can also change a single parameter like this:
+```matlab
+pnax.transparams.stop = 8e9;
+```
+
+To add another trace that measures the phase of transmission, change the `trace` and `format` fields in the *struct*:
+```matlab
+transparams.trace = 2;
+transparams.format = 'UPH'; % unwrapped phase
+pnax.SetTransParams(transparams);
+```
+
+### Read data
+To read data from PNAX, first specify the **trace** and then call the `Read` method:
+```matlab
+trace = 1;
+pnax.SetActiveTrace(trace);
+amp = pnax.Read();
+trace = 2;
+pnax.SetActiveTrace(trace);
+phase = pnax.Read();
+```
+You can also use 
+```matlab
+data = pnax.ReadTrace(trace);
+```
+to read a desired trace.
+
+To get the x-axis, call the `ReadAxis` method:
+```matlab
+freqvector = pnax.ReadAxis();
+```
+
+## Things to remember
+- A **channel** contains several **measurements** that are of the same type. For example, all transmission measurements can (but not necessarily) be in channel 1 and all spectroscopy measurements can be in channel 2, but a trans and a spec cannot be in the same channel.
+- A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
+- <a name="measname">The **naming convention**</a> for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
 
 ## Class Definition
 #### *class* PNAXAnalyzer < GPIBINSTR
@@ -140,10 +208,10 @@ If `trace` is missing, the active trace will be used.
 If `channel` is miising, the active channel will be used.
 
 ##### CreateMeas
-`pnax.CreateMeas(channel, trace, meas, meastype)` creates a measurement according to the input parameters.
+`pnax.CreateMeas(channel, trace, meas, meastype)` creates a measurement according to the input parameters. Use this method if you need to manually create measurement.
   * *integer* `channel`: channel number
   * *integer* `trace`: trace number
-  * *string* `meas`: measurement name
+  * *string* `meas`: measurement name. Please follow [naming convention](#measname) when naming a measurement.
   * *string* `meastype`: measurement type, e.g., 'S21', 'S13', etc.
 
 ##### DeleteChannel
