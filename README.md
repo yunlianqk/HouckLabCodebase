@@ -34,7 +34,9 @@ $ git push origin master
 ```
 
 ## Quick start
-A typical usage of the code to communicate with an instrument involves **opening instrument**, **setting parameters**,  **getting data** and **closing instrument**. For example, to communicate with a YOKOGAWA 7621 voltage/current source, first create a `YOKOGS200` object using its GPIB address:
+A typical usage of the code to communicate with an instrument involves **opening instrument**, **setting parameters**,  **getting data** and **closing instrument**.
+
+For example, to communicate with a YOKOGAWA 7621 voltage/current source, first create a `YOKOGS200` object using its GPIB address:
 ```matlab
 address = 2
 yoko = YOKOGS200(address);
@@ -62,10 +64,15 @@ or use a direct assignment:
 ```matlab
 voltage = yoko.voltage;
 ```
+To close the instrument, use the `Finalize` method:
+```matlab
+yoko.Finalize();
+```
 
 ## Documentation
 Click the instrument to see the documents.
 
+- GPIB instrument
 - E8267D microwave generator
 - [PNAX network analyzer](./@PNAXAnalyzer/README.md)
 - YOKOGAWA GS200 voltgae/current source
