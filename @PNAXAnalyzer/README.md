@@ -7,7 +7,7 @@
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
   * [**transparams**](#transparams) (*structure*, Dependent): Contains parameters for transmission measurement
-  * [**specparams**](#specparams) (*structure*, Dependent):Contains parameters for spectroscopy measurement 
+  * [**specparams**](#specparams) (*structure*, Dependent): Contains parameters for spectroscopy measurement 
   * **defaulttransparams** (*structure*, Private): Contains default transmission parameters
   * **defaultspecparams** (*structure*, Private): Contains default spectroscopy parameters
   * **timeout** (*float*, Private): Wait time when there is error in communication
