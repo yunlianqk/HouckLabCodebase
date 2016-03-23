@@ -33,6 +33,36 @@ $ git commit -m "Some message"
 $ git push origin master
 ```
 
+## Quick start
+A typical usage of the code to communicate with an instrument involves **opening instrument**, **setting parameters**,  **getting data** and **closing instrument**. For example, to communicate with a YOKOGAWA 7621 voltage/current source, first create a `YOKOGS200` object using its GPIB address:
+```matlab
+address = 2
+yoko = YOKOGS200(address);
+```
+Then set up the parameters:
+```matlab
+yoko.rampstep = 0.002;      % Voltage increment for each step
+yoko.rampinterval = 0.01;   % Time interval between 2 steps
+```
+To set the voltage, call the `SetVoltage` method:
+```matlab
+yoko.SetVoltage(0.5);
+```
+Alternatively, you can use an assignment
+```matlab
+yoko.voltage = 0.5;
+```
+to directly set the voltage.
+
+To get the current output voltage, call the `GetVoltage` method:
+```matlab
+voltage = yoko.GetVoltage();
+```
+or use a direct assignment:
+```matlab
+voltage = yoko.voltage;
+```
+
 ## Documentation
 Click the instrument to see the documents.
 
@@ -42,24 +72,3 @@ Click the instrument to see the documents.
 - YOKOGAWA 7621 voltage/current source
 - U1082A digitizer
 - M9330A AWG
-
-## Quick start
-To control an instrument, first set up the desired parameters and then call the corresponding method. For example, the set the output voltage of a YOKOGAWA 7621, first create a `YOKOGS200` object using its GPIB address:
-```matlab
-address = 2
-yoko = YOKOGS200(address);
-```
-Then set up the parameters:
-```matlab
-yoko.rampstep = 0.002;      % Increment for each step
-yoko.rampinterval = 0.01;   % Time between 2 steps
-```
-Finally call the `SetVoltage` method:
-```matlab
-yoko.SetVoltage(0.5);
-```
-You can also use
-```matlab
-yoko.voltage= 0.5;
-```
-to directly set the voltage.
