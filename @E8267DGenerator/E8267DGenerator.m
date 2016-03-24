@@ -10,9 +10,6 @@ classdef E8267DGenerator < GPIBINSTR
         function gen = E8267DGenerator(address)
             gen = gen@GPIBINSTR(address);
         end
-        function Finalize(gen)
-            Finalize@GPIBINSTR(gen);
-        end
         function set.frequency(gen, freq)
             SetFreq(gen, freq);
         end
@@ -30,10 +27,13 @@ classdef E8267DGenerator < GPIBINSTR
         % Each method is defined in a separate file        
         SetFreq(gen, freq);
         SetPower(gen, power);
+        
         freq = GetFreq(gen);
         power = GetPower(gen);
+        
         PowerOn(gen);
         PowerOff(gen);
+        
         ModOn(gen);
         ModOff(gen);
     end

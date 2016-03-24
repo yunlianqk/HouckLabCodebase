@@ -3,7 +3,7 @@ classdef GPIBINSTR < handle
     % Contains properties and methods that are common to all GPIB
     % instruments.
     
-    properties
+    properties (SetAccess = private, GetAccess = public)
         address;    % GPIB address
         instrhandle;    % GPIB oject to communicate with instrument
     end
@@ -24,10 +24,18 @@ classdef GPIBINSTR < handle
         end
         
         function Finalize(self)
-            % Close instrhandle
-            
+            % Close instrhandle            
             if strcmp(self.instrhandle.Status, 'open')
                 fclose(self.instrhandle);
+            end
+        end
+        
+        function SendCommand(self, command)
+            % Send low-level command to instrument
+            if strcmp(self.instrhandle.Status, 'open')
+                fprintf(self.instrhandle, command);
+            else
+                display('Instrument is not open');
             end
         end
     end

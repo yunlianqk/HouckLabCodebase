@@ -34,9 +34,6 @@ classdef PNAXAnalyzer < GPIBINSTR
         function pnax = PNAXAnalyzer(address)
             pnax = pnax@GPIBINSTR(address);
         end
-        function Finalize(pnax)
-            Finalize@GPIBINSTR(pnax);
-        end
         function set.transparams(pnax, transparams)
             SetTransParams(pnax, transparams);
         end
@@ -63,7 +60,6 @@ classdef PNAXAnalyzer < GPIBINSTR
         SetActiveTrace(pnax, trace);
         SetActiveMeas(pnax, meas);
         
-        xaxis = GetAxis(pnax);
         params = GetParams(pnax);
         chlist = GetChannelList(pnax);
         trlist = GetTraceList(pnax);
@@ -73,18 +69,20 @@ classdef PNAXAnalyzer < GPIBINSTR
         meas = GetActiveMeas(pnax);
 
         data = Read(pnax);
+        xaxis = ReadAxis(pnax);
         data = ReadTrace(pnax, varargin);
         dataarray = ReadChannel(pnax, varargin);
         
-        CreateMeas(pnax, channel, trace, meas, format);
+        CreateMeas(pnax, channel, trace, meas, meastype);
         DeleteChannel(pnax, channel);
         DeleteMeas(pnax, channel, meas);
         DeleteTrace(pnax, trace);
+        DeleteAll(pnax);
         
         PowerOn(pnax);
         PowerOff(pnax);
         
-        TrigContinous(pnax);
+        TrigContinuous(pnax);
         TrigHold(pnax);
         TrigSingle(pnax);
         TrigHoldAll(pnax);
@@ -95,11 +93,11 @@ classdef PNAXAnalyzer < GPIBINSTR
         
         AutoScale(pnax);
         AutoScaleAll(pnax);
-
+        
         Reset(pnax);
     end
     methods (Access = protected)
-        CheckParams(pnax, params);
+        iscorrect = CheckParams(pnax, params);
         measname = MeasName(pnax, channel, trace, meastype);
         meastype = GetMeasType(pnax, meas);
     end

@@ -1,6 +1,12 @@
 function SetActiveMeas(pnax, meas)
 % Set active measurement
     isactive = 0;
+    if isnumeric(meas)
+        fprintf(pnax.instrhandle, 'SYSTem:MEASurement%d:NAME?', meas);
+        tempstr = fscanf(pnax.instrhandle, '%s');
+        meas = tempstr(2:end-1);
+    end
+    
     for channel = pnax.GetChannelList()
         if ismember(meas, pnax.GetMeasList(channel))
             fprintf(pnax.instrhandle, 'CALCulate%d:PARameter:SELect ''%s''', ...
@@ -11,6 +17,6 @@ function SetActiveMeas(pnax, meas)
     end
     
     if ~isactive
-        fprintf('Measurement ''%s'' does not exist\n', meas);
+        display('Measurement does not exist');
     end
 end

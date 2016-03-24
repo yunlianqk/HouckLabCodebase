@@ -12,9 +12,6 @@ classdef YOKOGS200 < GPIBINSTR
         function yoko = YOKOGS200(address)
             yoko = yoko@GPIBINSTR(address);
         end
-        function Finalize(yoko)
-            Finalize@GPIBINSTR(yoko);
-        end
         function set.voltage(yoko, voltage)
             SetVoltage(yoko, voltage);
         end
@@ -23,8 +20,9 @@ classdef YOKOGS200 < GPIBINSTR
         end
         % Declaration of all other methods
         % Each method is defined in a separate file
-        voltage = GetVoltage(yoko); % Get voltage
         SetVoltage(yoko, voltage); % Set voltage
+        voltage = GetVoltage(yoko); % Get voltage
+        
         PowerOn(yoko); % Turn on output
         PowerOff(yoko); % Turn off output
     end

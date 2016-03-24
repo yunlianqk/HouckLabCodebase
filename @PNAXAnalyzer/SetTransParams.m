@@ -22,8 +22,12 @@ function SetTransParams(pnax, transparams)
         end
     end
     
-    % Create measurement and trace
-    pnax.CheckParams(transparams);
+    % Check parameters
+    if ~pnax.CheckParams(transparams)
+        display('Parameters are not set correctly.');
+        return;
+    end
+    % Create measurement  
     pnax.CreateMeas(transparams.channel, transparams.trace, transparams.meastype); 
     
     % Set parameters
@@ -48,11 +52,5 @@ function SetTransParams(pnax, transparams)
     fprintf(pnax.instrhandle, 'SENSe%d:AVERage:COUNt %d', ...
             [transparams.channel, transparams.averages]);
     fprintf(pnax.instrhandle, 'CALCulate%d:FORMat %s', ...
-            [transparams.channel, transparams.format]);
-        
-    % Other settings
-    pnax.AvgOn();
-    pnax.PowerOn();
-    pnax.TrigContinous();
-    
+            [transparams.channel, transparams.format]);    
 end

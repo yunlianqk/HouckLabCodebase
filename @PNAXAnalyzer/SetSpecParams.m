@@ -22,8 +22,12 @@ function SetSpecParams(pnax, specparams)
         end
     end
     
-    % Create measurement and trace
-    pnax.CheckParams(specparams);
+    % Check parameters
+    if ~pnax.CheckParams(specparams)
+        display('Parameters are not set correctly.');
+        return;
+    end
+    % Create measurement  
     pnax.CreateMeas(specparams.channel, specparams.trace, specparams.meastype);
     
     % Set parameters
@@ -59,9 +63,4 @@ function SetSpecParams(pnax, specparams)
             specparams.channel);
     fprintf(pnax.instrhandle, 'CALCulate%d:FORMat %s', ...
             [specparams.channel, specparams.format]);
-    
-    % Other settings
-    pnax.AvgOn();
-    pnax.PowerOn();
-    pnax.TrigContinous();
 end

@@ -8,9 +8,14 @@ function params = GetParams(pnax)
         params.trace = pnax.GetActiveTrace();
         meas = pnax.GetActiveMeas();
         
+        fprintf(pnax.instrhandle, 'CALCulate%d:PARameter:SELect ''%s''', ...
+                [params.channel, meas]);
+            
         fprintf(pnax.instrhandle, 'SENSe%d:FOM:STATe?', params.channel);
-        isspec = num2str(fscanf(pnax.instrhandle, '%s'));
+        isspec = fscanf(pnax.instrhandle, '%d');
+        
         if isspec
+        % If active channel is spec scan, get specparams
             fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STARt?', ...
                     params.channel);
             params.start = fscanf(pnax.instrhandle, '%g');
@@ -31,12 +36,14 @@ function params = GetParams(pnax)
                     params.channel);
             params.cwpower = fscanf(pnax.instrhandle, '%g');                
         else
+        % Else, get transparams
             fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:STARt?', params.channel);
             params.start = fscanf(pnax.instrhandle, '%g');
             
             fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:STOP?', params.channel);
             params.stop = fscanf(pnax.instrhandle, '%g');            
         end
+        % Get other params
         fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts?', params.channel);
         params.points = fscanf(pnax.instrhandle, '%g');
         
@@ -51,9 +58,7 @@ function params = GetParams(pnax)
         
         fprintf(pnax.instrhandle, 'CALCulate%d:FORMat?', params.channel);
         params.format = fscanf(pnax.instrhandle, '%s');
-                
-%         tempstr = strsplit(meas, '_');
-%         params.meastype = tempstr{2};
+
         params.meastype = pnax.GetMeasType(meas);
     end
 end
