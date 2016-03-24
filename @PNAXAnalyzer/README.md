@@ -103,6 +103,7 @@ freqvector = pnax.ReadAxis();
   * [**DeleteChannel**](#deletechannel)
   * [**DeleteTrace**](#deletetrace)
   * [**DeleteMeas**](#deletemeas)
+  * [**DeletaAll**](#deleteall)
   * [**PowerOn**](#poweron)
   * [**PowerOff**](#poweroff)
   * [**TrigContinuous**](#trigcontinuous)
@@ -222,6 +223,9 @@ If `channel` is miising, the active channel will be used.
 
 ##### DeleteMeas
 `pnax.DeleteMeas(channel, meas)` deletes a measurement named `meas` from `channel`.
+
+##### DeleteAll
+`pnax.DeleteAll()` deletes all channels.
 
 ##### PowerOn
 `pnax.PowerOn()` turns on the output power.
