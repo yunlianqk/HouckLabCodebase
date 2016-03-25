@@ -2,60 +2,24 @@ classdef PNAXAnalyzer < GPIBINSTR
 % Contains paramaters and methods for PNA-X Network Analyzer
 
     properties (Dependent)
-        transparams;
-        specparams;
+        params;
     end
     properties (Access = private)
-        defaulttransparams = struct('start', 5e9, ...
-                                    'stop', 6e9, ...
-                                    'points', 1001, ...
-                                    'power', -50, ...
-                                    'averages', 1000, ...
-                                    'ifbandwidth', 5e3, ...
-                                    'channel', 1, ...
-                                    'trace', 1, ...
-                                    'meastype', 'S21', ...
-                                    'format', 'MLOG');
-        defaultspecparams = struct('start', 4e9, ...
-                                   'stop', 5e9, ...
-                                   'points', 1001, ...
-                                   'power', -50, ...
-                                   'averages', 1000, ...
-                                   'ifbandwidth', 5e3, ...
-                                   'cwfreq', 7e9, ...
-                                   'cwpower', -50, ...
-                                   'channel', 2, ...
-                                   'trace', 3, ...
-                                   'meastype', 'S21', ...
-                                   'format', 'MLOG');
         timeout = 10;
     end
     methods
         function pnax = PNAXAnalyzer(address)
             pnax = pnax@GPIBINSTR(address);
         end
-        function set.transparams(pnax, transparams)
-            SetTransParams(pnax, transparams);
+        function set.params(pnax, transparams)
+            SetParams(pnax, transparams);
         end
-        function transparams = get.transparams(pnax)
-            transparams = GetParams(pnax);
-        end
-        function set.specparams(pnax, specparams)
-            SetSpecParams(pnax, specparams);
-        end
-        function specparams = get.specparams(pnax)
-            specparams = GetParams(pnax);
-        end
-        function transparams = GetTransParams(pnax)
-            transparams = GetParams(pnax);
-        end
-        function specparams = GetSpecParams(pnax)
-            specparams = GetParams(pnax);
+        function params = get.params(pnax)
+            params = GetParams(pnax);
         end
         % Declaration of all other methods
         % Each method is defined in a separate file
-        SetTransParams(pnax, transparams);
-        SetSpecParams(pnax, specparams);
+        SetParams(pnax, params);
         SetActiveChannel(pnax, channel);
         SetActiveTrace(pnax, trace);
         SetActiveMeas(pnax, meas);
@@ -82,23 +46,32 @@ classdef PNAXAnalyzer < GPIBINSTR
         PowerOn(pnax);
         PowerOff(pnax);
         
-        TrigContinuous(pnax);
-        TrigHold(pnax);
-        TrigSingle(pnax);
+        TrigContinuous(pnax, varargin);
+        TrigHold(pnax, varargin);
+        TrigSingle(pnax, varargin);
         TrigHoldAll(pnax);
         
-        AvgOn(pnax);
-        AvgOff(pnax);
-        AvgClear(pnax);
+        AvgOn(pnax, varagin);
+        AvgOff(pnax, varagin);
+        AvgClear(pnax, varagin);
         
-        AutoScale(pnax);
+        AutoScale(pnax, varagin);
         AutoScaleAll(pnax);
         
         Reset(pnax);
     end
     methods (Access = protected)
         iscorrect = CheckParams(pnax, params);
+        isspec = IsSpec(pnax, channel);
         measname = MeasName(pnax, channel, trace, meastype);
         meastype = GetMeasType(pnax, meas);
+
+        SetTransParams(pnax, transparams);
+        UpdateTransParams(pnax, oldparams, newparams);
+        transparams = GetTransParams(pnax);
+        
+        SetSpecParams(pnax, specparams);
+        UpdateSpecParams(pnax, oldparams, newparams);
+        specparams = GetSpecParams(pnax);
     end
 end

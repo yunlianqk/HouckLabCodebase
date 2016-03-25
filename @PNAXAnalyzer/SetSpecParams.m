@@ -1,36 +1,5 @@
 function SetSpecParams(pnax, specparams)
-% Perform spectroscopy measurement
-
-    % If channel not defined, use default channel
-    if ~isfield(specparams, 'channel')
-        specparams.channel = pnax.defaultspecparams.channel;
-    end
-
-    % If channel is active, get current settings
-    if specparams.channel == pnax.GetActiveChannel()
-        tempparams = pnax.GetParams();
-    % Else, use default settings
-    else
-        tempparams = pnax.defaultspecparams;
-    end
-    
-    % Fill the missing fields 
-    fields = fieldnames(tempparams);
-    for idx = 1:length(fields)
-        if ~isfield(specparams, fields{idx})
-            specparams.(fields{idx}) = tempparams.(fields{idx});
-        end
-    end
-    
-    % Check parameters
-    if ~pnax.CheckParams(specparams)
-        display('Parameters are not set correctly.');
-        return;
-    end
-    % Create measurement  
-    pnax.CreateMeas(specparams.channel, specparams.trace, specparams.meastype);
-    
-    % Set parameters
+% Set spectroscopy measurement
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:TYPE CW', ...
             specparams.channel);
     fprintf(pnax.instrhandle, 'SENSe%d:FOM:RANGe4:COUPled OFF', ...
