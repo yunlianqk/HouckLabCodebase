@@ -179,7 +179,7 @@ freqvector = pnax.ReadAxis();
 `pnax.SetActiveMeas(meas)` sets the measurement specified by *string* `meas` as active.
 
 ##### GetParams
-`params = pnax.GetParams()` returns a *object* `params` containing the parameters of the active measurement.
+`params = pnax.GetParams()` returns a *object* `params` containing the [parameters](#transparams) of the active measurement.
 
 ##### GetChannelList
 `chlist = pnax.GetChannelList()` returns an *array* `chlist` containing the number for each channel.
