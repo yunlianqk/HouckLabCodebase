@@ -86,7 +86,7 @@ freqvector = pnax.ReadAxis();
 ## Things to remember
 - A **channel** contains several **measurements** that are of the same type. For example, all transmission measurements can (but not necessarily) be in channel 1 and all spectroscopy measurements can be in channel 2, but a trans and a spec cannot be in the same channel.
 - A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
-- <a name="measname">The **naming convention**</a> for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
+- <a name="measname"></a>The **naming convention**for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
 
 ## Class Definition
 #### *class* PNAXAnalyzer < GPIBINSTR
@@ -132,7 +132,7 @@ freqvector = pnax.ReadAxis();
   * [**Finalize**](#finalize)
 
 
-#### <a name="params">*class* TRANSParams</a>
+#### <a name="params"></a>*class* TRANSParams
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
