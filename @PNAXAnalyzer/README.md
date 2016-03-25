@@ -167,7 +167,7 @@ freqvector = pnax.ReadAxis();
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
 ##### SetParams
-`pnax.SetParams(transparams)` sets up the [parameters](#params) for a measurement.
+`pnax.SetParams(transparams)` sets up the [parameters](#transparams) for a measurement.
 
 ##### SetActiveChannel
 `pnax.SetActiveChannel(channel)` sets the channel specified by *interger* `channel` as active.
