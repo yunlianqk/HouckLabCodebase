@@ -4,7 +4,7 @@
 To open the instrument:
 ```matlab
 address = 16; % GPIB address for PNAX
-pnax = PNAXAnalzyer(address);
+pnax = PNAXAnalyzer(address);
 ```
 ### Create measurements
 To set up a transmission scan, first create a [**TRANSParams**](#transparams) *object* that contains the parameters:
@@ -33,6 +33,7 @@ to pass the parameters to the instrument.
 
 Repeat the above procedure to add new channels/traces:
 ```matlab
+transCh2 = transCh1;
 transCh2.channel = 2;
 transCh2.trace = 2;
 transCh2.meastype = 'S13';
