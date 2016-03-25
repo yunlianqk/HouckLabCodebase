@@ -6,14 +6,17 @@ classdef U1082ADigitizer < handle
         instrID;
         AqReadParameters;
     end
-    properties (Access = public)
-        fullscale = 0.2;	% from 0.05 to 5 in 1,2,5,10 sequence
-        sampleinterval = 1e-9;  % from 1 ns to 100 ms in 1,2,2.5,4,5,10 sequence  
-        samples = 10000;
-        averages = 30000;
-        segments = 1;
-        delaytime = 10e-6;
-        couplemode = 'DC';
+    properties (Dependent)
+        params;
+    end
+    properties (Access = private)
+        defaultparams = struct('fullscale', 0.2, ...
+                        'sampleinterval', 1e-9, ...
+                        'samples', 10000, ...
+                        'averages', 30000, ...
+                        'segments', 1, ...
+                        'delaytime', 10e-6, ...
+                        'couplemode', 'DC');
     end
     
     methods
@@ -41,13 +44,22 @@ classdef U1082ADigitizer < handle
             AqD1_configTrigSource(card.instrID, -1, 0, 0, trigLevel, 0.0);
             % second parameter = -1 sets trigchannel to external sources
             % third parameter = 0/1 set trigcoupling to DC/AC
+            
+            % Set default parameters
+            card.SetParams(card.defaultparams);
+        end
+        function set.params(card, params)
+            SetParams(card, params);
+        end
+        function params = get.params(card)
+            params = GetParams(card);
         end
 
         % Declaration of all methods
         % Each method is defined in a separate file
         Finalize(card);	% Close card
-        SetParams(card);	% Set card parameters
-        GetParams(card);	% Get card parameters
+        SetParams(card, params);	% Set card parameters
+        params = GetParams(card);	% Get card parameters
         [IData, QData] = ReadIandQ(card);	% Acquire data from two channels
     end
 end

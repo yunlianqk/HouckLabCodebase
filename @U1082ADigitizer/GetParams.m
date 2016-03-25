@@ -1,15 +1,18 @@
-function GetParams(card)
+function params = GetParams(card)
 % Get card parameters
-    [~, card.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(card.instrID, 1);
+    [~, params.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(card.instrID, 1);
     if Vertcouling == 4
-        card.couplemode = 'AC';
+        params.couplemode = 'AC';
     else
-        card.couplemode = 'DC';
+        params.couplemode = 'DC';
     end
-    [~, card.sampleinterval, ~] = AqD1_getHorizontal(card.instrID);
+    [~, params.sampleinterval, ~] = AqD1_getHorizontal(card.instrID);
     [~, StartDelay] = AqD1_getAvgConfigInt32(card.instrID, 1, 'StartDelay');
-    card.delaytime = double(StartDelay)*card.sampleinterval;
-    [~, card.samples] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSamples');
-    [~, card.averages] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrWaveforms');
-    [~, card.segments] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSegments');
+    params.delaytime = double(StartDelay)*params.sampleinterval;
+    [~, params.samples] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSamples');
+    params.samples = double(params.samples);
+    [~, params.averages] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrWaveforms');
+    params.averages = double(params.averages);
+    [~, params.segments] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSegments');
+    params.segment = double(params.segments);
 end

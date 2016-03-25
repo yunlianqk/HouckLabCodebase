@@ -1,9 +1,8 @@
 function SetActiveTrace(pnax, trace)
 % Set active trace
-    trlist = pnax.GetTraces();
-    if ~ismember(trace, trlist)
-        error(['Error: Trace ', num2str(trace), ' does not exist.']);
+    if ismember(trace, pnax.GetTraceList())
+        fprintf(pnax.instrhandle, 'DISPlay:WINDow:TRACe%d:SELect', trace);
+    else
+        fprintf('Trace %d does not exist\n', trace);
     end
-    
-    fprintf(pnax.instrhandle, ['DISPlay:WINDow:TRACe', num2str(trace), ':SELect']);
 end

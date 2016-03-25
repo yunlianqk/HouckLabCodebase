@@ -1,5 +1,5 @@
-function GetVoltage(yoko)
+function voltage = GetVoltage(yoko)
 % Get voltage
     fprintf(yoko.instrhandle, ':SOURce:LEVel?');
-    yoko.voltage = fscanf(yoko.instrhandle, '%g');
+    voltage = fscanf(yoko.instrhandle, '%g');
 end

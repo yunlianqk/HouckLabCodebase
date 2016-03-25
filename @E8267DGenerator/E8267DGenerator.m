@@ -1,38 +1,39 @@
-classdef E8267DGenerator < handle
+classdef E8267DGenerator < GPIBINSTR
 % Contains paramaters and methods for E8267D vector generator
 
-    properties (SetAccess = private, GetAccess = public)
-        address;    % GPIB address
-        instrhandle;    % gpib object for the instrument
-    end
-    properties (Access = public)
+    properties (Dependent)
         frequency;
         power;
     end
     
     methods
         function gen = E8267DGenerator(address)
-        % Open instrument
-            gen.address = address;
-            % If already opened
-            gen.instrhandle = instrfind('Name', ['GPIB0-', num2str(gen.address)], ...
-                                        'Status', 'open');
-            % If not opened
-            if isempty(gen.instrhandle)
-                gen.instrhandle = gpib('ni', 0, gen.address);
-                fopen(gen.instrhandle);
-            end
-            gen.GetParams();
+            gen = gen@GPIBINSTR(address);
+        end
+        function set.frequency(gen, freq)
+            SetFreq(gen, freq);
+        end
+        function set.power(gen, power)
+            SetPower(gen, power);
+        end
+        function freq = get.frequency(gen)
+            freq = GetFreq(gen);
+        end
+        function power = get.power(gen)
+            power = GetPower(gen);
         end
         
-        % Declaration of all methods
+        % Declaration of all other methods
         % Each method is defined in a separate file        
-        Finalize(gen);  % Close instrument
-        GetParams(gen); % Read parameters from instrument and update
-        SetFreq(gen, varargin);
-        SetPower(gen, varargin);
+        SetFreq(gen, freq);
+        SetPower(gen, power);
+        
+        freq = GetFreq(gen);
+        power = GetPower(gen);
+        
         PowerOn(gen);
         PowerOff(gen);
+        
         ModOn(gen);
         ModOff(gen);
     end
