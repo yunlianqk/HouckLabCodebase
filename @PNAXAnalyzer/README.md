@@ -7,7 +7,7 @@ address = 16; % GPIB address for PNAX
 pnax = PNAXAnalzyer(address);
 ```
 ### Create measurements
-To set up a transmission scan, first create a [**TRANSParams**](#params) *object* that contains the parameters:
+To set up a transmission scan, first create a [**TRANSParams**](#transparams) *object* that contains the parameters:
 ```matlab
 transCh1 = TRANSParams();
 transCh1.start = 5e9;
@@ -93,7 +93,7 @@ freqvector = pnax.ReadAxis();
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
-  * [**params**](#params) (*object*, Dependent): Contains parameters for a measurement
+  * [**params**](#transparams) (*object*, Dependent): Contains parameters for a measurement
   * **timeout** (*float*, Private): Wait time when there is error in communication
 
 * **Methods**:
@@ -132,7 +132,7 @@ freqvector = pnax.ReadAxis();
   * [**Finalize**](#finalize)
 
 
-#### <a name="params"></a>*class* TRANSParams
+#### <a name="transparams"></a>*class* TRANSParams
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
@@ -145,7 +145,7 @@ freqvector = pnax.ReadAxis();
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'.
 
-#### *class* SPECParams
+#### <a name="specparams"></a>*class* SPECParams
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
