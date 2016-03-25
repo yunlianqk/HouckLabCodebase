@@ -1,5 +1,6 @@
 # PNA-X Network Analyzer
 ## Usage
+See also the [example code](../ExampleCode/PNAX.m).
 ### Open instrument
 To open the instrument:
 ```matlab
