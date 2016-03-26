@@ -4,7 +4,7 @@ See also the [example code](../ExampleCode/PNAX.m).
 ### Open instrument
 To open the instrument:
 ```matlab
-address = 16; % GPIB address for PNAX
+address = 16; % GPIB address
 pnax = PNAXAnalyzer(address);
 ```
 ### Create measurements
@@ -90,7 +90,7 @@ freqvector = pnax.ReadAxis();
 - A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
 - <a name="measname"></a>The **naming convention** for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
 
-## Class Definition
+## Class definition
 #### *class* PNAXAnalyzer < GPIBINSTR
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
@@ -162,7 +162,7 @@ freqvector = pnax.ReadAxis();
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'. 
 
-## API Specifications
+## API specifications
 ##### PNAXAnalyzer
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
