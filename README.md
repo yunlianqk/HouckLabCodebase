@@ -72,8 +72,8 @@ yoko.Finalize();
 ## Documentation
 Click the instrument to see the documents.
 
-- GPIB instrument
-- E8267D microwave generator
+- GPIB instrument(./@GPIBINSTR/README.md)
+- [E8267D microwave generator](./@E8267DGenerator/README.md)
 - [PNAX network analyzer](./@PNAXAnalyzer/README.md)
 - YOKOGAWA GS200 voltgae/current source
 - YOKOGAWA 7621 voltage/current source
