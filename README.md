@@ -36,7 +36,7 @@ $ git push origin master
 ## Quick start
 A typical usage of the code to communicate with an instrument involves **opening instrument**, **setting parameters**,  **getting data** and **closing instrument**.
 
-For example, to communicate with a YOKOGAWA 7621 voltage/current source, first create a `YOKOGS200` object using its GPIB address:
+For example, to communicate with a YOKOGAWA 7621 voltage/current source, first create a **YOKOGS200** object using its GPIB address:
 ```matlab
 address = 2
 yoko = YOKOGS200(address);
