@@ -1,5 +1,6 @@
 # PNA-X Network Analyzer
 ## Usage
+See also the [example code](../ExampleCode/PNAX.m).
 ### Open instrument
 To open the instrument:
 ```matlab
@@ -181,7 +182,7 @@ A class to store parameters for power sweep measurement
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
 ##### SetParams
-`pnax.SetParams(transparams)` sets up the [parameters](#params) for a measurement.
+`pnax.SetParams(transparams)` sets up the [parameters](#transparams) for a measurement.
 
 ##### SetActiveChannel
 `pnax.SetActiveChannel(channel)` sets the channel specified by *interger* `channel` as active.
@@ -193,7 +194,7 @@ A class to store parameters for power sweep measurement
 `pnax.SetActiveMeas(meas)` sets the measurement specified by *string* `meas` as active.
 
 ##### GetParams
-`params = pnax.GetParams()` returns a *object* `params` containing the parameters of the active measurement.
+`params = pnax.GetParams()` returns a *object* `params` containing the [parameters](#transparams) of the active measurement.
 
 ##### GetChannelList
 `chlist = pnax.GetChannelList()` returns an *array* `chlist` containing the number for each channel.
