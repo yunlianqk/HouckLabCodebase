@@ -1,5 +1,5 @@
 function SetSpecParams(pnax, specparams)
-% Set spectroscopy measurement
+% Set spectroscopy parameters
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:TYPE CW', ...
             specparams.channel);
     fprintf(pnax.instrhandle, 'SENSe%d:FOM:RANGe4:COUPled OFF', ...

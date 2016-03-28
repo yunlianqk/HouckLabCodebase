@@ -14,6 +14,10 @@ function Reset(pnax)
     transCh1.trace = 2;
     transCh1.format = 'UPH';
     pnax.SetParams(transCh1);
+    pnax.AvgOn();
+    pnax.TrigContinuous();
+    pause(0.5);
+    
     % Channel 2, trace 3 for spec amp
     specCh2 = SPECParams();
     specCh2.channel = 2;
@@ -24,4 +28,10 @@ function Reset(pnax)
     specCh2.trace = 4;
     specCh2.format = 'UPH';
     pnax.SetParams(specCh2);
+    pnax.AvgOn();
+    pnax.TrigContinuous();
+    pause(0.5);
+    
+    pnax.TrigHoldAll();
+    pnax.AutoScaleAll();
 end

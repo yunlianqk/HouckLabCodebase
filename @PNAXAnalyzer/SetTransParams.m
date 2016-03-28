@@ -1,5 +1,5 @@
 function SetTransParams(pnax, transparams)
-% Set transmission measurement
+% Set transmission parameters
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:TYPE LINear', ...
             transparams.channel);
     fprintf(pnax.instrhandle, 'SENse%d:FOM OFF', ...

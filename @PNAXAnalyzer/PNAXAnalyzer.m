@@ -63,6 +63,7 @@ classdef PNAXAnalyzer < GPIBINSTR
     methods (Access = protected)
         iscorrect = CheckParams(pnax, params);
         isspec = IsSpec(pnax, channel);
+        ispswepp = IsPsweep(pnax, channel);
         measname = MeasName(pnax, channel, trace, meastype);
         meastype = GetMeasType(pnax, meas);
 
@@ -73,5 +74,9 @@ classdef PNAXAnalyzer < GPIBINSTR
         SetSpecParams(pnax, specparams);
         UpdateSpecParams(pnax, oldparams, newparams);
         specparams = GetSpecParams(pnax);
+        
+        SetPsweepParams(pnax, psweepparams);
+        UpdatePsweepParams(pnax, oldparams, newparams);
+        psweepparams = GetPsweepParams(pnax);
     end
 end
