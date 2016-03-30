@@ -1,5 +1,5 @@
 function params = GetParams(pnax)
-% Return a struct that contains the parameters of the active trace
+% Return an object that contains the parameters of the active trace
     
     if isempty(pnax.GetActiveChannel())
         params = [];
