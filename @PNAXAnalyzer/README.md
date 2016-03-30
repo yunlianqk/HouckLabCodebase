@@ -135,6 +135,7 @@ freqvector = pnax.ReadAxis();
 
 
 #### <a name="transparams"></a>*class* TRANSParams
+A class to store parameters for transmission measurement
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
@@ -145,9 +146,10 @@ freqvector = pnax.ReadAxis();
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'.
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
 
 #### <a name="specparams"></a>*class* SPECParams
+A class to store parameters for spectroscopy measurement
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
@@ -160,9 +162,22 @@ freqvector = pnax.ReadAxis();
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'. 
-
-## API specifications
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  
+#### <a name="psweepparams"></a>*class* PSWEEPParams
+A class to store parameters for power sweep measurement
+* **Properties**:
+  * **start** (*float*): start power
+  * **stop** (*float*): stop power
+  * **points** (*integer*): number of sweeping points
+  * **averages** (*integer*): number of averages
+  * **ifbandwidth** (*float*): IF bandwidth
+  * **cwfreq** (*float*): CW frequency
+  * **trace** (*integer*): trace number
+  * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  
+## API Specifications
 ##### PNAXAnalyzer
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 

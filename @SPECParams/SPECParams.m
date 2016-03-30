@@ -20,4 +20,3 @@ classdef SPECParams
         format = 'MLOG';
     end
 end
-

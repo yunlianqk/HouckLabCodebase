@@ -17,4 +17,3 @@ classdef TRANSParams
         format = 'MLOG';
     end
 end
-
