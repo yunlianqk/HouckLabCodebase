@@ -1,3 +1,6 @@
+## Version 0.2, 03/30/2016
+- Add power sweep method to PNAX
+
 ## Version 0.2, 03/24/2016
 - Use "dependent properties" to set/get parameters
 - Add low frequency AWG33250A
