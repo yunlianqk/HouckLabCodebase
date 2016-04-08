@@ -48,7 +48,7 @@ samplinginterval = card.params.sampleinterval;
 #### *class* U1082ADigitizer < handle
 * **Properties**: 
   * **address** (*string*, Read-only): PXI address of the instrument
-  * **instrID** (*integer*, Read-only): ID with instrument
+  * **instrID** (*integer*, Read-only): ID of the instrument
   * [**params**](#params) (*object*, Dependent): Contains parameters
 
 * **Methods**:
