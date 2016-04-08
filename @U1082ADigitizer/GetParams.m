@@ -1,5 +1,7 @@
 function params = GetParams(card)
 % Get card parameters
+    params = ACQIRISParams();
+    
     [~, params.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(card.instrID, 1);
     if Vertcouling == 4
         params.couplemode = 'AC';

@@ -2,7 +2,6 @@
 ## Usage
 See also the [example code](../ExampleCode/PNAX.m).
 ### Open instrument
-To open the instrument:
 ```matlab
 address = 16; % GPIB address
 pnax = PNAXAnalyzer(address);

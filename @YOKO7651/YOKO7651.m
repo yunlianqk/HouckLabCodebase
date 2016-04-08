@@ -1,4 +1,4 @@
-classdef YOKO7621 < GPIBINSTR
+classdef YOKO7651 < GPIBINSTR
 % Contains paramaters and methods for YOKOGAWA GS200 voltage source
 
     properties (Access = public)
@@ -10,7 +10,7 @@ classdef YOKO7621 < GPIBINSTR
         voltage;
     end
     methods
-        function yoko = YOKO7621(address)
+        function yoko = YOKO7651(address)
             yoko = yoko@GPIBINSTR(address);
         end
         function set.voltage(yoko, voltage)
