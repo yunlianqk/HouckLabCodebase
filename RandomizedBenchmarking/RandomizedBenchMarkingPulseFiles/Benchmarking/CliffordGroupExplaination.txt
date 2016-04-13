@@ -1,0 +1,34 @@
+The main code to run is CliffordGroup.m
+
+First, the code generates a definition of the Clifford group in terms of single qubit rotations (pulses). This is stored in the variables Clfrd and Clfrdstring. Those two variables are the same except for the term ¡®Pulse¡¯ appended to all pulses in Clfrdstring. This mess is due to the way the pulse pattern generator was implemented. Let¡¯s not get into why it was implemented that way. I¡¯ll take the blame for it. But, essentially, we will only use Clfrd. 
+
+The code then creates a random sequence of a number (512 currently) members of the Clifford group. A seed can be provided to the random generation to control the output sequence. In the present code this is done in the line 
+rand('twister',1) 
+where the ¡®1¡¯ is the seed. That way, different users can always generate the same sequence by knowing the seed. This line will need to be done differently in more recent versions of Matlab. The code I am sending was written for R2009b.
+
+This sequence in terms of Cliffords is stored in the variable patstrgset and in terms of pulses in the variables seqstring (with the ¡®Pulse¡¯ thingy) and patseqset (without it).
+
+
+The Clifford sequence is then used to generate smaller sequences whose lengths increase exponentially. The exponential growth is defined in the line 
+
+seqsubset=floor(2*(linspace(1,16,32)).^2);
+
+and the sequences themselves are defined as patseq (pulses without ¡®Pulse¡¯), seq (pulses with ¡®Pulse¡¯) and patstrg (Cliffords).
+
+So, in this instance, the first sequence would have 2 gates, the next one 4, then 7, etc, with the last one having 512 Cliffords, i.e. the whole original sequence.
+
+By changing the lines
+
+clfindex=randi(24,1,512);
+
+and
+
+seqsubset=floor(2*(linspace(1,16,32)).^2);
+
+
+one can change the total number of Cliffords and the exponential growth of the Clifford sequences.
+
+Finally, an Undo gate is appended to each sequence to bring the qubit to the ground state. This is done by the UndoGate function. The final sequences including the undo gates are stored in patseq.
+
+
+
