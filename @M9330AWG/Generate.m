@@ -1,21 +1,25 @@
 function Generate(pulsegen)
-% Set up waveforms and markers
-    % Check waveform lengths
+% Load waveforms, create markers and generate output
+
+    % If waveform lengths are note equal or less than 128, throw error
     if length(pulsegen.waveform1) ~= length(pulsegen.waveform2)
         error('Waveforms need to have same length');
     end
     if length(pulsegen.waveform) < 128
         error('Waveforms need to contain at least 128 points');
     end
+    
     % If time axis has different length than waveform, throw error
     if length(pulsegen.timeaxis) ~= length(pulsegen.waveform1)
         error('Time axis needs to have same length as waveforms');
     end
+    
     % Interpolate time axis and waveforms using sampling rate
     dt = 1/pulsegen.samplingrate;
     taxis = pulsegen.timeaxis(1):dt:pulsegen.timeaxis(end);
     waveforms = [interp1(pulsegen.timeaxis, pulsegen.waveform1, taxis); ...
                  interp1(pulsegen.timeaxis, pulsegen.waveform2, taxis)];
+             
     % Increase the length of time axis and waveforms to integer mulitple of 8
     newlength = ceil(length(waveforms(1,:))/8)*8;
     if mod(length(waveforms(1,:)), 8) ~= 0
@@ -24,7 +28,7 @@ function Generate(pulsegen)
         taxis = linspace(taxis(1), taxis(1)+dt*(newlength-1), newlength);
     end
     
-    % Create rawdata sample values for AWG
+    % Create rawdata points for AWG
     markers = zeros(2, length(taxis));
     offset = [pulsegen.mkr1offset, pulsegen.mkr2offset];
     amp = [pulsegen.CH1MAXAMP, pulsegen.CH2MAXAMP];

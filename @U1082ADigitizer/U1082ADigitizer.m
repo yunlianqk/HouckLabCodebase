@@ -2,14 +2,14 @@ classdef U1082ADigitizer < handle
 % Contains paramaters and methods for U1082A Digitizer
 
     properties (SetAccess = private, GetAccess = public)
-        address;
-        instrID;
+        address;    % PXI address
+        instrID;    % ID
     end
     properties (Dependent)
-        params;
+        params;     % Parameters for digitizer
     end
     properties (Access = private)
-        AqReadParameters;
+        AqReadParameters;   % Internal struct for ReadIandQ() method
     end
     
     methods
