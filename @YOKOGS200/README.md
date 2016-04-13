@@ -37,7 +37,7 @@ voltage = yoko.voltage;
   * **voltage** (*float*, Depedent):
 * **Methods**:
   * **yoko = YOKOGS200(address)**: Opens the instrument with `address` and creates an object `yoko`
-  * **Yoko.SetVoltge(voltage)**: Sets the voltage
+  * **yoko.SetVoltge(voltage)**: Sets the voltage
   * **voltage = yoko.GetVoltage()**: Gets the voltage
   * **yoko.PowerOn()**: Turns on output
   * **yoko.PowerOff()**: Turns off output

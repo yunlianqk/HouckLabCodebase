@@ -38,7 +38,7 @@ pulsegen.Generate();
     - OUTPUTCONFIG = 2: Amplified single-ended output, max amplitude = 0.34 to 0.5 V
     
   See the [User Manual](./M9330A%20User's%20Guide.pdf) for details.
-- Markers will automatically be applied to non-zero waveform points. The effect of **mkraddwidth** and **mkr1offset** is shown in the figure below.
+- Markers will automatically be applied to non-zero waveform points. The effect of **mkraddwidth** and **mkroffset** is shown in the figure below.
 
     <div style="text-align:center"><img src="./marker2.jpg" alt="Marker figure" align="middle"/></div>
     
