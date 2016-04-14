@@ -1,5 +1,6 @@
 # M9330A PXI-H Arbitrary Waveform Generator
 ## Usage
+See also the [example code](../ExampleCode/M9330A.m).
 ### Open instrument
 ```matlab
 address = 'PXI50::15::0::INSTR'; % PXI address

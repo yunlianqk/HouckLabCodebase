@@ -5,7 +5,7 @@ function Generate(pulsegen)
     if length(pulsegen.waveform1) ~= length(pulsegen.waveform2)
         error('Waveforms need to have same length');
     end
-    if length(pulsegen.waveform) < 128
+    if length(pulsegen.waveform1) < 128
         error('Waveforms need to contain at least 128 points');
     end
     

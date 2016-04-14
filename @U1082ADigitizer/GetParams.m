@@ -16,5 +16,5 @@ function params = GetParams(card)
     [~, params.averages] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrWaveforms');
     params.averages = double(params.averages);
     [~, params.segments] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSegments');
-    params.segment = double(params.segments);
+    params.segments = double(params.segments);
 end

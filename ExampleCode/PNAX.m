@@ -1,6 +1,7 @@
 %% Add class definition files to PATH
-path = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
-addpath(genpath(path));
+repopath = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
+addpath(genpath(repopath));
+clear(repopath);
 %% Open PNAX 
 address = 16; % GPIB address for PNAX
 pnax = PNAXAnalyzer(address);
@@ -22,7 +23,7 @@ transCh1.format = 'MLOG';
 
 pnax.SetParams(transCh1);
 pnax.AvgOn();
-pnax.PowerOn;
+pnax.PowerOn();
 pnax.TrigContinuous();
 %% Set channel 2 paramters
 transCh2 = transCh1;

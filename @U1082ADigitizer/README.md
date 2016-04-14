@@ -1,8 +1,9 @@
 # Acqiris U1082A 8-Bit Digitizer
 ## Usage
+See also the [example code](../ExampleCode/U1082A.m).
 ### Open instrument
 ```matlab
-address = 'PXI7::4::0::INSTR';
+address = 'PXI7::4::0::INSTR';  % PXI address
 card = U1082ADigitizer(address);
 ```
 ### Set/get parameters
@@ -12,7 +13,7 @@ cardparams = ACQIRISParams();
 cardparams.fullscale = 0.2;
 cardparams.sampleinterval = 1e-9;
 cardparams.samples = 10000;
-cardparams.averages = 30000
+cardparams.averages = 30000;
 cardparams.segments = 1;
 cardparams.delaytime = 10e-6;
 cardparams.couplemode = 'DC';

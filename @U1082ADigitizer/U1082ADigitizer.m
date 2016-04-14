@@ -15,12 +15,7 @@ classdef U1082ADigitizer < handle
     methods
         function card = U1082ADigitizer(address)
         % Initialize card
-        
             card.address = address;
-            % Path to matlab driver codes
-            addpath('C:\Program Files (x86)\Agilent\MD1\U10xx_Digitizers\bin', ...
-                    'C:\Program Files (x86)\Agilent\MD1\U10xx_Digitizers\MATLAB\mex\functions');
-
             % Initializes and returns instrID
             [status, card.instrID] = Aq_InitWithOptions(card.address, 0, 0, 'asbus = false');
              if status ~= 0
@@ -57,9 +52,7 @@ classdef U1082ADigitizer < handle
             %                    positive/negative/out of window/into window
             % fifth parameter sets trigger level
             % sixth parameter sets trigger level 2 when window trigger is used
-            
-            % Set default parameters
-            card.SetParams(ACQIRISParams());
+            card.SetParams(card.params);
         end
         function set.params(card, params)
             SetParams(card, params);
