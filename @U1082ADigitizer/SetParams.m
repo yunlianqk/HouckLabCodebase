@@ -1,15 +1,6 @@
 function SetParams(card, params)
 % Set card parameters
     
-    % Fill missing fields
-    tempparams = GetParams(card);
-    fields = fieldnames(tempparams);
-    for idx = 1:length(fields)
-        if ~isfield(params, fields{idx})
-            params.(fields{idx}) = tempparams.(fields{idx});
-        end
-    end
-    
     % Vertical settings
     Vertoffset = 0;
     Vertbandwidth = 0; % 5= 35 MHz LPF

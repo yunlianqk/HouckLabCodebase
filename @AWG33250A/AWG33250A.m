@@ -20,7 +20,7 @@ classdef AWG33250A < GPIBINSTR
             SetFreq(triggen, frequency);
         end
         function set.vpp(triggen, vpp)
-            SetAmp(triggen, vpp);
+            SetVpp(triggen, vpp);
         end
         function set.offset(triggen, offset)
             SetOffset(triggen, offset);
@@ -36,7 +36,7 @@ classdef AWG33250A < GPIBINSTR
             frequency = GetFreq(triggen);
         end
         function vpp = get.vpp(triggen)
-            vpp = GetAmp(triggen);
+            vpp = GetVpp(triggen);
         end
         function offset = get.offset(triggen)
             offset = GetOffset(triggen);
@@ -49,13 +49,13 @@ classdef AWG33250A < GPIBINSTR
         % Each method is defined in a separate file
         SetWaveform(triggen, waveform);
         SetFreq(triggen, frequency);
-        SetAmp(triggen, vpp);
+        SetVpp(triggen, vpp);
         SetOffset(triggen, offset);
         SetDutyCycle(triggen, dutycycle);
         
         waveform = GetWaveform(triggen);
         frequency = GetFreq(triggen);
-        vpp = GetAmp(triggen);
+        vpp = GetVpp(triggen);
         offset = GetOffset(triggen);
         dutycycle = GetDutyCycle(triggen);
         

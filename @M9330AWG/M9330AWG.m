@@ -1,29 +1,12 @@
 classdef M9330AWG < handle
 % Contains paramaters and methods for M9930A AWG
-% To generate waveforms, fill the fields waveform1, waveform2 and timeaxis.
-% Running SetParams() will set up the device and generate the waveforms.
-% The three fields should have the same length, but does not need to
-% be multiple of 8.
-% The amplitude of the waveforms should be in the range between -1 and +1.
-% If max(abs(waveform)) > 1, the program will normalize it to 1. 
-% timeaxis is in unit of seconds. The sampling rate does not need to be the
-% sampling rate of the device. The program will automatically interpolate
-% the timeaxis and waveforms according to the real sampling rate and
-% increase the length to multiple of 8.
-% Markers will be generated automatically wherever the waveform is non-zeros.
-% Use mkr1offset, mkr2offset and mkraddwidth to modify markers. See the pic
-% in the folder for their meanings.
-% When necessary, GenerateRaw() method can be used to directly generate
-% waveforms using the rawdata type. Consult the manual for specifications
-% for rawdata waveform.
 
     properties (SetAccess = private, GetAccess = public)
-        address;    % GPIB address
-        instrhandle;    % gpib object for the instrument
-        marker1;    % Auto generated marker 1
-        marker2;    % Auto genearted marker 2
-        samplingrate;   % default = 1.25 GHz, can be reduced by factors of exactly two
-
+        address;    % PXI address
+        instrhandle;% Handle for the instrument
+        marker1;    % Marker 1
+        marker2;    % Marker 2
+        samplingrate;   % Default = 1.25 GHz, can be reduced by factors of 2^n
     end
     properties (Access = public)
         waveform1 = zeros(1,256);	% Minimum length is 128
@@ -34,8 +17,8 @@ classdef M9330AWG < handle
         mkraddwidth = 32;
     end
     properties (Constant, Access = private)
-        CH1MAXAMP = 32000;  % Range: -32768 to + 32767
-        CH2MAXAMP = 8300;   % Calibrated so that generator output is the same for CW/pulsed
+        CH1MAXAMP = 32767;  % Maximum value = 32767
+        CH2MAXAMP = 32767;  % Maximum value = 32767
         TRIGINPORT = 1;	% Port number for trigger input
         MKR1PORT = 2;	% Port number for marker 1 output
         MKR2PORT = 4;	% Port number for marker 2 output
@@ -62,7 +45,7 @@ classdef M9330AWG < handle
         % Declaration of all methods
         % Each method is defined in a separate file               
         Finalize(pulsegen); % Close instrhandle
-        SetParams(pulsegen);    % Set up waveforms and markers
-        GenerateRaw(pulsegen, waveforms, markers);	% Low level code for waveform generation
+        Generate(pulsegen); % Load waveforms, create markers and generate output
+        GenerateRaw(pulsegen, waveforms, markers); % Low level method for waveform generation
     end
 end

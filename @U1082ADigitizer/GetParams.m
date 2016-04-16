@@ -1,5 +1,7 @@
 function params = GetParams(card)
 % Get card parameters
+    params = ACQIRISParams();
+    
     [~, params.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(card.instrID, 1);
     if Vertcouling == 4
         params.couplemode = 'AC';
@@ -14,5 +16,5 @@ function params = GetParams(card)
     [~, params.averages] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrWaveforms');
     params.averages = double(params.averages);
     [~, params.segments] = AqD1_getAvgConfigInt32(card.instrID, 1, 'NbrSegments');
-    params.segment = double(params.segments);
+    params.segments = double(params.segments);
 end

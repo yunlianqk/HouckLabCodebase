@@ -75,7 +75,8 @@ Click the instrument to see the documents.
 - [GPIB instrument](./@GPIBINSTR/README.md)
 - [E8267D microwave generator](./@E8267DGenerator/README.md)
 - [PNAX network analyzer](./@PNAXAnalyzer/README.md)
-- YOKOGAWA GS200 voltgae/current source
-- YOKOGAWA 7621 voltage/current source
-- U1082A digitizer
-- M9330A AWG
+- [YOKOGAWA GS200 voltgae/current source](./@YOKOGS200/README.md)
+- [YOKOGAWA 7651 voltage/current source](./@YOKO7651/README.md)
+- [U1082A digitizer](./@U1082ADigitizer/README.md)
+- [M9330A arbitrary waveform generator](./@M9330AWG/README.md)
+- [33250A 80 MHz waveform generator](./@AWG33250A/README.md)

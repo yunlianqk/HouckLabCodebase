@@ -1,0 +1,43 @@
+# YOKOGAWA GS200 DC Voltage/Current Source
+## Usage
+### Open instrument
+```matlab
+address = 4; % GPIB address
+yoko = YOKOGS200(address);
+```
+### Set ramping parameters
+```matlab
+yoko.rampstep = 0.002;      % Voltage increment for each step
+yoko.rampinterval = 0.01;   % Time interval between 2 steps
+```
+### Set/get voltage
+To set voltage,
+```matlab
+yoko.SetVoltage(0.5);
+```
+or
+```matlab
+yoko.voltage = 0.5;
+```
+To get voltage,
+```matlab
+voltage = yoko.GetVoltage();
+```
+or
+```matlab
+voltage = yoko.voltage;
+```
+## Class definition
+#### *class* YOKOGS200 < GPIBINSTR
+* **Properties**: 
+  * **address** (*integer*, Read-only): GPIB address of the instrument
+  * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
+  * **rampstep** (*float*, Public): Voltage increment for each step
+  * **rampinterval** (*float*, Public): Time interval between 2 steps
+  * **voltage** (*float*, Depedent):
+* **Methods**:
+  * **yoko = YOKOGS200(address)**: Opens the instrument with `address` and creates an object `yoko`
+  * **yoko.SetVoltge(voltage)**: Sets the voltage
+  * **voltage = yoko.GetVoltage()**: Gets the voltage
+  * **yoko.PowerOn()**: Turns on output
+  * **yoko.PowerOff()**: Turns off output

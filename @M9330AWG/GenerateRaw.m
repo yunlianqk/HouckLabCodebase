@@ -1,19 +1,28 @@
 function GenerateRaw(pulsegen, waveforms, markers)
-% Low level code for waveform generation
-% WaveformData: The array of data containing the waveform. 
-% The data points range from -32768 to +32767. 
+% Low level method for waveform generation
 
-% MarkerData: One marker value must be supplied for each 8 waveform samples.
-% Each marker value is specified in a byte, where the two most significant bits
-% are extracted and used as markers. Bit 6 is marker1 and bit 7 is marker2.
+% waveforms: 
+%       A (2 by N) array containing the waveforms.
+%       The data points are integers(int16) ranging from -32768 to +32767. 
+%       Number of data points has to be multiple of 8.
+
+% markers:
+%       A (2 by N) array containing the markerss.
+%       One marker value must be supplied for each waveform samples.
+%       Each marker value is specified in a byte (uint8), where the two 
+%       most significant bits are extracted and used as markers. 
+%       Bit 6 is marker1 and bit 7 is marker2.
+%       markers(:, 1:8:end) is then passed to the instrument according
+%       to method 2) below.
+%
 % There are three ways the marker data may be presented:
 % 1) Pass a null pointer for the marker data (no markers).
 % 2) Pass a marker array that is 1/8th of the waveform size,
-% and thus has one maker value for each 8 waveform samples.
-% This matches the resolution of marker data in the current product release.
+%    and thus has one maker value for each 8 waveform samples.
+%    This matches the resolution of marker data in the current product release.
 % 3) Pass one marker value for each waveform sample.
-% Internally, each 8 marker values will be logically OR'ed together to
-% produce one actual marker sample for each 8 waveform samples.
+%    Internally, each 8 marker values will be logically OR'ed together to
+%    produce one actual marker sample for each 8 waveform samples.
 
     pulsegen.instrhandle.AbortGeneration();
 

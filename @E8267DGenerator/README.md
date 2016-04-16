@@ -1,7 +1,6 @@
 # E8267D Signal Generator
 ## Usage
 ### Open instrument
-To open the instrument:
 ```matlab
 address = 23; % GPIB address
 rfgen = E8267DGenerator(address);
