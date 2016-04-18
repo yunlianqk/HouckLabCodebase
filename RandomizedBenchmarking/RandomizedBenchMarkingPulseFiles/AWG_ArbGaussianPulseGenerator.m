@@ -2,7 +2,7 @@ function [ ] = AWG_ArbGaussianPulseGenerator( AWGHandle, pulseamp, pulsequad, dr
 %UNTITLED Summary of this function goes here
 %   pulseamp should be +- 1 or +-.5, determines pi pulse or pi/2 pulse
 %   pulsequad should be 0 (X axis) or 1 (Y axis)
-
+ 
 sampling_rate = 1.25;%in unit of GHz, this is the internal sampling rate
 amp = 32000;
 amp_meas = 10000;

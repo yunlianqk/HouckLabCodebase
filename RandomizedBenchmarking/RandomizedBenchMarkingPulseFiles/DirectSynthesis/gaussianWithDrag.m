@@ -1,6 +1,6 @@
 classdef gaussianWithDrag < handle
     % Gate object.  Clifford gates are formed from a few of these primitives
-    % together.  This is a basic gaussian pulse with a drag pulse in the
+    % together.  This is a basic gaussian pulse with a drag pulse in
     % quadrature.  
     
     properties
@@ -8,18 +8,27 @@ classdef gaussianWithDrag < handle
         unitary; % unitary matrix of ideal gate
         rotation; % pi, pi/2 etc.  amount of rotation in radians
         azimuth; % angle in equator of bloch sphere and IQ plane.  0 corresponds to x rotation, pi/2 to y rotation
-        amplitude=1; % amplitude of main gaussian pulse
-        dragAmplitude=.5; % amplitude of drag pulse in quadrature
-        sigma = 10e-9; % gaussian width in seconds
-        cutoff = 40e-9; % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
-        buffer = 10e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
+        amplitude; % amplitude of main gaussian pulse
+        dragAmplitude; % amplitude of drag pulse in quadrature
+        sigma; % gaussian width in seconds
+        cutoff; % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
+        buffer; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
     end
     
     methods
-        function obj=gaussianWithDrag(name, azimuth, rotation)   % constructor takes in axis for the pulse (0 is x, pi/2 is y) and a rotation angle
+        function obj=gaussianWithDrag(name, azimuth, rotation, amplitude, dragAmplitude, sigma, cutoff, buffer)   
+            % constructor takes in axis for the pulse. 0 is x pulse (I quadrature), pi/2 is
+            % y pulse (Q quadrature) and a rotation angle.  These are used for calculations,
+            % but amplitude and dragAmplitude are what actually determine
+            % the gate.  These need to be calibrated.
             obj.name=name;
             obj.azimuth=azimuth;
             obj.rotation=rotation;
+            obj.amplitude=amplitude;
+            obj.dragAmplitude=dragAmplitude;
+            obj.sigma=sigma;
+            obj.cutoff=cutoff;
+            obj.buffer=buffer;
             
             % calculate gate unitary
             sm =[0 1; 0 0];
@@ -66,14 +75,17 @@ classdef gaussianWithDrag < handle
 %             scatter3(iBaseband, qBaseband,t,'k.');
             scatter3(iBaseband, qBaseband,t,[],1:length(t),'.');
             axis square;
-            plotMax=max([max(iBaseband) max(qBaseband)]);tmax=max(t);
+            plotMax=max([max(abs(iBaseband)) max(abs(qBaseband))]);tmax=max(t);
             axis([-plotMax plotMax -plotMax plotMax -tmax tmax])
+            title(obj.name),xlabel('I'),ylabel('Q')
             ax=subplot(3,2,6);
             blochSpherePlot(ax,pi,obj.azimuth);
             blochSpherePlot(ax,pi-obj.rotation,obj.azimuth,'replot');
             subplot(3,2,5);
             plot(t,iBaseband,'b',t,qBaseband,'r')
             title('I and Q baseband waveforms')
+            legend('I','Q')
+            
         end
             
     end
