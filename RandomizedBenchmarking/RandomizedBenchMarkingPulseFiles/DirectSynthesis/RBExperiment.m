@@ -42,8 +42,8 @@ classdef RBExperiment < handle
             buffer=10e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
             % generate primitives
             amplitude=1;
-            dragAmplitude=.01;
-            primitives(1)=gaussianWithDrag('Identity',0,0,amplitude,dragAmplitude,sigma,cutoff,buffer);
+            dragAmplitude=.5;
+            primitives(1)=gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
             primitives(2)=gaussianWithDrag('X180',0,pi,amplitude,dragAmplitude,sigma,cutoff,buffer);
             primitives(3)=gaussianWithDrag('X90',0,pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
             primitives(4)=gaussianWithDrag('Xm90',0,-pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
