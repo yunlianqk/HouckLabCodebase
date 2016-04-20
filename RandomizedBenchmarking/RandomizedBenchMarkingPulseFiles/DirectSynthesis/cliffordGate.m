@@ -8,7 +8,7 @@ classdef cliffordGate < handle
     end
     
     properties (Dependent, SetAccess = private)
-        totalPulseDuration;
+        totalGateDuration;
     end
     
     methods
@@ -18,7 +18,7 @@ classdef cliffordGate < handle
             obj.primDecomp=primDecomp;
         end
         
-        function value = get.totalPulseDuration(obj)
+        function value = get.totalGateDuration(obj)
             % find total time required for clifford
             value=0;
             for ind=1:length(obj.primDecomp)
@@ -76,7 +76,7 @@ classdef cliffordGate < handle
             title([obj.primDecomp.name])
             % draw basebands
             pulseStartTime = 0; % set to 0 for draw function purposes. thiss is the end of the last 'buffer', so we'll start the buffer of this pulse here
-            t = linspace(0,obj.totalPulseDuration,1001);
+            t = linspace(0,obj.totalGateDuration,1001);
             [iBaseband qBaseband] = uwWaveforms(obj,t, pulseStartTime);
             subplot(2,4,[5,6])
             plot(t,iBaseband,'b',t,qBaseband,'r')

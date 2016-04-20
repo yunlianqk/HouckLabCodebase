@@ -1,7 +1,7 @@
 classdef gaussianWithDrag < handle
     % Gate object.  Clifford gates are formed from a few of these primitives
     % together.  This is a basic gaussian pulse with a drag pulse in
-    % quadrature.  
+    % quadrature. A DC offset is also removed so that @ cutoff voltage is zero. 
     
     properties
         name;
@@ -62,9 +62,21 @@ classdef gaussianWithDrag < handle
             d = obj.dragAmplitude*d;
         end
         
-        function wc = applyCutoff(obj, tAxis, tCenter, w)
-            % zeros out values of waveform outside of cutoff
-            wc = w.*(tAxis>(tCenter-obj.cutoff/2)).*(tAxis<(tCenter+obj.cutoff/2));
+        function wc = applyGaussianCutoff(obj, tAxis, tCenter, w)
+            % zeros out values of waveform outside of cutoff and removes
+            % offset
+            firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
+            offset=w(firstPoint);            
+            wc = (w-offset).*(tAxis>(tCenter-obj.cutoff/2)).*(tAxis<(tCenter+obj.cutoff/2));
+        end
+        
+        function wc = applyDragCutoff(obj, tAxis, tCenter, w)
+            % zeros out values of waveform outside of cutoff and removes
+            % offset
+%             firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
+%             offset=w(firstPoint);            
+            offset=0;
+            wc = (w-offset).*(tAxis>(tCenter-obj.cutoff/2)).*(tAxis<(tCenter+obj.cutoff/2));
         end
         
         function [iBaseband qBaseband] = project(obj,g, d)
@@ -80,8 +92,8 @@ classdef gaussianWithDrag < handle
             % form a composite waveform
             g = obj.gaussian(tAxis,tCenter);
             d = obj.drag(tAxis,tCenter);
-            gc = obj.applyCutoff(tAxis,tCenter, g);
-            dc = obj.applyCutoff(tAxis,tCenter, d);
+            gc = obj.applyGaussianCutoff(tAxis,tCenter, g);
+            dc = obj.applyDragCutoff(tAxis,tCenter, d);
             [iBaseband qBaseband] = project(obj,gc, dc);
         end
         
@@ -106,10 +118,10 @@ classdef gaussianWithDrag < handle
             t = linspace(-pulseTime,pulseTime,1001); % make time axis twice as long as pulse 
             % create gaussian
             gaussian = obj.gaussian(t, 0);
-            gaussianCutoff = obj.applyCutoff(t, 0, gaussian);
+            gaussianCutoff = obj.applyGaussianCutoff(t, 0, gaussian);
             % create drag
             drag = obj.drag(t, 0);
-            dragCutoff = obj.applyCutoff(t, 0, drag);
+            dragCutoff = obj.applyDragCutoff(t, 0, drag);
             % find I and Q baseband using azimuth
             [iBaseband qBaseband] = project(obj,gaussianCutoff, dragCutoff);
             % buffer
