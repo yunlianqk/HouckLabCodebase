@@ -154,18 +154,3 @@ classdef gaussianWithDrag < handle
         end
     end
 end
-            
-        
-        
-
-        
-% list of the primitives        
-% QIdPulse = 'QId';
-% XpPulse = 'Xp';
-% YpPulse = 'Yp';
-% XmPulse = 'Xm';
-% YmPulse = 'Ym';
-% X90pPulse = 'X90p';
-% Y90pPulse = 'Y90p';
-% X90mPulse = 'X90m';
-% Y90mPulse = 'Y90m';
