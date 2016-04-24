@@ -6,7 +6,7 @@ classdef RBExperiment < handle
         primitives; % object array of primitive gates.
         cliffords; % object array of clifford gates.
         sequences; % object array of randomized benchmarking sequences
-        sequenceLengths = [1 2 4 8 16 32]; % list containing number of clifford gates in each sequence
+        sequenceLengths = [1 2 4 8 16 32 64 128]; % list containing number of clifford gates in each sequence
         measurement; % measurement pulse object
         rbStartTime = 200e-9; % delay in seconds before earliest clifford gate
         rbEndTime; % uses max rbSequence duration to caluclate
