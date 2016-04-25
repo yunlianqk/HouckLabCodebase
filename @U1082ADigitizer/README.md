@@ -43,7 +43,7 @@ samplinginterval = card.params.sampleinterval;
 ```matlab
 [Idata, Qdata] = card.ReadIandQ();
 ```
-`Idata` and `Qdata` are both m × n arrays, where `m = card.params.samples` and `n = card.params.segments`.
+`Idata` and `Qdata` are both m × n arrays, where m = `card.params.samples` and n = `card.params.segments`.
 
 ## Class definition
 #### *class* U1082ADigitizer < handle
