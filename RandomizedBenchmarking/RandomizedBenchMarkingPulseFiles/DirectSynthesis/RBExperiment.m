@@ -147,6 +147,26 @@ classdef RBExperiment < handle
             end
         end
         
+        function ws = genWaveSetM8195A(obj,seq)
+            % take an rbSequence object (seq) and build a waveSet object that can
+            % be sent to the M8195A AWG
+            
+            % generate qubit and measurement waveforms
+            t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
+            [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
+            iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+            qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+            qubitWaveform=iQubitMod+qQubitMod;
+            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+            qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+            measWaveform=iMeasMod+qMeasMod;
+            % build waveSet object
+            ws=waveSetM8195A();
+            ws.samplingRate=obj.samplingRate;
+            ws.addChannel(1,qubitWaveform);
+            ws.addChannel(2,measWaveform);
+        end
     end
 end
        

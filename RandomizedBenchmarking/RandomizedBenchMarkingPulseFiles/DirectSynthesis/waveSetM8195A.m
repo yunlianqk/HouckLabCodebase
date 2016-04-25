@@ -8,7 +8,7 @@ classdef waveSetM8195A < handle
     
     properties
         samplingRate; 
-        channels; % object array of channels
+        channels; % an array of structs
     end
     
     methods
@@ -28,14 +28,48 @@ classdef waveSetM8195A < handle
             % do we need to update anything else? 
         end
         
-        % other functions to implement
-        % draw
-        % save
-        % apply filter
-        % apply settings
-        % upload waveforms to AWG
-        % add channel
-        % update channel?
+        function obj=addChannel(obj,channelNumber, waveform)
+            newChan.channelNumber=channelNumber;
+            w=obj.padWaveform(waveform);
+            newChan.waveform=waveform;
+            channels=obj.channels;
+            channels=[channels newChan];
+            obj.channels=channels;
+        end
         
+        function w=padWaveform(obj,waveform)
+            fprintf(['input waveform length: ' num2str(length(waveform))]);
+            w = waveform;
+        end
+        
+        function draw(obj)
+            % visualize
+            nc=length(obj.channels)
+            sr=obj.samplingRate;
+            t=0:1/sr:((length(obj.channels(1).waveform)-1)/obj.samplingRate);
+            figure(61)
+            for ind=1:nc
+                subplot(nc,1,ind)
+                plot(t,obj.channels(ind).waveform)
+                title(['channel ' num2str(obj.channels(ind).channelNumber)])
+            end
+            
+        end
+        
+        function saveCSV(obj)
+            [FileName,PathName] = uiputfile('*.dat');
+            nc=length(obj.channels);
+            ns=length(obj.channels(1).waveform);
+            data=zeros(nc,ns);
+            for ind=1:nc
+                data(ind,:)=obj.channels(ind).waveform;
+            end
+            csvwrite([PathName FileName],data);
+        end
+        
+        % other functions to implement
+        % save waveset as csv 
+        % apply predistortion filter
+        % upload waveforms to AWG
     end
 end
