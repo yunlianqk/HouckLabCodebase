@@ -6,13 +6,24 @@ classdef RBExperiment < handle
         primitives; % object array of primitive gates.
         cliffords; % object array of clifford gates.
         sequences; % object array of randomized benchmarking sequences
-        sequenceLengths = 1:10; % list containing number of clifford gates in each sequence
+        sequenceLengths = [1 2 4 8 16 32 64 128]; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
+        measurement; % measurement pulse object
+        rbStartTime = 200e-9; % delay in seconds before earliest clifford gate
+        rbEndTime; % uses max rbSequence duration to caluclate
+        measDelay = 50e-9; % time in seconds btw last clifford gate and start of measurement pulse 
+        measStartTime; % starts shortly after end of the rbSequence 
+        measEndTime;
+        waveformEndDelay = 50e-9; % delay after end of measurement pulse to end waveform
+        qubitFreq=5e9; % qubit frequency
+        cavityFreq=7e9; % cavity frequency
+        samplingRate=15e9; % sampling rate
     end
     
     methods
         function obj=RBExperiment()% constructor
             obj.initPrimitives();
             obj.initCliffords();
+            obj.measurement=rectMeasurementPulse(0,1,1e-6);
             obj.initSequences();
         end
         
@@ -25,7 +36,7 @@ classdef RBExperiment < handle
             % general pulse parameters
             sigma=10e-9; % gaussian width in seconds
             cutoff=4*sigma;  % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
-            buffer=10e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
+            buffer=4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
             % generate primitives
             amplitude=1;
             dragAmplitude=.5;
@@ -90,12 +101,13 @@ classdef RBExperiment < handle
         function obj=initSequences(obj)
             % using sequenceLengths, generate the sequence objects
             s = obj.sequenceLengths;
+            [m, mInd]=max(s);
             numCliffords=length(obj.cliffords);
             
             % generate random sequence of cliffords with max sequenceLength
             rng('default');
             rng('shuffle');
-            maxSequence = randi(numCliffords, [1,max(s)]);
+            maxSequence = randi(numCliffords, [1,m]);
             
             % for each sequence length create a sequence object
             for ind=1:length(s)
@@ -105,6 +117,55 @@ classdef RBExperiment < handle
                 sequences(ind)=rbSequence(seqList,obj.cliffords);
             end
             obj.sequences=sequences;
+            % find max duration of all sequences
+            d=sequences(mInd).sequenceDuration;
+            obj.rbEndTime=obj.rbStartTime+d;
+            obj.measStartTime=obj.rbEndTime+obj.measDelay;
+            obj.measEndTime=obj.measStartTime+obj.measurement.duration;
+        end
+        
+        function draw(obj)
+            t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
+            figure(125)
+            for ind=1:length(obj.sequences)
+                seq=obj.sequences(ind);
+                [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
+                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+                subplot(2,1,1)
+%                 plot(t,iQubitBaseband,'b',t,qQubitBaseband,'r')
+%                 subplot(2,1,2)
+%                 plot(t,iMeasBaseband,'b',t,qMeasBaseband,'r')
+                plot(t,iQubitMod,'b',t,qQubitMod,'r')
+                subplot(2,1,2)
+                plot(t,iMeasMod,'b',t,qMeasMod,'r')
+                
+                pause(1)
+            end
+        end
+        
+        function ws = genWaveSetM8195A(obj,seq)
+            % take an rbSequence object (seq) and build a waveSet object that can
+            % be sent to the M8195A AWG
+            
+            % generate qubit and measurement waveforms
+            t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
+            [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
+            iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+            qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+            qubitWaveform=iQubitMod+qQubitMod;
+            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+            qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+            measWaveform=iMeasMod+qMeasMod;
+            % build waveSet object
+            ws=waveSetM8195A();
+            ws.samplingRate=obj.samplingRate;
+            ws.addChannel(1,qubitWaveform);
+            ws.addChannel(2,measWaveform);
         end
     end
 end

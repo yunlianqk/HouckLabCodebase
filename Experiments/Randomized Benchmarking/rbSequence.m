@@ -5,19 +5,19 @@ classdef rbSequence < handle
     properties
         seqList; % list of clifford gates to be done in this sequence
         pulses; % cliffordGate object array, in order to be done
+        unitary; % action of rbseequence w/out undo gate
+        undoUnitary; % the action of the final pulse that is supposed to bring it back to the ground state
     end
     
     properties (Dependent, SetAccess = private)
         sequenceDuration;
-        
-    end
-    
-    properties (SetAcess = private)
-        unitary;
     end
     
     methods
         function obj=rbSequence(seqList, cliffords)
+            % generate the rbSequence object.
+            % inputs - seqList: a vector of #s corresponding the which cliffords to do (i.e. the 'sequence') 
+            % cliffords is an array of clifford gate objects 
             obj.seqList=seqList;
             for ind=1:length(seqList)
                 pulses(ind)=cliffords(seqList(ind));
@@ -25,7 +25,7 @@ classdef rbSequence < handle
             obj.pulses=pulses;
             % find unitary for sequence (before adding undo gate)
             unitary=[1 0; 0 1];
-            for ind=1:(length(obj.pulses)-1)
+            for ind=1:length(seqList)
                 unitary=obj.pulses(ind).unitary*unitary;
             end
             obj.unitary=unitary;
@@ -41,35 +41,22 @@ classdef rbSequence < handle
             end
         end
         
-%         function value = get.unitary(obj)
-            % find unitary for sequence (before adding undo gate)
-%             value=[1 0; 0 1];
-%             for ind=1:(length(obj.pulses)-1)
-%                 value=obj.pulses(ind).unitary*value;
-%             end
-%         end
-        
         function obj=undoGate(obj, cliffords)
             % finds undo gate and appends it to the sequence
             pulses = obj.pulses;
             G=obj.unitary;
-%             G=[1 0; 0 1];
-%             for ind=1:length(pulses)
-%                 G=pulses(ind).unitary*G;
-%             end
-            U=G'; % undo gate unitary
+            U=G';
             % compare undo gate to list of cliffords to find index
-            for ind2=1:length(cliffords)                
-                c=cliffords(ind2).unitary;
-                if (abs(trace(c'*U))>=(2-1e-6)) % dimension of 2 hardcoded here... only works for 1 qubit
-                    pulses(length(pulses)+1)=cliffords(ind2);
-                    obj.seqList=[obj.seqList ind2];
-                    test=cliffords(ind2);
-                    test.unitary==U
+            for ind=1:length(cliffords)                
+                c=cliffords(ind).unitary;
+                if (abs(trace(c*G))>=(2-1e-6)) % dimension of 2 hardcoded here... only works for 1 qubit
+                    pulses(length(pulses)+1)=cliffords(ind);
+                    obj.seqList=[obj.seqList ind];
+                    obj.undoUnitary=c;
+                    break
                 end
             end
             obj.pulses=pulses;
-            if test.unitary
         end
         
         function [iBaseband qBaseband] = uwWaveforms(obj,tAxis, tStop)
@@ -92,19 +79,24 @@ classdef rbSequence < handle
             % print some text
             fprintf(['Sequence length: ' num2str(length(obj.seqList)) '\n'])
             fprintf('Sequence unitary without undo gate:')
-            unitary=[1 0; 0 1];
-            for ind1=1:(length(obj.pulses)-1)
-                gate=obj.pulses(ind1);
-                unitary = gate.unitary*unitary;
-            end
-            unitary
+            obj.unitary
             fprintf('Undo gate unitary')
             undo=obj.pulses(end).unitary
             fprintf('After undo')
-            final=undo*unitary
-            % draw bloch spheres - 1st w/out undo gate
+            final=undo*obj.unitary
+            
+            % add some text to a subplot
             figure(612)
-            ax=subplot(2,2,1);
+            textAx = subplot(2, 3, 3);
+            cla(textAx)
+            infoStr={'rbSequence Object','',...
+                     'gates',[obj.pulses.name],...
+                     };
+            text(0,1,infoStr);
+            set( textAx, 'visible', 'off')
+           
+            % draw bloch spheres - 1st w/out undo gate
+            ax=subplot(2,3,1);
             state=[1;0];
             blochSpherePlot(ax,0,0);
             for ind1=1:(length(obj.pulses)-1)
@@ -112,9 +104,9 @@ classdef rbSequence < handle
                 [state, tilt, azimuth] = gate.actOnState(state);
                 blochSpherePlot(ax,tilt,azimuth,'replot');
             end
-            title('Sequence with Undo Gate')
+            title('Sequence without Undo Gate')
             % with undo gate
-            ax2=subplot(2,2,2);
+            ax2=subplot(2,3,2);
             state=[1;0];
             blochSpherePlot(ax2,0,0);
             for ind1=1:length(obj.pulses)
@@ -127,7 +119,7 @@ classdef rbSequence < handle
             pulseStopTime = 0; % set to 0 for draw function purposes. 
             t = linspace(-obj.sequenceDuration,0,10001);
             [iBaseband qBaseband] = obj.uwWaveforms(t, pulseStopTime);
-            subplot(2,1,2)
+            subplot(2,3,[4,5,6])
             plot(t,iBaseband,'b',t,qBaseband,'r')
             title('I and Q baseband waveforms')
             legend('I','Q')
@@ -141,15 +133,8 @@ classdef rbSequence < handle
             end
             hold on, plot(cliffTimes,zeros(length(cliffTimes)),'.k','MarkerSize',20),hold off
             
-%             subplot(2,4,[3,4,7,8])
-%             scatter3(iBaseband, qBaseband,t,[],1:length(t),'.');
-%             axis square;
-%             plotMax=max([max(abs(iBaseband)) max(abs(qBaseband))]);tmax=max(t);
-%             if plotMax==0
-%                 plotMax=1;
-%             end
-%             axis([-plotMax plotMax -plotMax plotMax 0 tmax])
-%             title(obj.name),xlabel('I'),ylabel('Q')
+            % add some text to a subplot
+
         end    
             
         
