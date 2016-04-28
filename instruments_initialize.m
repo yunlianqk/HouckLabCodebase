@@ -1,6 +1,5 @@
 % Initialize instruments
-repopath = pwd;
-addpath(genpath(repopath));
+run('.\setpath.m');
 
 address = struct('rfgen', 23, ...
                  'specgen', 22, ...
@@ -35,4 +34,4 @@ card = U1082ADigitizer(address.card);
 global pulsegen;
 pulsegen = M9330AWG(address.pulsegen);
 
-clear('address', 'repopath');
+clear('address');

@@ -9,6 +9,7 @@ classdef E8267DGenerator < GPIBINSTR
     methods
         function gen = E8267DGenerator(address)
             gen = gen@GPIBINSTR(address);
+            display([class(gen), ' object created.']);
         end
         function set.frequency(gen, freq)
             SetFreq(gen, freq);

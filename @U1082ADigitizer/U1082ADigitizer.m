@@ -53,6 +53,7 @@ classdef U1082ADigitizer < handle
             % fifth parameter sets trigger level
             % sixth parameter sets trigger level 2 when window trigger is used
             card.SetParams(card.params);
+            display([class(card), ' object created.']);
         end
         function set.params(card, params)
             SetParams(card, params);

@@ -1,4 +1,4 @@
-classdef TRANSParams
+classdef trans
     % Defines the parameters for a transmission measurement for PNAX
     
     properties (Constant)

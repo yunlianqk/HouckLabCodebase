@@ -1,6 +1,6 @@
 function specparams = GetSpecParams(pnax)
 % Get spectroscopy parameters
-    specparams = SPECParams();
+    specparams = paramlib.pnax.spec();
     
     specparams.channel = pnax.GetActiveChannel();
     

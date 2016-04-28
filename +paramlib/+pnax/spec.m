@@ -1,4 +1,4 @@
-classdef SPECParams
+classdef spec
     % Defines the parameters for a spectroscopy measurement for PNAX
     
     properties (Constant)

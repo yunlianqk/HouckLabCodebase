@@ -1,4 +1,4 @@
-classdef PSWEEPParams
+classdef psweep
     % Defines the parameters for a power sweep measurement for PNAX
     properties (Constant)
         measclass = 'psweep';

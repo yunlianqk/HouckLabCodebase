@@ -1,6 +1,6 @@
 function transparams = GetTransParams(pnax)
 % Get transmission parameters
-    transparams = TRANSParams();
+    transparams = paramlib.pnax.trans();
     
     transparams.channel = pnax.GetActiveChannel();
     

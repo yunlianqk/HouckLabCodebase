@@ -7,9 +7,9 @@ address = 'PXI7::4::0::INSTR';  % PXI address
 card = U1082ADigitizer(address);
 ```
 ### Set/get parameters
-To set the parameters, first create a [**ACQIRISParams**](#params) *object* that contains the parameters:
+To set the parameters, first create a [**paramlib.acqiris**](#params) *object* that contains the parameters:
 ```matlab
-cardparams = ACQIRISParams();
+cardparams = paramlib.acqiris();
 cardparams.fullscale = 0.2;
 cardparams.sampleinterval = 1e-9;
 cardparams.samples = 10000;
@@ -59,7 +59,7 @@ samplinginterval = card.params.sampleinterval;
   * **[IData, QData] = card.ReadIandQ()**: Reads data
   * **card.Finalize()**: Closes the instrument
   
-#### <a name="params"></a>*class* ACQIRISParams
+#### <a name="params"></a>*class* paramlib.acqiris
 A class to store parameters for Acqiris digitizer
 * **Properties**:
   * **fullscale** (*float*): Full scale in volts

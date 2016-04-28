@@ -11,6 +11,7 @@ classdef YOKOGS200 < GPIBINSTR
     methods
         function yoko = YOKOGS200(address)
             yoko = yoko@GPIBINSTR(address);
+            display([class(yoko), ' object created.']);
         end
         function set.voltage(yoko, voltage)
             SetVoltage(yoko, voltage);

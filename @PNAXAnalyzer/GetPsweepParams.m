@@ -1,6 +1,6 @@
 function psweepparams = GetPsweepParams(pnax)
 % Get spectroscopy parameters
-    psweepparams = PSWEEPParams();
+    psweepparams = paramlib.pnax.psweep();
     
     psweepparams.channel = pnax.GetActiveChannel();
     

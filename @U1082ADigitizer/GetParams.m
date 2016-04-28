@@ -1,6 +1,6 @@
 function params = GetParams(card)
 % Get card parameters
-    params = ACQIRISParams();
+    params = paramlib.acqiris();
     
     [~, params.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(card.instrID, 1);
     if Vertcouling == 4

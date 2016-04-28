@@ -1,12 +1,12 @@
 %% Add class definition files to PATH
 repopath = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
-addpath(genpath(repopath));
-clear(repopath);
+addpath(repopath);
+clear('repopath');
 %% Open card
 address = 'PXI7::4::0::INSTR';  % PXI address
 card = U1082ADigitizer(address);
 %% Set parameters
-cardparams = ACQIRISParams();
+cardparams = paramlib.acqiris();
 cardparams.fullscale = 5;
 cardparams.sampleinterval = 1e-9;
 cardparams.samples = 10000;

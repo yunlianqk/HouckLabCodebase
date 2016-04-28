@@ -1,4 +1,4 @@
-classdef ACQIRISParams
+classdef acqiris
     % Defines the parameters for Acqiris digitizer
     
     properties

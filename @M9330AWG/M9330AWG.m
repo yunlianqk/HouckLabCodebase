@@ -32,6 +32,7 @@ classdef M9330AWG < handle
         function pulsegen = M9330AWG(address)
         % Open instrhandle
             sysinfo = mexext();
+            % Check that MATLAB is 32-bit
             if strcmp(sysinfo(end-1:end), '64')
                 error('AWG M9330A only works with 32-bit MATLAB');
             end
@@ -40,6 +41,7 @@ classdef M9330AWG < handle
             pulsegen.instrhandle = instrument.driver.AgM933x();
             pulsegen.instrhandle.Initialize(pulsegen.address, true, true, initoptions);          
             pulsegen.samplingrate = pulsegen.instrhandle.DeviceSpecific.Arbitrary.SampleRate;
+            display([class(pulsegen), ' object created.']);
         end
         
         % Declaration of all methods
