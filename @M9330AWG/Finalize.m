@@ -1,7 +1,6 @@
-function Finalize(pulsegen)
+function Finalize(self)
 % Close instrhandle
-    if pulsegen.instrhandle.Initialized == 1
-%         pulsegen.instrhandle.AbortGeneration();
-        pulsegen.instrhandle.Close();
+    if self.instrhandle.Initialized == 1
+        self.instrhandle.Close();
     end
 end

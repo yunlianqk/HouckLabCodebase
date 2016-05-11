@@ -1,6 +1,6 @@
-function Finalize(card)
+function Finalize(self)
 % Close card
-    AqD1_stopAcquisition(card.instrID);
-    Aq_close(card.instrID);
+    AqD1_stopAcquisition(self.instrID);
+    Aq_close(self.instrID);
     Aq_closeAll();
 end

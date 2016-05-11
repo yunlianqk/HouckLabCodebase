@@ -1,10 +1,11 @@
 classdef singleGate < handle
-    % Gate object.  Clifford gates are formed from a few of these primitives
-    % together.  This is a basic gaussian pulse with a drag pulse in
-    % quadrature. A DC offset is also removed so that @ cutoff voltage is zero. 
+    % Single qubit gate object.  Clifford gates are formed from a few of 
+    % these primitives together.  This is a basic gaussian pulse with a 
+    % drag pulse in quadrature. A DC offset is also removed so that 
+    % @ cutoff voltage is zero. 
     
     properties
-        name;
+        name; % can be 'Identity', 'Custom', 'X180', 'Ym90', etc.
         unitary; % unitary matrix of ideal gate
         rotation; % pi, pi/2 etc.  amount of rotation in radians
         azimuth; % angle in equator of bloch sphere and IQ plane.  0 corresponds to x rotation, pi/2 to y rotation
@@ -16,15 +17,12 @@ classdef singleGate < handle
     end
     
     properties (Dependent, SetAccess = private)
-        totalPulseDuration;
+        totalDuration;
     end
     
     methods
         function obj = singleGate(name)   
-            % constructor takes in axis for the pulse. 0 is x pulse (I quadrature), pi/2 is
-            % y pulse (Q quadrature) and a rotation angle.  These are used for calculations,
-            % but amplitude and dragAmplitude are what actually determine
-            % the gate.  These need to be calibrated.
+            % Constructor takes the name of the gate to create an object
             
             % Default values
             obj.name = name;
@@ -37,15 +35,14 @@ classdef singleGate < handle
             ax = name{1};
             rotation = str2double(name{2});
             
-            % If gate is identity of custom
+            % If gate is 'Identity' or 'Custom'
             if ismember(ax, {'Identity', 'Custom'})
                 obj.amplitude = 0.0;
                 obj.rotation = 0.0;
                 obj.azimuth = 0.0;
             else 
-            % If gate is X/Y/Z + angle
-            % Convention: rotation is always positive
-            % azimuth  = 0, pi, pi/2, -pi/2 for X, Xm, Y, Ym
+            % If gate is X/Y rotation
+            % Convention: azimuth  = 0, pi, pi/2, -pi/2 for X, Xm, Y, Ym
                 switch ax
                     case 'X'
                         obj.azimuth = 0;
@@ -59,6 +56,7 @@ classdef singleGate < handle
                         error(['Undefined gate: Gate names should be ', ...
                                '''Identity'', ''Custom'', ''X180'', ''Ym90'', etc.']);
                 end
+            % Set amplitude and rotation
                 if ~isnan(rotation)
                     obj.amplitude = rotation/180;
                     obj.rotation = rotation/180*pi;
@@ -78,7 +76,7 @@ classdef singleGate < handle
             obj.unitary = unitary;
         end
         
-        function value = get.totalPulseDuration(obj)
+        function value = get.totalDuration(obj)
             value = obj.cutoff+obj.buffer;
         end
         

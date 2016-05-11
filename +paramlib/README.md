@@ -47,10 +47,11 @@ A class to store parameters for power sweep measurement
 #### *class* paramlib.acqiris
 A class to store parameters for Acqiris digitizer
 * **Properties**:
-  * **fullscale** (*float*): Full scale in volts
-  * **sampleinterval** (*float*): Sampling interval in seconds
-  * **samples** (*integer*): Number of samples for each segment
-  * **averages** (*integer*): Number of averages
-  * **segments** (*integer*): Number of segments
+  * **fullscale** (*float*): Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
+  * **sampleinterval** (*float*): Sampling interval in seconds, from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
+  * **samples** (*integer*): Number of samples for each segment, from 16 to 2 Mega (2^21) in steps of 16
+  * **averages** (*integer*): Number of averages, from 1 to 65536
+  * **segments** (*integer*): Number of segments, from 1 to 8191
   * **delaytime** (*float*): Delay time in seconds before starting acquistion
   * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
+  * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds

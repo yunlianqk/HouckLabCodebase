@@ -1,4 +1,4 @@
-# Houck Lab Measurement Code
+<img src="./logo.png" alt="Logo"/>
 
 ## Introduction
 This is the MATLAB code for communication with measurement equiqments in Houck Lab. 
@@ -79,13 +79,15 @@ global pnax;
 address = 16;
 pnax = PNAXAnalyzer(address);
 ```
-1.  To use them in a script:
+The global property just makes it easy to access them inside other functions, but it is **not** mandatory. You can define them as normal variables as well.
+
+1.  To use them in a script or function:
     ```matlab
     global pnax;
     display(pnax.params);
     ```
 
-2.  To use them in a MATLAB function, you can either declare it inside the function as shown above, or pass them as the input parameters to the function:
+2.  To pass them to a function as an input parameter:
     ```matlab
     function data = MyMeasurement(argument1, ..., pnax)
         ...
@@ -95,39 +97,42 @@ pnax = PNAXAnalyzer(address);
     end
     ```
 
-3.  To build your own classes that have the instrument objects as properties:
-    ```matlab
-    classdef MyMeasurement
-        properties
-            ...
-            pnax;
-        end
-        
-        methods
-            function self = MyMeasurement(pnax)
-                self.pnax = pnax;
-                ...
-            end
-            function data = run(self)
-                ...
-                pnax.PowerOn();
-                data = pnax.Read();
-                ...
-            end 
-        end
-    end
-    ```
-    and then pass them when you construct a measurement object:
-    ```matlab
-    mymeas = MyMeasurement(pnax);
-    data = mymeas.run();
-    ```
-    You can also define class methods that call `pnax` in the same way as method 2.
+3.  You can define your own classes that have `pnax` as a property, or pass `pnax` to your class methods.
 
 ## Search path and namespace
-In order for the code to work consistently, we need a well defined search path and namespace. The [setpath.m](./setpath.m) script add **only the root folder** of the repository to MATLAB search path. Be careful with the namespace when you add subfolders or your own code folders to the search path. In particular, **do not** add subfolders inside a folder that starts with '@' or '+'.
+In order for the code to work consistently, we need a well defined search path and namespace. The [setpath.m](./setpath.m) script adds **only the root folder** of the repository to MATLAB search path. Be careful with the namespace when you add subfolders or your own code folders to the search path. In particular, **do not** add subfolders of the repository to the search path.
 
-All the classes for accessing instruments are contained in **class folders** starting with '@'. Other instrument related classes are contained in **package folders** starting with '+'.
+All the classes for instruments are located directly under the root folder, in **class folders** starting with '@'. Other classes and functions are contained in **package folders** (and subfolders) starting with '+'.
+
+A package folder that contains classes and functions would have a structure like this:
+```
+RepoRoot\+MyPackage1\MyClass1.m % A single class file
+                    \@MyClass2\MyClass2.m % A class folder that has methods defined in seperate files
+                              \MyMethod.m
+                    \+MyPackage2\MyFunc.m % A function
+```
+When you add **ONLY** `RepoRoot` folder to MATLAB search path, you can access the above classes and functions like this:
+```
+obj1 = MyPackage1.MyClass1();
+obj2 = MyPackage1.MyClass2();
+obj2.MyMethod();
+result = MyPackage1.MyPackage2.MyFunc(args);
+```
+You can also use `import` to call the classes and functions more conviently:
+```matlab
+import MyPackage1.MyClass1
+import MyPackage1.MyPackage2.*
+
+obj1 = MyClass1();
+result = MyFunc(args);
+```
+The `import` statement should only be used inside functions (not in a script), so that the namespace is only effective within the range of the function.
+
+Check the following links for detail information.
+- [Packages Create Namespaces](http://www.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html)
+- [Folders Containing Class Definitions](http://www.mathworks.com/help/matlab/matlab_oop/organizing-classes-in-folders.html)
+- [Methods In Separate Files](http://www.mathworks.com/help/matlab/matlab_oop/methods-in-separate-files.html)
+- [Add package or class to current import list](http://www.mathworks.com/help/matlab/ref/import.html)
 
 ## Documentation
 Click the instrument to see the documents.
