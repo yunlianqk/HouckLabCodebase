@@ -99,6 +99,21 @@ The global property just makes it easy to access them inside other functions, bu
 
 3.  You can define your own classes that have `pnax` as a property, or pass `pnax` to your class methods.
 
+## Saving/Loading objects
+Loading a class object from a .mat file requires that **the class definition file exist and is on the matlab search path**. For more convenient usage, you can save the object to a struct (this will cause a warning):
+```matlab
+s = struct(obj);
+save('data.mat', 's');
+```
+Each property of the object will become a field of the struct.
+
+A `toStruct` method is implemented for classes in **paramlib**. For example,
+```matlab
+pnaxparams = pnax.params.toStruct();
+save('pnaxsettings.mat', 'pnaxparams');
+```
+will convert the current PNAX configuration to a struct and save it to a .mat file.
+
 ## Search path and namespace
 In order for the code to work consistently, we need a well defined search path and namespace. The [setpath.m](./setpath.m) script adds **only the root folder** of the repository to MATLAB search path. Be careful with the namespace when you add subfolders or your own code folders to the search path. In particular, **do not** add subfolders of the repository to the search path.
 

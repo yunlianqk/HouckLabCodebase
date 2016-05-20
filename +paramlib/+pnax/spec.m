@@ -19,4 +19,10 @@ classdef spec
         meastype = 'S21';
         format = 'MLOG';
     end
+    
+    methods
+        function s = toStruct(self)
+            s = paramlib.obj2struct(self);
+        end
+    end
 end

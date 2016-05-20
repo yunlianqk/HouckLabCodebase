@@ -11,4 +11,10 @@ classdef acqiris
         couplemode = 'DC'; % Coupling mode, 'AC' or 'DC'
         timeout = 10; % Timeout for acquisition, default value = 10 seconds
     end
+    
+    methods
+        function s = toStruct(self)
+            s = paramlib.obj2struct(self);
+        end
+    end
 end

@@ -14,7 +14,9 @@ A class to store parameters for transmission measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
-
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
+  
 #### *class* paramlib.pnax.spec
 A class to store parameters for spectroscopy measurement
 * **Properties**: 
@@ -30,6 +32,8 @@ A class to store parameters for spectroscopy measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
 #### *class* paramlib.pnax.psweep
 A class to store parameters for power sweep measurement
@@ -43,6 +47,8 @@ A class to store parameters for power sweep measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
 #### *class* paramlib.acqiris
 A class to store parameters for Acqiris digitizer
@@ -55,3 +61,5 @@ A class to store parameters for Acqiris digitizer
   * **delaytime** (*float*): Delay time in seconds before starting acquistion
   * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
   * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct

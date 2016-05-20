@@ -1,8 +1,7 @@
 classdef singleGate < handle
-    % Single qubit gate object.  Clifford gates are formed from a few of 
-    % these primitives together.  This is a basic gaussian pulse with a 
-    % drag pulse in quadrature. A DC offset is also removed so that 
-    % @ cutoff voltage is zero. 
+    % Single qubit gate object. 
+    % This is a basic gaussian pulse with a drag pulse in quadrature. 
+    % A DC offset is also removed so that @ cutoff voltage is zero. 
     
     properties
         name; % can be 'Identity', 'Custom', 'X180', 'Ym90', etc.
@@ -21,15 +20,18 @@ classdef singleGate < handle
     end
     
     methods
-        function obj = singleGate(name)   
+        function self = singleGate(name)   
             % Constructor takes the name of the gate to create an object
             
             % Default values
-            obj.name = name;
-            obj.sigma = 10e-9;
-            obj.cutoff = 4*obj.sigma;
-            obj.buffer = 4e-9;
-            obj.dragAmplitude = 0.0;
+            if nargin == 0
+                name = 'Identity';
+            end
+            self.name = name;
+            self.sigma = 10e-9;
+            self.cutoff = 4*self.sigma;
+            self.buffer = 4e-9;
+            self.dragAmplitude = 0.0;
             % split the name into string and number
             name = regexp(name, '^([a-zA-Z]*)([0-9\.+-]*)', 'tokens', 'once');
             ax = name{1};
@@ -37,29 +39,29 @@ classdef singleGate < handle
             
             % If gate is 'Identity' or 'Custom'
             if ismember(ax, {'Identity', 'Custom'})
-                obj.amplitude = 0.0;
-                obj.rotation = 0.0;
-                obj.azimuth = 0.0;
+                self.amplitude = 0.0;
+                self.rotation = 0.0;
+                self.azimuth = 0.0;
             else 
             % If gate is X/Y rotation
             % Convention: azimuth  = 0, pi, pi/2, -pi/2 for X, Xm, Y, Ym
                 switch ax
                     case 'X'
-                        obj.azimuth = 0;
+                        self.azimuth = 0;
                     case 'Xm'
-                        obj.azimuth = pi;
+                        self.azimuth = pi;
                     case 'Y'
-                        obj.azimuth = pi/2;
+                        self.azimuth = pi/2;
                     case 'Ym'
-                        obj.azimuth = -pi/2;
+                        self.azimuth = -pi/2;
                     otherwise
                         error(['Undefined gate: Gate names should be ', ...
                                '''Identity'', ''Custom'', ''X180'', ''Ym90'', etc.']);
                 end
             % Set amplitude and rotation
                 if ~isnan(rotation)
-                    obj.amplitude = rotation/180;
-                    obj.rotation = rotation/180*pi;
+                    self.amplitude = rotation/180;
+                    self.rotation = rotation/180*pi;
                 else
                     error('Rotation angle should be a number');
                 end
@@ -70,92 +72,92 @@ classdef singleGate < handle
             sp = sm';
             sx = full(sp+sm);
             sy = full(1i*sp-1i*sm);
-%             sz = [1 0;0 -1];
-            unitary = expm(-1i*obj.rotation/2*(cos(obj.azimuth)*sx + ...
-                                               sin(obj.azimuth)*sy));
-            obj.unitary = unitary;
+            self.unitary = expm(-1i*self.rotation/2 ...
+                               *(cos(self.azimuth)*sx + sin(self.azimuth)*sy));
         end
         
         function value = get.totalDuration(obj)
             value = obj.cutoff+obj.buffer;
         end
         
-        function g = gaussian(obj,tAxis, tCenter)
+        function g = gaussian(self, tAxis, tCenter)
             % given the time for the center of the pulse and a
             % time axis, generates the base gaussian waveform.
-            g = obj.amplitude.*exp(-((tAxis-tCenter).^2)./(2.*obj.sigma.^2));
+            g = self.amplitude.*exp(-((tAxis-tCenter).^2)./(2.*self.sigma.^2));
         end
         
-        function d = drag(obj,tAxis, tCenter)
+        function d = drag(self, tAxis, tCenter)
             % given the time for the center of the pulse and a
-            % time axis, generates the base gaussian waveform.
-            d = ((tAxis-tCenter)./(obj.sigma.^2)).*exp(-((tAxis-tCenter).^2)./(2.*obj.sigma.^2));
+            % time axis, generates the drag waveform.
+            d = ((tAxis-tCenter)./(self.sigma.^2)).*exp(-((tAxis-tCenter).^2)./(2.*self.sigma.^2));
             d = d/max(d); % normalize
-            d = obj.dragAmplitude*d;
+            d = self.dragAmplitude*d;
         end
         
-        function wc = applyGaussianCutoff(obj, tAxis, tCenter, w)
-            % zeros out values of waveform outside of cutoff and removes
-            % offset
-            firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
-            offset=w(firstPoint);            
-            wc = (w-offset).*(tAxis>(tCenter-obj.cutoff/2)).*(tAxis<(tCenter+obj.cutoff/2));
+        function wc = applyGaussianCutoff(self, tAxis, tCenter, w)
+            % zeros out values of waveform outside of cutoff and removes offset
+            offset = w(find((tAxis>(tCenter-self.cutoff/2)),1));            
+            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)).*(tAxis<(tCenter+self.cutoff/2));
+            % normalize
+            if max(abs(wc)) ~= abs(self.amplitude)
+                wc = wc/max(abs(wc))*abs(self.amplitude);
+            end
         end
         
-        function wc = applyDragCutoff(obj, tAxis, tCenter, w)
+        function wc = applyDragCutoff(self, tAxis, tCenter, w)
             % zeros out values of waveform outside of cutoff and removes
             % offset
 %             firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
 %             offset=w(firstPoint);            
             offset=0;
-            wc = (w-offset).*(tAxis>(tCenter-obj.cutoff/2)).*(tAxis<(tCenter+obj.cutoff/2));
+            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)).*(tAxis<(tCenter+self.cutoff/2));
         end
         
-        function [iBaseband, qBaseband] = project(obj,g, d)
+        function [iBaseband, qBaseband] = project(self, g, d)
             % find I and Q baseband using azimuth - g is main gaussian
             % waveform and d is drag waveform
-            iBaseband=cos(obj.azimuth).*g+sin(obj.azimuth).*d;
-            qBaseband=sin(obj.azimuth).*g+cos(obj.azimuth).*d;
+            iBaseband=cos(self.azimuth).*g+sin(self.azimuth).*d;
+            qBaseband=sin(self.azimuth).*g+cos(self.azimuth).*d;
         end
         
-        function [iBaseband, qBaseband] = uwWaveforms(obj,tAxis, tCenter)
+        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
             % given just a time axis and pulse time, returns final baseband
             % signals. can be added to similar outputs from other gates to
             % form a composite waveform
-            g = obj.gaussian(tAxis,tCenter);
-            d = obj.drag(tAxis,tCenter);
-            gc = obj.applyGaussianCutoff(tAxis,tCenter, g);
-            dc = obj.applyDragCutoff(tAxis,tCenter, d);
-            [iBaseband, qBaseband] = project(obj,gc, dc);
+            g = self.gaussian(tAxis,tCenter);
+            d = self.drag(tAxis,tCenter);
+            gc = self.applyGaussianCutoff(tAxis,tCenter, g);
+            dc = self.applyDragCutoff(tAxis,tCenter, d);
+            [iBaseband, qBaseband] = project(self,gc, dc);
         end
         
-        function [stateOut, stateTilt, stateAzimuth] = actOnState(obj,stateIn)
+        function [stateOut, stateTilt, stateAzimuth] = actOnState(self, stateIn)
             % given an input state vector act with unitary and return final state 
-            stateOut=obj.unitary*stateIn;
+            stateOut=self.unitary*stateIn;
             stateTilt = 2*acos(abs(stateOut(1)));
             stateAzimuth = angle(stateOut(2))-angle(stateOut(1));
         end
             
         
-        function draw(obj) % visualize - draw waveform and bloch vector
+        function draw(self) % visualize - draw waveform and bloch vector
             % print some text
-            fprintf(['Gate name: ' obj.name '\n'])
-            fprintf(['azimuth: ' num2str(obj.azimuth) '\n'])
-            fprintf(['rotation: ' num2str(obj.rotation) '\n'])
-            fprintf(['unitary rotation matrix:\n'])
-            disp(obj.unitary)
-            fprintf(['Total pulse duration (including buffer) ' num2str(obj.totalPulseDuration) 's\n'])
+            fprintf(['Gate name: ' self.name '\n']);
+            fprintf(['azimuth: ' num2str(self.azimuth) '\n']);
+            fprintf(['rotation: ' num2str(self.rotation) '\n']);
+            fprintf('unitary rotation matrix:\n');
+            disp(self.unitary);
+            fprintf(['Total pulse duration (including buffer) ' num2str(self.totalDuration) 's\n'])
             % create waveform time axis
-            pulseTime = obj.totalPulseDuration;
+            pulseTime = self.totalDuration;
             t = linspace(-pulseTime,pulseTime,1001); % make time axis twice as long as pulse 
             % create gaussian
-            gaussian = obj.gaussian(t, 0);
-            gaussianCutoff = obj.applyGaussianCutoff(t, 0, gaussian);
+            gaussian = self.gaussian(t, 0);
+            gaussianCutoff = self.applyGaussianCutoff(t, 0, gaussian);
             % create drag
-            drag = obj.drag(t, 0);
-            dragCutoff = obj.applyDragCutoff(t, 0, drag);
+            drag = self.drag(t, 0);
+            dragCutoff = self.applyDragCutoff(t, 0, drag);
             % find I and Q baseband using azimuth
-            [iBaseband, qBaseband] = project(obj,gaussianCutoff, dragCutoff);
+            [iBaseband, qBaseband] = project(self,gaussianCutoff, dragCutoff);
             % buffer
             buffer = (t>-pulseTime/2).*(t<pulseTime/2);
             % plot
@@ -174,10 +176,10 @@ classdef singleGate < handle
                 plotMax=1;
             end
             axis([-plotMax plotMax -plotMax plotMax -tmax tmax])
-            title(obj.name),xlabel('I'),ylabel('Q')
+            title(self.name),xlabel('I'),ylabel('Q')
             ax=subplot(3,2,6);
             plotlib.blochSpherePlot(ax,0,0);
-            [stateOut, stateTilt, stateAzimuth] = obj.actOnState([1;0]);
+            [stateOut, stateTilt, stateAzimuth] = self.actOnState([1;0]);
             plotlib.blochSpherePlot(ax,stateTilt,stateAzimuth,'replot');
             subplot(3,2,5);
             plot(t,iBaseband,'b',t,qBaseband,'r')

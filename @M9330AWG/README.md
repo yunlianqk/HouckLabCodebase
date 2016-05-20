@@ -30,7 +30,7 @@ pulsegen.Generate();
 ```
 ## Discussions
 ### Basic usage
-- For basic usage, setting the properties `waveform1`, `waveform2` and `timeaxis` should be enough. They should all be 1 × N row vectors with N ≥ 128.
+- For basic usage, setting the properties `waveform1`, `waveform2` and `timeaxis` should be enough. They should all be 1 × N row vectors and the pulse duration should be longer than 128 × 0.8 ns.
 - The value of waveforms should be between -1 and 1. If not, it will be renormalized. In the default setup, waveform value = ± 1 correspond to output voltage = ± 0.5 V (See below for more details).
 - Markers will be automatically created for non-zero values of waveforms when using `AutoMarker` method. You can also customize the markers by modifying `marker1` and `marker2`. In this case, they should be 1 × N row vectors with the same length as `waveform1`. The non-zero values in markers will be considered as marker on. The effect of **mkraddwidth** and **mkroffset** is shown in the figure below.
     <div style="text-align:center"><img src="./marker.jpg" alt="Marker figure" align="middle"/></div>
@@ -43,7 +43,7 @@ pulsegen.Generate();
     - OUTPUTCONFIG = 2: Amplified single-ended output, max amplitude = 0.34 to 0.5 V
     
 ### Sequence mode
-In sequence mode, waveforms and markers are all M × N arrays where M is the number of **segments**. A trigger output will be generated for each **waveform**. The full sequence is shown below. Note that the AWG only wait for external trigger for each **sequence**, not between segments within the sequence.
+In sequence mode, waveforms and markers are all M × N arrays where M is the number of **segments** (each segment contains a waveform). A trigger output will be generated at the start of each **waveform**. The full sequence is shown below. Note that the AWG only wait for external trigger for each **sequence**, not between segments within the sequence.
 <div style="text-align:center"><img src="./sequence.jpg" alt="Sequence figure" align="middle"/></div>
 
 ### <a name="sync"/>Multiple Module Synchronization
@@ -76,7 +76,7 @@ The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by s
   * **pulsegen.AutoMarker()**: Automatically creates markers
   * **pulsegen.SetSampleRate(samplerate)**: Sets the sampling rate
   * **pulsegen.Generate()**: Generates waveforms
-  * **pulsegen.Stop()**: Turns off waveforms
+  * **pulsegen.Stop()**: Turns output off
   * **pulsegen.SyncWith(mastergen)**: Synchronizes two AWG modules. See the [discussion](#sync) for details.
   * **pulsegen.GenerateRaw(waveforms, markers)**: Generates waveforms using raw data input. See the comments in the [MATLAB file](./GenerateRaw.m) for details.
   * **pulsegen.Finalize()**: Closes the instrument

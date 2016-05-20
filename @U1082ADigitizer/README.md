@@ -91,5 +91,5 @@ The following specs are only for reference. Check the [datasheet](./Specs.pdf) f
 - **sampleinterval** is selectable from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
 - **samples** can be 16 to 2 Mega (2^21) in steps of 16
 - **segments** can be 1 to 8191
-- **samples×segments** needs to be less than 2^21
-- **averages** can be between 0 and 65536
+- **samples × segments** needs to be less than 2^21
+- **averages** can be between 1 and 65536
