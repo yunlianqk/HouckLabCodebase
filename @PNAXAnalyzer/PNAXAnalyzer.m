@@ -10,7 +10,6 @@ classdef PNAXAnalyzer < GPIBINSTR
     methods
         function pnax = PNAXAnalyzer(address)
             pnax = pnax@GPIBINSTR(address);
-            display([class(pnax), ' object created.']);
         end
         function set.params(pnax, transparams)
             SetParams(pnax, transparams);

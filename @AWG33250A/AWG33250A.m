@@ -12,7 +12,6 @@ classdef AWG33250A < GPIBINSTR
     methods
         function triggen = AWG33250A(address)
             triggen = triggen@GPIBINSTR(address);
-            display([class(triggen), ' object created.']);
         end
         function set.waveform(triggen, waveform)
             SetWaveform(triggen, waveform);
