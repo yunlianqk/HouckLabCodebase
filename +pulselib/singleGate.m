@@ -76,8 +76,8 @@ classdef singleGate < handle
                                 *(cos(self.azimuth)*sx + sin(self.azimuth)*sy));
         end
         
-        function value = get.totalDuration(obj)
-            value = obj.cutoff+obj.buffer;
+        function value = get.totalDuration(self)
+            value = self.cutoff+self.buffer;
         end
         
         function g = gaussian(self, tAxis, tCenter)
@@ -88,10 +88,7 @@ classdef singleGate < handle
         
         function d = drag(self, tAxis, tCenter)
             % given the time for the center of the pulse and a
-            % time axis, generates the drag waveform.
-%             d = ((tAxis-tCenter)./(self.sigma.^2)).*exp(-((tAxis-tCenter).^2)./(2.*self.sigma.^2));
-%             d = d/max(d); % normalize
-%             d = self.dragAmplitude*d;            
+            % time axis, generates the drag waveform.     
             d = self.dragAmplitude ...
                 *(-(tAxis-tCenter)/self.sigma) ...
                 .*exp(-(tAxis-tCenter).^2/(2*self.sigma^2)+0.5);
@@ -99,9 +96,9 @@ classdef singleGate < handle
         
         function wc = applyGaussianCutoff(self, tAxis, tCenter, w)
             % zeros out values of waveform outside of cutoff and removes offset
-%             offset = w(find((tAxis>(tCenter-self.cutoff/2)),1));
             offset = self.amplitude*exp(-self.cutoff^2/(8*self.sigma^2));
-            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)).*(tAxis<(tCenter+self.cutoff/2));
+            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)) ...
+                           .*(tAxis<(tCenter+self.cutoff/2));
             % normalize
             if max(abs(wc)) ~= abs(self.amplitude)
                 wc = wc/max(abs(wc))*abs(self.amplitude);
@@ -114,14 +111,15 @@ classdef singleGate < handle
 %             firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
 %             offset=w(firstPoint);            
             offset=0;
-            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)).*(tAxis<(tCenter+self.cutoff/2));
+            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)) ...
+                           .*(tAxis<(tCenter+self.cutoff/2));
         end
         
         function [iBaseband, qBaseband] = project(self, g, d)
             % find I and Q baseband using azimuth - g is main gaussian
             % waveform and d is drag waveform
-            iBaseband = cos(self.azimuth).*g+sin(self.azimuth).*d;
-            qBaseband = sin(self.azimuth).*g+cos(self.azimuth).*d;
+            iBaseband = cos(self.azimuth).*g + sin(self.azimuth).*d;
+            qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
         
         function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
@@ -141,7 +139,6 @@ classdef singleGate < handle
             stateTilt = 2*acos(abs(stateOut(1)));
             stateAzimuth = angle(stateOut(2))-angle(stateOut(1));
         end
-            
         
         function draw(self) % visualize - draw waveform and bloch vector
             % print some text
@@ -168,10 +165,10 @@ classdef singleGate < handle
             figure(712);
             subplot(3,2,1);
             plot(t,gaussian,'b',t,gaussianCutoff,'r',t,buffer*max(gaussian),'k');
-            title('gaussian pulse')
+            title('gaussian pulse');
             subplot(3,2,3);
             plot(t,drag,'b',t,dragCutoff,t,buffer*max(drag),'k');
-            title('drag pulse')
+            title('drag pulse');
             subplot(3,2,[2,4]);
             scatter3(iBaseband, qBaseband,t,[],1:length(t),'.');
             axis square;
@@ -188,7 +185,7 @@ classdef singleGate < handle
             subplot(3,2,5);
             plot(t,iBaseband,'b',t,qBaseband,'r')
             title('I and Q baseband waveforms')
-            legend('I','Q')
+            legend('I','Q');
         end
     end
 end

@@ -1,8 +1,8 @@
 classdef measPulse < handle
     % Simple rectangular measurement pulse object.  
     properties
-        phaseAngle; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
         amplitude; % amplitude of main gaussian pulse
+        azimuth; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
         duration; % pulse length in seconds
         sigma; % sigma for Gaussian ramp-up
     end
@@ -12,15 +12,18 @@ classdef measPulse < handle
     end
     
     methods
-        function obj = measPulse()   
-            obj.phaseAngle = 0.0;
-            obj.amplitude = 1.0;
-            obj.duration = 4e-6;
-            obj.sigma = 5e-9;
+        function self = measPulse(duration)
+            if nargin == 0
+                duration = 4e-6;
+            end
+            self.azimuth = 0.0;
+            self.amplitude = 1.0;
+            self.duration = duration;
+            self.sigma = 5e-9;
         end
 
-        function value = get.totalDuration(obj)
-            value = obj.duration + 8*obj.sigma;
+        function value = get.totalDuration(self)
+            value = self.duration + 8*self.sigma;
         end
         
         function r = rect(obj, tAxis, tStart)
@@ -32,35 +35,35 @@ classdef measPulse < handle
                 + r.*(tAxis >= tCtr2).*(tAxis <= tCtr2 + 4*obj.sigma).*exp(-((tAxis-tCtr2).^2)./(2.*obj.sigma.^2));
         end
         
-        function [iBaseband, qBaseband] = project(obj, r)
+        function [iBaseband, qBaseband] = project(self, r)
             % calculate I and Q baseband using phaseAngle
-            iBaseband=cos(obj.phaseAngle).*r;
-            qBaseband=sin(obj.phaseAngle).*r;
+            iBaseband = cos(self.azimuth).*r;
+            qBaseband = sin(self.azimuth).*r;
         end
    
-        function [iBaseband, qBaseband] = uwWaveforms(obj,tAxis, tStart)
+        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tStart)
             % returns final baseband signals. 
-            r = obj.rect(tAxis,tStart);
-            [iBaseband, qBaseband] = project(obj,r);
+            r = self.rect(tAxis, tStart);
+            [iBaseband, qBaseband] = project(self,r);
         end
         
-        function draw(obj) % visualize
+        function draw(self) % visualize
             % print some text
 %             fprintf(['azimuth: ' num2str(obj.azimuth) '\n'])
 %             fprintf(['Total pulse duration (including buffer) ' num2str(obj.totalPulseDuration) 's\n'])
             % create waveform time axis
-            pulseTime = obj.duration;
-            t = linspace(-pulseTime/2,1.5*pulseTime,2001); % make time axis twice as long as pulse 
+            pulseTime = self.duration;
+            t = linspace(-pulseTime/2, 1.5*pulseTime ,2001); % make time axis twice as long as pulse 
             % make rect function
-            rect=obj.rect(t,0);
+            rect = self.rect(t,0);
             % make baseband signals
-            [iBaseband, qBaseband] = obj.uwWaveforms(t, 0);
+            [iBaseband, qBaseband] = self.uwWaveforms(t, 0);
             % plot
             figure(722);
 %             subplot(3,2,1);
             plot(t,rect,'k',t,iBaseband,'b',t,qBaseband,'r');
-            title('rectMeasurementPulse Object')
-            legend('Amplitude','I','Q')
+            title('pulselib.measPulse Object');
+            legend('Amplitude','I','Q');
         end
     end
 end
