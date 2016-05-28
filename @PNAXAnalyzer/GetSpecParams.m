@@ -8,32 +8,32 @@ function specparams = GetSpecParams(pnax)
     
     fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STARt?', ...
             specparams.channel);
-    specparams.start = fscanf(pnax.instrhandle, '%g');
+    specparams.start = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STOP?', ...
             specparams.channel);
-    specparams.stop = fscanf(pnax.instrhandle, '%g');
+    specparams.stop = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SOURce%d:POWer3?', ...
             specparams.channel);
-    specparams.power = fscanf(pnax.instrhandle, '%g');
+    specparams.power = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:CW?', ...
             specparams.channel);
-    specparams.cwfreq = fscanf(pnax.instrhandle, '%g');                
+    specparams.cwfreq = fscanf(pnax.instrhandle, '%f');                
 
     fprintf(pnax.instrhandle, 'SOURce%d:POWer1?', ...
             specparams.channel);
-    specparams.cwpower = fscanf(pnax.instrhandle, '%g');
+    specparams.cwpower = fscanf(pnax.instrhandle, '%f');
     
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts?', specparams.channel);
-    specparams.points = fscanf(pnax.instrhandle, '%g');
+    specparams.points = fscanf(pnax.instrhandle, '%d');
 
     fprintf(pnax.instrhandle, 'SOURce%d:POWer1?', specparams.channel);
-    specparams.power = fscanf(pnax.instrhandle, '%g');
+    specparams.power = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth?', specparams.channel);
-    specparams.ifbandwidth = fscanf(pnax.instrhandle, '%g');
+    specparams.ifbandwidth = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENSe%d:AVERage:COUNt?', specparams.channel);
     specparams.averages = fscanf(pnax.instrhandle, '%d');

@@ -5,7 +5,7 @@ function SetVoltage(yoko, voltage)
     stop = voltage;
     steps = round(abs(stop - start)/yoko.rampstep);
     for tempvolt = linspace(start, stop, steps)
-        fprintf(yoko.instrhandle, 'S%g;E;', tempvolt);
+        fprintf(yoko.instrhandle, 'S%f;E;', tempvolt);
         pause(yoko.rampinterval);
     end
 end
