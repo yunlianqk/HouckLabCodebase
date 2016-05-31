@@ -47,6 +47,12 @@ classdef measPulse < handle
             [iBaseband, qBaseband] = project(self,r);
         end
         
+        function s = toStruct(self)
+            warning('off', 'MATLAB:structOnObject');
+            s = struct(self);
+            warning('on', 'MATLAB:structOnObject');
+        end
+        
         function draw(self) % visualize
             % print some text
 %             fprintf(['azimuth: ' num2str(obj.azimuth) '\n'])

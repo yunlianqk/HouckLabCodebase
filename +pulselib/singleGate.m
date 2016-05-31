@@ -140,6 +140,12 @@ classdef singleGate < handle
             stateAzimuth = angle(stateOut(2))-angle(stateOut(1));
         end
         
+        function s = toStruct(self)
+            warning('off', 'MATLAB:structOnObject');
+            s = struct(self);
+            warning('on', 'MATLAB:structOnObject');
+        end
+        
         function draw(self) % visualize - draw waveform and bloch vector
             % print some text
             fprintf(['Gate name: ' self.name '\n']);
