@@ -34,6 +34,8 @@ classdef QPulseMeas < handle
         
         function plotData(self)
         % Plot data
+            [self.data.intdataI, self.data.intdataQ] ...
+                = measlib.QPulseMeas.integrateData(self.data);
             measlib.QPulseMeas.plotData(self.data);
         end
     end

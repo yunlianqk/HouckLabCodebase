@@ -30,11 +30,11 @@ pulsegen.Generate();
 ```
 ## Discussions
 ### Basic usage
-- For basic usage, setting the properties `waveform1`, `waveform2` and `timeaxis` should be enough. They should all be 1 × N row vectors and the pulse duration should be longer than 128 × 0.8 ns.
+- For basic usage, setting the properties `waveform1`, `waveform2` and `timeaxis` should be enough. They should all be 1 × N row vectors and the pulse duration should be longer than 128 × 0.8 ns. The waveforms will be generated in channel 1 and 2 every time an external trigger is received.
 - The value of waveforms should be between -1 and 1. If not, it will be renormalized. In the default setup, waveform value = ± 1 correspond to output voltage = ± 0.5 V (See below for more details).
 - Markers will be automatically created for non-zero values of waveforms when using `AutoMarker` method. You can also customize the markers by modifying `marker1` and `marker2`. In this case, they should be 1 × N row vectors with the same length as `waveform1`. The non-zero values in markers will be considered as marker on. The effect of **mkraddwidth** and **mkroffset** is shown in the figure below.
     <div style="text-align:center"><img src="./marker.jpg" alt="Marker figure" align="middle"/></div>
-- Trigger for the AWG needs to be fed to **trigger port 1**. Marker 1 and 2 will be automatically generated in **marker port 2 and 4**. A trigger output with width 100 ns will be generated in **marker port 1**. These ports can be varied by setting `TRIGINPORT`, `MKR1PORT`, `MKR2PORT` and `TRIGOUTPORT`. If you change these, the hardware connections needs to be changed accordingly.
+- Trigger for the AWG needs to be fed to **trigger port 1**. Marker 1 and 2 will be automatically generated in **marker port 2 and 4**. A trigger output with width 100 ns will be generated at the state of each waveform in **marker port 1**. These ports can be varied by setting `TRIGINPORT`, `MKR1PORT`, `MKR2PORT` and `TRIGOUTPORT`. If you change these, the hardware connections needs to be changed accordingly.
 - If `timeaxis` is not in the sampling rate of the instrument, the waveforms and timeaxis will be interpolated to fit the hardware sampling rate.
 - Zeros will be added to the end of waveforms if the number of points are not multiple of 8.
 - The maximum output voltage (corresponding to waveform value = 1) is determined by the property **OUTPUTCONFIG** (default = 2) and also frequency dependent:

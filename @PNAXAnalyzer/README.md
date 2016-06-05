@@ -84,7 +84,7 @@ To get the x-axis, call the `ReadAxis` method:
 freqvector = pnax.ReadAxis();
 ```
 
-## Things to remember
+## Discussion
 - A **channel** contains several **measurements** that are of the same type. For example, all transmission measurements can (but not necessarily) be in channel 1 and all spectroscopy measurements can be in channel 2, but a trans and a spec cannot be in the same channel.
 - A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
 - <a name="measname"></a>The **naming convention** for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
@@ -146,8 +146,10 @@ A class to store parameters for transmission measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
 
-#### <a name="specparams"></a>*class* paramlib.pnax.spec
+#### *class* paramlib.pnax.spec
 A class to store parameters for spectroscopy measurement
 * **Properties**: 
   * **start** (*float*): start frequency
@@ -162,8 +164,10 @@ A class to store parameters for spectroscopy measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
-#### <a name="psweepparams"></a>*class* paramlib.pnax.psweep
+#### *class* paramlib.pnax.psweep
 A class to store parameters for power sweep measurement
 * **Properties**:
   * **start** (*float*): start power
@@ -175,6 +179,8 @@ A class to store parameters for power sweep measurement
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
 ## API Specifications
 ##### PNAXAnalyzer

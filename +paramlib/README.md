@@ -49,7 +49,7 @@ A class to store parameters for power sweep measurement
   * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
-  
+
 #### *class* paramlib.acqiris
 A class to store parameters for Acqiris digitizer
 * **Properties**:

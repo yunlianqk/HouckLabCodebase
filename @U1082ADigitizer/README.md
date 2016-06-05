@@ -83,6 +83,8 @@ A class to store parameters for Acqiris digitizer
   * **delaytime** (*float*): Delay time in seconds before starting acquistion
   * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
   * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
 ## Hardware specifications
 The following specs are only for reference. Check the [datasheet](./Specs.pdf) for details.
