@@ -1,8 +1,8 @@
 classdef E8267DGenerator < GPIBINSTR
 % Contains paramaters and methods for E8267D vector generator
 
-    properties (Dependent)
-        frequency;
+    properties
+        freq;
         power;
     end
     
@@ -10,13 +10,13 @@ classdef E8267DGenerator < GPIBINSTR
         function gen = E8267DGenerator(address)
             gen = gen@GPIBINSTR(address);
         end
-        function set.frequency(gen, freq)
+        function set.freq(gen, freq)
             SetFreq(gen, freq);
         end
         function set.power(gen, power)
             SetPower(gen, power);
         end
-        function freq = get.frequency(gen)
+        function freq = get.freq(gen)
             freq = GetFreq(gen);
         end
         function power = get.power(gen)

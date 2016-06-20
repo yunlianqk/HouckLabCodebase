@@ -3,9 +3,6 @@ classdef YOKOGS200 < GPIBINSTR
     properties
         rampstep = 0.002; % increment step when setting voltage
         rampinterval = 0.01; % dwell time for each voltage step
-    end
-    
-    properties (Dependent)
         voltage;
     end
     methods

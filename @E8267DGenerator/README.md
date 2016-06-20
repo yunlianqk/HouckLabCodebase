@@ -12,7 +12,7 @@ rfgen.SetFreq(8e9);
 ```
 or
 ```matlab
-rfgen.frequency = 8e9;
+rfgen.freq = 8e9;
 ```
 To get power,
 ```matlab
@@ -27,8 +27,8 @@ power = rfgen.power;
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
-  * **frequency** (*float*, Dependent): Frequency of the signal
-  * **power** (*float*, Dependent): Power of the signal
+  * **frequency** (*float*): Frequency of the signal
+  * **power** (*float*): Power of the signal
 * **Methods**:
   * **gen = E8267DGenerator(address)**: Opens the instrument with `address` and creates an object `gen`
   * **gen.SetFreq(freq)**: Sets the frequency

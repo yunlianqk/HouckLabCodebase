@@ -94,7 +94,7 @@ freqvector = pnax.ReadAxis();
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
-  * [**params**](#transparams) (*object*, Dependent): Contains parameters for a measurement
+  * [**params**](#transparams) (*object*): Contains parameters for a measurement
   * **timeout** (*float*, Private): Wait time when there is error in communication
 
 * **Methods**:

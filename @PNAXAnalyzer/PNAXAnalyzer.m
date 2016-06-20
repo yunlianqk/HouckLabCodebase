@@ -1,7 +1,7 @@
 classdef PNAXAnalyzer < GPIBINSTR
 % Contains paramaters and methods for PNA-X Network Analyzer
 
-    properties (Dependent)
+    properties
         params;
     end
     properties (Access = private)
