@@ -80,7 +80,9 @@ yoko.Finalize();
     end
     ```
 and this allows to use `yoko.voltage = 0.5` and `yoko.SetVoltage(0.5)` interchangably. Similarly,  `voltage = yoko.voltage` and `voltage = yoko.GetVoltage()` are the same. See the following links for reference.
-  [Property Set Methods](http://www.mathworks.com/help/matlab/matlab_oop/property-set-methods.html)  
+
+  [Property Set Methods](http://www.mathworks.com/help/matlab/matlab_oop/property-set-methods.html)
+  
   [Property Get Methods](http://www.mathworks.com/help/matlab/matlab_oop/property-get-methods.html)
 
 ## Usage
