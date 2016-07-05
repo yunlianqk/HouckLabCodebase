@@ -21,6 +21,7 @@ classdef GPIBINSTR < handle
                 fopen(self.instrhandle);
             end
             self.address = address;
+            display([class(self), ' object created.']);
         end
         
         function Finalize(self)
@@ -28,6 +29,7 @@ classdef GPIBINSTR < handle
             if strcmp(self.instrhandle.Status, 'open')
                 fclose(self.instrhandle);
             end
+            display([class(self), ' object finalized.']);
         end
         
         function SendCommand(self, command)

@@ -2,64 +2,74 @@ classdef U1082ADigitizer < handle
 % Contains paramaters and methods for U1082A Digitizer
 
     properties (SetAccess = private, GetAccess = public)
-        address;
-        instrID;
-        AqReadParameters;
+        address;    % PXI address
+        instrID;    % ID
     end
     properties (Dependent)
-        params;
+        params;     % Parameters for digitizer
     end
     properties (Access = private)
-        defaultparams = struct('fullscale', 0.2, ...
-                        'sampleinterval', 1e-9, ...
-                        'samples', 10000, ...
-                        'averages', 30000, ...
-                        'segments', 1, ...
-                        'delaytime', 10e-6, ...
-                        'couplemode', 'DC');
+        AqReadParameters;   % Internal struct for ReadIandQ() method
+        timeout;
     end
     
     methods
-        function card = U1082ADigitizer(address)
+        function self = U1082ADigitizer(address)
         % Initialize card
-            card.address = address;
-            addpath('C:\Program Files (x86)\Agilent\MD1\U10xx_Digitizers\bin', ...
-                    'C:\Program Files (x86)\Agilent\MD1\U10xx_Digitizers\MATLAB\mex\functions');
-
-            [status, card.instrID] = Aq_InitWithOptions(card.address, 0, 0, 'asbus = false');
+            self.address = address;
+            % Initializes and returns instrID
+            [status, self.instrID] = Aq_InitWithOptions(self.address, 0, 0, 'asbus = false');
+             if status ~= 0
+                display('Initialization error for U1082A digitizer');
+                return
+            end   
+                    
+            % Clock settings
+            AqD1_configExtClock(self.instrID, 2, 1000, 1, 1, 1);
+            % second parameter:  clock type (2 = ext 10 MHZ ref)
+            % third parameter: inputthreshold in mV,
+            % last 3 parameters are unused
             
-            % instrumentID, clock type (2 = ext 10 MHZ ref), inputthreshold in mV,
-            % trash, trash, trash (last 3 parameters not needed for card)
-            status = AqD1_configExtClock(card.instrID, 2, 1000, 1,1,1);
-            status = Aq_calibrate(card.instrID);
+            status = Aq_calibrate(self.instrID);
+            if status ~= 0
+                display('Calibration error for U1082A digitizer');
+                return
+            end
             
             % Set to averaging mode
-            AqD1_configMode(card.instrID, 2, 0, 0);
+            AqD1_configMode(self.instrID, 2, 0, 0);
 
             % Trigger settings
-            trigLevel = 500; %trigger level in mV for external trigger source
-            AqD1_configTrigClass(card.instrID, 0, hex2dec('80000000'), 0, 0, 0.0, 0.0);
+            AqD1_configTrigClass(self.instrID, 0, hex2dec('80000000'), 0, 0, 0.0, 0.0);
             % second parameter = 0 sets trigclass tp edge trigger
             % third parameter = '80000000' sets trigsource to external trigger 1
-            AqD1_configTrigSource(card.instrID, -1, 0, 0, trigLevel, 0.0);
-            % second parameter = -1 sets trigchannel to external sources
-            % third parameter = 0/1 set trigcoupling to DC/AC
+            % last 4 parameters are unused
             
-            % Set default parameters
-            card.SetParams(card.defaultparams);
+            trigLevel = 500; % trigger level in mV
+            AqD1_configTrigSource(self.instrID, -1, 0, 0, trigLevel, 0.0);
+            % second parameter = -1 sets trigger channel to external sources
+            % third parameter = 0/1 sets trigger coupling to DC/AC
+            % fourth parameter = 0/1/2/3 sets trigger slope to 
+            %                    positive/negative/out of window/into window
+            % fifth parameter sets trigger level
+            % sixth parameter sets trigger level 2 when window trigger is used
+            
+            % Load default settings
+            self.SetParams(paramlib.acqiris());
+            display([class(self), ' object created.']);
         end
-        function set.params(card, params)
-            SetParams(card, params);
+        function set.params(self, params)
+            SetParams(self, params);
         end
-        function params = get.params(card)
-            params = GetParams(card);
+        function params = get.params(self)
+            params = GetParams(self);
         end
 
         % Declaration of all methods
         % Each method is defined in a separate file
-        Finalize(card);	% Close card
-        SetParams(card, params);	% Set card parameters
-        params = GetParams(card);	% Get card parameters
-        [IData, QData] = ReadIandQ(card);	% Acquire data from two channels
+        Finalize(self);	% Close card
+        SetParams(self, params);	% Set card parameters
+        params = GetParams(self);	% Get card parameters
+        [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
     end
 end

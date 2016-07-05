@@ -1,36 +1,5 @@
 function SetSpecParams(pnax, specparams)
-% Perform spectroscopy measurement
-
-    % If channel not defined, use default channel
-    if ~isfield(specparams, 'channel')
-        specparams.channel = pnax.defaultspecparams.channel;
-    end
-
-    % If channel is active, get current settings
-    if specparams.channel == pnax.GetActiveChannel()
-        tempparams = pnax.GetParams();
-    % Else, use default settings
-    else
-        tempparams = pnax.defaultspecparams;
-    end
-    
-    % Fill the missing fields 
-    fields = fieldnames(tempparams);
-    for idx = 1:length(fields)
-        if ~isfield(specparams, fields{idx})
-            specparams.(fields{idx}) = tempparams.(fields{idx});
-        end
-    end
-    
-    % Check parameters
-    if ~pnax.CheckParams(specparams)
-        display('Parameters are not set correctly.');
-        return;
-    end
-    % Create measurement  
-    pnax.CreateMeas(specparams.channel, specparams.trace, specparams.meastype);
-    
-    % Set parameters
+% Set spectroscopy parameters
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:TYPE CW', ...
             specparams.channel);
     fprintf(pnax.instrhandle, 'SENSe%d:FOM:RANGe4:COUPled OFF', ...
@@ -41,23 +10,23 @@ function SetSpecParams(pnax, specparams)
             specparams.channel);
     fprintf(pnax.instrhandle, 'SENse%d:FOM:DISPlay:SELect ''source2''', ...
             specparams.channel);
-    fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STARt %g', ...
+    fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STARt %f', ...
             [specparams.channel, specparams.start]);
-    fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STOP %g', ...
+    fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STOP %f', ...
             [specparams.channel, specparams.stop]);
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts %d', ...
             [specparams.channel, specparams.points]);
     fprintf(pnax.instrhandle, 'SOURce%d:POWer:COUPle OFF', ...
             specparams.channel);
-    fprintf(pnax.instrhandle, 'SOURce%d:POWer3 %g', ...
+    fprintf(pnax.instrhandle, 'SOURce%d:POWer3 %f', ...
             [specparams.channel, specparams.power]);
     fprintf(pnax.instrhandle, 'SENSe%d:AVERage:COUNt %d', ...
             [specparams.channel, specparams.averages]);
-    fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth %g', ...
+    fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth %f', ...
             [specparams.channel, specparams.ifbandwidth]);
-    fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:CW %g', ...
+    fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:CW %f', ...
             [specparams.channel, specparams.cwfreq]);
-    fprintf(pnax.instrhandle, 'SOURce%d:POWer1 %g',  ...
+    fprintf(pnax.instrhandle, 'SOURce%d:POWer1 %f',  ...
             [specparams.channel, specparams.cwpower]);
     fprintf(pnax.instrhandle, 'SOURce%d:POWer3:MODE ON', ...
             specparams.channel);

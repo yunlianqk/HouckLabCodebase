@@ -1,6 +1,5 @@
 % Initialize instruments
-path = pwd;
-addpath(genpath(path));
+run('.\setpath.m');
 
 address = struct('rfgen', 23, ...
                  'specgen', 22, ...
@@ -9,7 +8,8 @@ address = struct('rfgen', 23, ...
                  'yoko', 4, ...
                  'triggen', 10, ...
                  'card', 'PXI7::4::0::INSTR', ...
-                 'pulsegen', 'PXI50::15::0::INSTR');
+                 'pulsegen1', 'PXI50::15::0::INSTR', ...
+                 'pulsegen2', 'PXI48::14::0::INSTR');
 
 global rfgen;
 rfgen = E8267DGenerator(address.rfgen);
@@ -32,7 +32,10 @@ triggen = AWG33250A(address.triggen);
 global card;
 card = U1082ADigitizer(address.card);
 
-global pulsegen;
-pulsegen = M9330AWG(address.pulsegen);
+global pulsegen1;
+pulsegen1 = M9330AWG(address.pulsegen1);
 
-clear('address', 'path');
+global pulsegen2;
+pulsegen2 = M9330AWG(address.pulsegen2);
+
+clear('address');
