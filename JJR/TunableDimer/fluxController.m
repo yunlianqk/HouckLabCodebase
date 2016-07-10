@@ -28,17 +28,25 @@ classdef fluxController < handle
             global yoko1
             global yoko2
             global yoko3
-            yoko1.SetVoltage(value(1));
-            yoko2.SetVoltage(value(2));
-            yoko3.SetVoltage(value(3));
+            % move yokos together to prevent unwanted flux excursions
+            startVoltage=obj.currentVoltage;
+            stopVoltage=value;
+            steps = round(abs(stopVoltage - startVoltage)./[yoko1.rampstep; yoko2.rampstep; yoko3.rampstep]);
+            maxSteps = max(steps);
+            vtraj=obj.generateTrajectory(startVoltage,stopVoltage, maxSteps);
+            for index=1:maxSteps
+                yoko1.SetVoltage(vtraj(1,index));
+                yoko2.SetVoltage(vtraj(2,index));
+                yoko3.SetVoltage(vtraj(3,index));
+            end
         end
         function currentVoltage=get.currentVoltage(obj) % queries the yokos and returns the voltages
             global yoko1
             global yoko2
             global yoko3
-            yoko1.GetVoltage()
-            yoko2.GetVoltage()
-            yoko3.GetVoltage()
+            yoko1.GetVoltage();
+            yoko2.GetVoltage();
+            yoko3.GetVoltage();
             currentVoltage = [yoko1.voltage; yoko2.voltage; yoko3.voltage];
         end
         function set.currentFlux(obj,value) % take flux point as input and set currentVoltage
