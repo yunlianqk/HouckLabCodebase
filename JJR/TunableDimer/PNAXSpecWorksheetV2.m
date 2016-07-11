@@ -3,10 +3,10 @@
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 transWaitTime=10;
-pnax.params.start = 5.85e9;
-pnax.params.stop = 5.91e9;
+pnax.params.start = 5.78e9;
+pnax.params.stop = 5.85e9;
 pnax.params.points = 1001;
-pnax.params.power = -50;
+pnax.params.power = -40;
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
 pnax.ClearChannelAverages(1);
@@ -19,16 +19,20 @@ pnax.SetActiveTrace(2);
 figure();
 subplot(2,1,1);
 % plot(ftrans,data_transS21A,'b',ftrans,data_transS41A,'r');
-plot(ftrans,data_transS41A,'r');
+% plot(ftrans,data_transS41A,'r');
+plot(ftrans,data_transS21A,'r');
 subplot(2,1,2);
 % plot(ftrans,data_transS21P,'b',ftrans,data_transS41P,'r');
-plot(ftrans,data_transS41P,'r');
+% plot(ftrans,data_transS41P,'r');
+plot(ftrans,data_transS21P,'r');
 
 %% Compensate Electrical Delay - needs to be updated
+pnax.SetActiveTrace(2);
 pnax.CompensateElectricalDelay()
 
 %% find cavity peak frequency and optimal phase contrast bias point
-transAmpLine = data_transS41A; transPhaseLine=data_transS41P;
+transAmpLine = data_transS21A; transPhaseLine=data_transS21P;
+% transAmpLine = data_transS41A; transPhaseLine=data_transS41P;
 % choose max for a transmission peak and min for a reflection dip!
 [peakVal,peakInd] = max(transAmpLine); peakFreq = ftrans(peakInd);
 % [peakVal,peakInd] = min(transAmpLine); peakFreq = trans.v_freq(peakInd);
@@ -44,11 +48,11 @@ title('Transmission [Unwrapped phase]')
 %% Switch to spec channels and update settings
 pnax.SetActiveTrace(3);
 specWaitTime = 10;
-pnax.params.cwpower = -50;
+pnax.params.cwpower = -35;
 pnax.params.start = 6e9;
 pnax.params.stop = 8.5e9;
 pnax.params.points = 3001;
-pnax.params.power = -45;
+pnax.params.power = -30;
 pnax.params.averages = 10000;
 pnax.params.ifbandwidth = 100e3;
 pnax.params.cwfreq=peakFreq;
