@@ -2,9 +2,9 @@
 
 %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
-yoko1.rampstep=.0001;yoko1.rampinterval=.1;
-yoko2.rampstep=.0001;yoko2.rampinterval=.1;
-yoko3.rampstep=.0001;yoko3.rampinterval=.1;
+yoko1.rampstep=.0001;yoko1.rampinterval=.01;
+yoko2.rampstep=.0001;yoko2.rampinterval=.01;
+yoko3.rampstep=.0001;yoko3.rampinterval=.01;
 % CM = [1 0 0;  0 1 0; 0 0 1;]
 % f0 = [0; 0; 0;];
 
@@ -41,7 +41,7 @@ fc.currentVoltage=[0 0 0];
 currentVoltage=fc.currentVoltage;currentFlux=fc.currentFlux;display(currentVoltage),display(currentFlux)
 
 %% Ramp fluxes [left qubit, right qubit, coupler]
-fc.currentFlux=[0 0 0];
+fc.currentFlux=[-.14 0 0];
 currentVoltage=fc.currentVoltage;currentFlux=fc.currentFlux;display(currentVoltage),display(currentFlux)
 
 %% Generate flux trajectory (start flux, stop flux, steps)
@@ -96,6 +96,6 @@ toc
 
 %%
 figure();subplot(1,2,1);
-imagesc(ftrans/1e9,ftraj(2,1:index),transS21AlongTrajectoryAmp(1:index,:)); title(['transAlongTrajectory' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']); ylabel('step');xlabel('S21 (Cross) Measurement');
+imagesc(ftrans/1e9,vtraj(1,1:index),transS21AlongTrajectoryAmp(1:index,:)); title(['transAlongTrajectory' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']); ylabel('step');xlabel('S21 (Cross) Measurement');
 subplot(1,2,2);
-imagesc(ftrans/1e9,ftraj(2,1:index),transS41AlongTrajectoryAmp(1:index,:)); title(['transAlongTrajectory' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']); ylabel('step');xlabel('S41 (Through) Measurement');
+imagesc(ftrans/1e9,vtraj(1,1:index),transS41AlongTrajectoryAmp(1:index,:)); title(['transAlongTrajectory' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']); ylabel('step');xlabel('S41 (Through) Measurement');
