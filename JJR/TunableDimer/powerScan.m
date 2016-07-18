@@ -41,7 +41,9 @@ save([dataDirectory 'powerScan' num2str(time(1)) num2str(time(2)) num2str(time(3
 % fc.currentVoltage=[0 0 0];
 figure();
 toc
-%%
+%% plot instead of image
+figure();
+plot(S21powerScanAmp')
 figure(158);subplot(1,2,1);
 imagesc(freqvector/1e9,powerVector(1:index),S21powerScanAmp(1:index,:)); title(['powerScan ' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']); ylabel('power [db]');xlabel('S21 Left cavity output');
 subplot(1,2,2);

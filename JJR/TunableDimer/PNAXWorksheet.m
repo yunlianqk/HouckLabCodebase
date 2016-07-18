@@ -41,12 +41,12 @@ fc.currentVoltage=[0 0 0];
 currentVoltage=fc.currentVoltage;currentFlux=fc.currentFlux;display(currentVoltage),display(currentFlux)
 
 %% Ramp fluxes [left qubit, right qubit, coupler]
-fc.currentFlux=[-.14 0 0];
+fc.currentFlux=[0 .1 0];
 currentVoltage=fc.currentVoltage;currentFlux=fc.currentFlux;display(currentVoltage),display(currentFlux)
 
 %% Generate flux trajectory (start flux, stop flux, steps)
 clear vtraj ftraj
-fstart=[-.5 0 0];fstop=[.5 0 0];fsteps=101;
+fstart=[-.4 0 0];fstop=[.1 0 0];fsteps=51;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
