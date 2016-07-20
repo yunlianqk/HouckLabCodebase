@@ -27,17 +27,17 @@ vpp = triggen.vpp;
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
-  * **waveform** (*string*, Dependent): Waveform
+  * **waveform** (*string*): Waveform
   
     Possible values are 'SIN', 'SQUARE', 'RAMP', 'PULSE', 'NOISE', 'DC', 'USER'. Only sine and square waveforms are fully implemented.
-  * **frequency**(*float*, Dependent): Frequency
+  * **frequency**(*float*): Frequency
   
     For sine and square waves, the mininum frequency is 1 μHz and maximum is 80 MHz.
-  * **vpp**(*float*, Dependent): Peak-to-peak voltage
-  * **offset**(*float*, Dependent): Offset voltage
+  * **vpp**(*float*): Peak-to-peak voltage
+  * **offset**(*float*): Offset voltage
   
     vpp and offset should satisfy vpp ≤ 2 × (5 - |offset|).
-  * **dutycycle**(*float*, Dependent): Duty cycle
+  * **dutycycle**(*float*): Duty cycle
   
     Allowed values:
     - 20% to 80% (frequency ≤ 25 MHz)

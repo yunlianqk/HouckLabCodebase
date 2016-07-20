@@ -70,6 +70,21 @@ To close the instrument, use the `Finalize` method:
 ```matlab
 yoko.Finalize();
 ```
+
+## Remarks
+1.  All instrument classes are (inherit) **handle** classes. See [Comparison of Handle and Value Classes](http://www.mathworks.com/help/matlab/matlab_oop/comparing-handle-and-value-classes.html) for more details.
+2.  **Property set/get methods** are used for most instrument classes. For example, in [YOKOGS200.m](./@YOKOGS200/YOKOGS200.m) we define
+    ```matlab
+    function set.voltage(yoko, voltage)
+        SetVoltage(yoko, voltage);
+    end
+    ```
+and this allows to use `yoko.voltage = 0.5` and `yoko.SetVoltage(0.5)` interchangably. Similarly,  `voltage = yoko.voltage` and `voltage = yoko.GetVoltage()` are the same. See the following links for reference.
+
+  [Property Set Methods](http://www.mathworks.com/help/matlab/matlab_oop/property-set-methods.html)
+  
+  [Property Get Methods](http://www.mathworks.com/help/matlab/matlab_oop/property-get-methods.html)
+
 ## Usage
 The code can be used in various ways depending on your own preference.
 
@@ -86,7 +101,6 @@ The global property just makes it easy to access them inside other functions, bu
     global pnax;
     display(pnax.params);
     ```
-
 2.  To pass them to a function as an input parameter:
     ```matlab
     function data = MyMeasurement(argument1, ..., pnax)
@@ -96,7 +110,6 @@ The global property just makes it easy to access them inside other functions, bu
         ...
     end
     ```
-
 3.  You can define your own classes that have `pnax` as a property, or pass `pnax` to your class methods.
 
 ## Saving/Loading objects

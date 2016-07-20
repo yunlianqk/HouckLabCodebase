@@ -1,7 +1,7 @@
 classdef AWG33250A < GPIBINSTR
 % Contains paramaters and methods for 33250A AWG
 
-    properties (Dependent)
+    properties
         waveform;
         frequency;
         vpp;

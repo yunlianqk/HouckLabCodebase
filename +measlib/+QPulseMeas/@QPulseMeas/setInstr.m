@@ -51,5 +51,6 @@ function setInstr(self)
                 self.params.trigPeriod/1e-6);
     end
     self.instr.triggen.SetFreq(1/self.params.trigPeriod);
+    self.instr.triggen.PowerOn();
 end
 

@@ -5,7 +5,7 @@ classdef U1082ADigitizer < handle
         address;    % PXI address
         instrID;    % ID
     end
-    properties (Dependent)
+    properties
         params;     % Parameters for digitizer
     end
     properties (Access = private)

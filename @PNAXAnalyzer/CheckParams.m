@@ -11,7 +11,7 @@ function iscorrect = CheckParams(~, params)
     
     % Check 'format'
     formatlist = {'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', ...
-                  'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'};
+                  'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'};
     if (~ismember(upper(params.format), formatlist))
         display(['Error: format needs to be one of ', strjoin(formatlist, ', ')]);
         iscorrect = 0;
