@@ -95,7 +95,7 @@ classdef fluxController2 < handle
         %%%% Calculate things using flux to freq mappings %%%%%%%%%%%%%%%%%%%%%%%
         
         function frequency = calculateRightQubitFrequency(obj,value)
-            frequency = obj.rightQubitFluxToFreqFunc(flux);
+            frequency = obj.rightQubitFluxToFreqFunc(value);
         end
            
         function flux = calculateRightQubitFluxFromFrequency(obj,value)
@@ -103,7 +103,7 @@ classdef fluxController2 < handle
             freq = value;
             fluxVector = linspace(0,.5,10000);
             freqVector = obj.rightQubitFluxToFreqFunc(fluxVector);
-            asdf = 1
+            flux = interp1(freqVector,fluxVector,freq)
             
         end
             
