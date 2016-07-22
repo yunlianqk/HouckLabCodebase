@@ -126,7 +126,11 @@ classdef RBExperiment < handle
         
         function draw(obj)
             t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
-            figure(125)
+            figure(125);
+            h1=subplot(2,1,1);
+            hold(h1,'on');
+            h2=subplot(2,1,2);
+            hold(h2,'on');
             for ind=1:length(obj.sequences)
                 seq=obj.sequences(ind);
                 [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
@@ -135,16 +139,11 @@ classdef RBExperiment < handle
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
-                subplot(2,1,1)
-%                 plot(t,iQubitBaseband,'b',t,qQubitBaseband,'r')
-%                 subplot(2,1,2)
-%                 plot(t,iMeasBaseband,'b',t,qMeasBaseband,'r')
-                plot(t,iQubitMod,'b',t,qQubitMod,'r')
-                subplot(2,1,2)
-                plot(t,iMeasMod,'b',t,qMeasMod,'r')
                 
-                pause(1)
+                plot(h1,t,iQubitMod+ind*2.5,'b',t,qQubitMod+ind*2.5,'r')
+                plot(h2,t,iMeasMod+ind*2.5,'b',t,qMeasMod+ind*2.5,'r')
             end
+            
         end
         
         function ws = genWaveSetM8195A(obj,seq)
