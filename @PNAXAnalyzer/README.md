@@ -145,7 +145,7 @@ A class to store parameters for transmission measurement
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
 
@@ -163,7 +163,7 @@ A class to store parameters for spectroscopy measurement
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
   
@@ -178,7 +178,7 @@ A class to store parameters for power sweep measurement
   * **cwfreq** (*float*): CW frequency
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
   

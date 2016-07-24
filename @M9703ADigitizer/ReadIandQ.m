@@ -1,29 +1,35 @@
 function [Idata,Qdata]=ReadIandQ(self)
-    warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');    
-    % Perform acquisition
-    driver=self.instrID;
-    driver.DeviceSpecific.Acquisition.Initiate();
-    timeoutInMs=self.params.averages*self.params.segments*self.params.TrigPeriod+1000;%NO MORE THAN 10 SECONDS
+% Perform acquisition for ChI and ChQ
+      
+    
+    params = self.params;  % Get params all at once
+                           % avoid using self.params below because it will
+                           % call self.GetParams() and waste time
+    device = self.instrID.DeviceSpecific;  % Get device handle
+    warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
+    % Acquire data
+    device.Acquisition.Initiate();
+    timeoutInMs = params.averages*params.segments*params.trigPeriod + 1000;%NO MORE THAN 10 SECONDS
     try
-        driver.DeviceSpecific.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
+        device.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
     catch
         disp('No valid trigger...force manual triggers.');
     end
     
-    % Fetch data
-    arraySize = driver.DeviceSpecific.Acquisition.QueryMinWaveformMemory(64,...
-        self.params.averages*self.params.segments, 0, self.params.samples);
-    inArray = double(zeros(arraySize,1));%Buffer array
+    % Buffer array
+    arraySize = device.Acquisition.QueryMinWaveformMemory(64,...
+        params.averages*params.segments, 0, params.samples);
+    inArray = double(zeros(arraySize,1));
     
     % Fetch Idata
     [IdataArrayReal64, IactualRecords, IactualPoints, IfirstValidPoint, IinitialXOffset, IinitialXTimeSeconds, IinitialXTimeFraction, IxIncrement] ...
-     = driver.DeviceSpecific.Channels.Item(self.params.ChI).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,self.params.averages*self.params.segments, 0, self.params.samples, inArray);
+     = device.Channels.Item(params.ChI).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
     
     % Fetch Qdata
     [QdataArrayReal64, QactualRecords, QactualPoints, QfirstValidPoint, QinitialXOffset, QinitialXTimeSeconds, QinitialXTimeFraction, QxIncrement] ...
-     = driver.DeviceSpecific.Channels.Item(self.params.ChQ).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,self.params.averages*self.params.segments, 0, self.params.samples, inArray);
+     = device.Channels.Item(params.ChQ).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
     
-    if self.params.segments==1
+    if params.segments==1
     % Averaged single segment
         %Data array is one single row vector
         %Convert to matrix where each column vector is a trace
@@ -44,10 +50,10 @@ function [Idata,Qdata]=ReadIandQ(self)
     % Averaged sequence of segments
         %Fetch I data
         % average all traces in one sequence
-        tempdataI=sum(reshape(IdataArrayReal64,self.params.segments*(IfirstValidPoint(2)-IfirstValidPoint(1)),self.params.averages)',1)./self.params.averages;
+        tempdataI=sum(reshape(IdataArrayReal64,params.segments*(IfirstValidPoint(2)-IfirstValidPoint(1)),params.averages)',1)./params.averages;
         clear IdataArrayReal64;
         % reshape matrix so final form has each averaged segement in each row
-        tempSeqSigI=reshape(tempdataI,IfirstValidPoint(2)-IfirstValidPoint(1),self.params.segments);
+        tempSeqSigI=reshape(tempdataI,IfirstValidPoint(2)-IfirstValidPoint(1),params.segments);
         clear tempdataI;
         % remove zero entries
         Idata=tempSeqSigI(IfirstValidPoint(1)+1:IactualPoints(1),:)';
@@ -55,10 +61,10 @@ function [Idata,Qdata]=ReadIandQ(self)
         
         %Fetch Q data
         % average all traces in one sequence
-        tempdataQ=sum(reshape(QdataArrayReal64,self.params.segments*(QfirstValidPoint(2)-QfirstValidPoint(1)),self.params.averages)',1)./self.params.averages;
+        tempdataQ=sum(reshape(QdataArrayReal64,params.segments*(QfirstValidPoint(2)-QfirstValidPoint(1)),params.averages)',1)./params.averages;
         clear QdataArrayReal64;
         % reshape matrix so final form has each averaged segement in each row
-        tempSeqSigQ=reshape(tempdataQ,QfirstValidPoint(2)-QfirstValidPoint(1),self.params.segments);
+        tempSeqSigQ=reshape(tempdataQ,QfirstValidPoint(2)-QfirstValidPoint(1),params.segments);
         clear tempdataQ;
         % remove zero entries
         Qdata=tempSeqSigQ(QfirstValidPoint(1)+1:QactualPoints(1),:)';

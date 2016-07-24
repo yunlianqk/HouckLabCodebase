@@ -4,9 +4,9 @@ classdef M9330AWG < handle
     properties (SetAccess = private, GetAccess = public)
         address; % PXI address
         instrhandle; % Handle for the instrument
-        samplingrate; % Default = 1.25 GHz, can be reduced by factors of 2^n
     end
     properties (Access = public)
+        samplingrate; % Default = 1.25 GHz, can be reduced by factors of 2^n
         waveform1 = zeros(1, 256); % Minimum length is 128
         waveform2 = zeros(1, 256);
         timeaxis = (0:255)*0.8e-9;
@@ -26,7 +26,7 @@ classdef M9330AWG < handle
                          	% 2 = amplified (single-ended), gain can be 0.340 to 0.500
     end
     
-    methods (Access = public)
+    methods
         function self = M9330AWG(address)
         % Open instrhandle
             
@@ -39,6 +39,10 @@ classdef M9330AWG < handle
             self.Initialize();
             self.samplingrate = self.instrhandle.DeviceSpecific.Arbitrary.SampleRate;
             display([class(self), ' object created.']);
+        end
+        
+        function set.samplingrate(self, samplerate)
+            self.SetSampleRate(self, samplerate);
         end
         
         % Declaration of all methods
