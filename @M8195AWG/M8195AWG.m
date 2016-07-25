@@ -1,8 +1,13 @@
 classdef M8195AWG < handle
-% Contains parameters and methods for M9703A Digitizer
+% Contains parameters and methods for M8195A awg
 
     properties (Access = public)
-        samplerate;     % Parameters for digitizer
+        samplerate;     % sample rate
+        granularity;    % segement length needs to be multiple of segment granularity
+        minSegSize;     % minimum number of samples per segement
+        maxSegSize;     % maximum number of samples per segment
+        maxSegNumber;   % maximum number of segments we can download
+        
     end
 
     methods
@@ -30,7 +35,11 @@ classdef M8195AWG < handle
             
             % update awg sample rate property
             arbConfig = loadArbConfig();
-            self.samplerate=arbConfig.defaultSampleRate;
+            self.samplerate = arbConfig.defaultSampleRate;
+            self.granularity = arbConfig.segmentGranularity;
+            self.minSegSize = arbConfig.minimumSegmentSize;
+            self.maxSegSize = arbConfig.maximumSegmentSize;
+            self.maxSegNumber = arbConfig.maxSegmentNumber;
 
             display([class(self), ' object created.']);
         end

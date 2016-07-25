@@ -10,10 +10,12 @@ function dataArray = ReadChannels(self, chList)
     ChQ = params.ChQ;
 
     % Check channel list
-    chList = sort(unique(chList));
     if min(chList) < 1 || max(chList) > 8
         display('Error: channel number needs to be between 1 and 8');
         return;
+    end
+    if ~isequal(chList, unique(chList))
+        display('Warning: duplicate channel numbers in chList');
     end
     % Enable desired channels
     device = self.instrID.DeviceSpecific;
@@ -52,20 +54,24 @@ function dataArray = ReadChannels(self, chList)
     
     % Fetch data
     for index = 1:length(chList)
-        [dataArrayReal64, ~, actualPoints, firstValidPoint, ~, ~, ~, ~] ...
+        [dataArrayReal64, actualRecords, actualPoints, firstValidPoint, ~, ~, ~, ~] ...
             = device.Channels.Item(device.Channels.Name(chList(index))).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0, params.averages*params.segments, 0, params.samples, inArray);
         % Averaged sequence of segments
-        tempdata = sum(reshape(dataArrayReal64, ...
-                               params.segments*(firstValidPoint(2)-firstValidPoint(1)), ...
-                               params.averages), ...
-                       2)/params.averages;
-        clear dataArrayReal64;
-        % reshape matrix so final form has each averaged segement in each row
-        tempSeqSig = reshape(tempdata, firstValidPoint(2)-firstValidPoint(1), params.segments)';
-        clear tempdataI;
+        if actualRecords ~= 1
+            tempdata = sum(reshape(dataArrayReal64, ...
+                                   params.segments*(firstValidPoint(2)-firstValidPoint(1)), ...
+                                   params.averages), ...
+                           2)/params.averages;
+            % reshape matrix so final form has each averaged segement in each row
+            tempSeqSig = reshape(tempdata, firstValidPoint(2)-firstValidPoint(1), params.segments)';
+        else
+            tempSeqSig = dataArrayReal64;
+        end
         % remove zero entries
         dataArray(index, :, :) = tempSeqSig(:, firstValidPoint(1)+1:actualPoints(1));
-        clear tempSeqSigI;
+        clear dataArrayReal64;
+        clear tempdata;
+        clear tempSeqSig;
     end
     dataArray = squeeze(dataArray);
     
