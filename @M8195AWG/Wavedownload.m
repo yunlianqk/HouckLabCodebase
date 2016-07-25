@@ -11,6 +11,32 @@ function Wavedownload(self,WaveLib)
 %   wavelib(i).run = 0 (default), 1 will run the waveform immediately after downloading it
 %   wavelib(i).correction = 1 (true) if you want to apply FIR filter, 0 otherwise
 
+    % If waveform library is too big
+    if length(WaveLib)>self.maxSegNumber
+        error(['Waveform library size exceeds maximum segment number ',int2str(self.maxSegNumber)]);
+    end
+
+    % Correct waveform length to ensure it's a multiple of segment granularity
+    for i=1:length(WaveLib)
+    % If waveform size is smaller than minimum segment size
+        if length(WaveLib(i).waveform)<self.minSegSize
+            error(['Waveform library entry ',int2str(i),...
+                ' is smaller than minimum segment size ',int2str(self.minSegSize)]);
+        end
+        
+    % If waveform size is larger than maximum segment size
+        if length(WaveLib(i).waveform)>self.maxSegSize
+            error(['Waveform library entry ',int2str(i),...
+                ' is larger than maximum segment size ',int2str(self.maxSegSize)]);
+        end
+        
+    % Correct waveform length to ensure it's a multiple of segment granularity
+    % pad the waveform with extra zero  valued samples
+        newlength=ceil(length(WaveLib(i).waveform)/self.granularity)*self.granularity;
+        WaveLib(i).waveform(:,newlength)=0; 
+    end
+    
+
     for i=1:length(wavelib)
         iqdownload(WaveLib(i).waveform,...
             self.samplerate,...
