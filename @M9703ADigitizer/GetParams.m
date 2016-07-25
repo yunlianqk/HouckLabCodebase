@@ -3,21 +3,9 @@ function params = GetParams(self)
     
     params = paramlib.m9703a();
     device = self.instrID.DeviceSpecific;
-    % Get enabled channel numbers
-    chList = [];
-    for ch = 1:8
-        if device.Channels.Item(device.Channels.Name(ch)).Enabled == 1
-            chList(end + 1) = ch;
-        end
-    end
-    if length(chList) < 2
-        display('Less than two channels are enabled');
-        return;
-    end
-    
-    % Assigned first two enabled channels to ChI and ChQ
-    params.ChI = device.Channels.Name(chList(1));
-    params.ChQ = device.Channels.Name(chList(2));
+
+    params.ChI = self.ChI;
+    params.ChQ = self.ChQ;
     % Get parameters from the first enabled channel
     params.samplerate = device.Acquisition.SampleRate;
     params.samples = double(device.Acquisition.RecordSize);

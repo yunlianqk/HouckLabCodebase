@@ -12,6 +12,8 @@ classdef M9703ADigitizer < handle
     properties (Access = private)
         % Parameters that are NOT hardware coded are stored here to prevent
         % them from being cleared when self.GetParams() is called
+        ChI;
+        ChQ
         segments;
         trigPeriod;
     end

@@ -56,6 +56,7 @@ card.SetParams(cardparams);
 % First index is channel number
 % Second index is segment number
 % Third index is sample number
+% The index is squeezed if it equals 1
 dataArray = card.ReadChannels(chList);
 figure();
 for index = 1:length(chList)

@@ -62,11 +62,12 @@ function SetParams(self, params)
 %     self.params.TrigPeriod=params.TrigPeriod;
 %     end
 
-%     % Check parameters
-%     if ~self.CheckParams(params)
-%         display('Parameters are not set correctly.');
-%         return;
-%     end
+    % Check parameters
+    if ~self.CheckParams(params)
+        display('Parameters are not set correctly.');
+        return;
+    end
+
     % Get device handle
     device = self.instrID.DeviceSpecific;
     % Get coupling mode
@@ -95,6 +96,8 @@ function SetParams(self, params)
         end
         pCh.Configure(params.fullscale, params.offset, coupling, enabled);
     end
+    self.ChI = params.ChI;
+    self.ChQ = params.ChQ;
     
     % Setup trigerring
     device.Trigger.ActiveSource = params.trigSource;

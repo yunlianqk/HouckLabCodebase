@@ -33,8 +33,14 @@ function [Idata,Qdata]=ReadIandQ(self)
     % Averaged single segment
         %Data array is one single row vector
         %Convert to matrix where each column vector is a trace
-        IdataArrayReal64_mat=reshape(IdataArrayReal64,[IfirstValidPoint(2)-IfirstValidPoint(1),IactualRecords]);
-        QdataArrayReal64_mat=reshape(QdataArrayReal64,[QfirstValidPoint(2)-QfirstValidPoint(1),QactualRecords]);
+        if IactualRecords ~= 1
+            IdataArrayReal64_mat=reshape(IdataArrayReal64,[IfirstValidPoint(2)-IfirstValidPoint(1),IactualRecords]);
+            QdataArrayReal64_mat=reshape(QdataArrayReal64,[QfirstValidPoint(2)-QfirstValidPoint(1),QactualRecords]);
+        else
+            % firstValidPoint(2) does not exit for single trace acquisition
+            IdataArrayReal64_mat = IdataArrayReal64';
+            QdataArrayReal64_mat = QdataArrayReal64';
+        end
         clear IdataArrayReal64;
         clear QdataArrayReal64;
         %Average signal=sum column traces/ number of actual records
