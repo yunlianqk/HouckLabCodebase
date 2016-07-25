@@ -6,12 +6,15 @@ classdef M9703ADigitizer < handle
         instrID;    % ID
     end
     properties (Access = public)
-        params;     % Parameters for digitizer
+        params;     % Parameters for digitizer, real-time updated whenever
+                    % self.GetParams or self.get.params is called
     end
-%     properties (Access = private)
-%         ReadParameters;     % Internal struct for ReadIandQ() method
-%         timeout;
-%     end
+    properties (Access = private)
+        % Parameters that are NOT hardware coded are stored here to prevent
+        % them from being cleared when self.GetParams() is called
+        segments;
+        trigPeriod;
+    end
     
     methods
         function self=M9703ADigitizer(address)
@@ -47,16 +50,26 @@ classdef M9703ADigitizer < handle
             self.instrID.DeviceSpecific.Calibration.SelfCalibrate(0,1); % 0=AgMD1CalibrateTypeFull
             
             % Load default settings
-            self.params = paramlib.m9703a();
+            self.SetParams(paramlib.m9703a());
             display([class(self), ' object created.']);
             warning('on', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
+        end
+        
+        function set.params(self, params)
+            SetParams(self, params);
+        end
+        
+        function params= get.params(self)
+            params = GetParams(self);
         end
         
         % Declaration of all methods
         % Each method is defined in a separate file
         Finalize(self);	% Close card
+        iscorrect = CheckParams(~, params);  % Check card parameters
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
         [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
+        dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
     end
 end

@@ -2,6 +2,14 @@ function iscorrect = CheckParams(~, params)
 % Check the correctness of some parameters
     
     iscorrect = 1;
+    % Check params class
+    classlist = {'paramlib.pnax.trans', ...
+                 'paramlib.pnax.spec', ...
+                 'paramlib.pnax.psweep'};
+    if ~ismember(class(params), classlist)
+        display('Error: params needs to be an object in paramlib.pnax');
+        iscorrect = 0;
+    end
     % Check 'meastype'
     measpattern = '[Ss][1-4][1-4]';
     if isempty(regexp(params.meastype, measpattern, 'once'))
