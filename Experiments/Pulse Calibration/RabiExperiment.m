@@ -5,7 +5,7 @@ classdef RabiExperiment < handle
         qubit; % object array of qubit pulses
         measurement; % measurement pulse object
         ampList = linspace(1,0,101);
-        qubitStartTime = 200e-9; % delay in seconds before earliest clifford gate
+        qubitStartTime = 200e-9; % delay in seconds after qubit pulse before measurement pulse
         qubitPulseTime;
         qubitEndTime; % automatically calculated
         measDelay = 50e-9; % time in seconds btw qubit pulse and start of measurement pulse 
@@ -14,7 +14,7 @@ classdef RabiExperiment < handle
         waveformEndDelay = 50e-9; % delay after end of measurement pulse to end waveform
         qubitFreq=5e9; % qubit frequency
         cavityFreq=7e9; % cavity frequency
-        samplingRate=15e9; % sampling rate
+        samplingRate=32e9; % sampling rate
     end
     
     methods
@@ -69,25 +69,24 @@ classdef RabiExperiment < handle
             end
         end
         
-        function ws = genWaveSetM8195A(obj,seq)
-            % take an rbSequence object (seq) and build a waveSet object that can
-            % be sent to the M8195A AWG
-            
-            % generate qubit and measurement waveforms
+        function w = genWavesetM8195A(obj)
+            % build waveset object for use with M8195A AWG
+            % this makes each trial (or pulse power) its own segment.
+            w = paramlib.M8195A.wavesetM8195A();
             t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
-            [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
-            iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
-            qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
-            qubitWaveform=iQubitMod+qQubitMod;
-            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-            iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-            qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
-            measWaveform=iMeasMod+qMeasMod;
-            % build waveSet object
-            ws=waveSetM8195A();
-            ws.samplingRate=obj.samplingRate;
-            ws.addChannel(1,qubitWaveform);
-            ws.addChannel(2,measWaveform);
+            for ind=1:length(obj.qubit)
+                q=obj.qubit(ind);
+                [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
+                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+                s=w.newSegment(ch1waveform,1,'I');
+                p=w.newPlaylistItem(s);
+                p.advance='Conditional';
+            end
         end
     end
 end

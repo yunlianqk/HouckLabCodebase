@@ -8,11 +8,24 @@ classdef playlistItem < handle
         loops = 1; % number of times to repeat before moving to next playlist item
         markerEnable = true; % should probably always be true?
         advance = 'Auto'; % Should be 'Conditional' if next item on playlist should wait until another trigger
+        waveformIndex; % when added to playlist this keeps track of which waveform the entry is part of - based on the advance properties of playlist items before it.
     end
     
     methods
-        function obj=playlistItem(segment) % constructor
+        function obj=playlistItem(segment, varargin) % constructor
             obj.segment = segment;
+            nVarargs = length(varargin);
+            switch nVarargs
+                case 1
+                    obj.advance = varargin{1};
+                case 2
+                    obj.advance = varargin{1};
+                    obj.loops = varargin{2};
+                case 3
+                    obj.advance = varargin{1};
+                    obj.loops = varargin{2};
+                    obj.markerEnable = varargin{3};
+            end
         end
         
         function draw(obj)

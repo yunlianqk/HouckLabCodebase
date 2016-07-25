@@ -22,22 +22,14 @@ classdef wavesetM8195A < handle
             % generating an empty waveset object.
         end
         
-        function s = newSegment(obj,waveform)
+        function s = newSegment(obj,waveform,varargin)
             % create a new segment from waveform and add it to the
             % segmentLibrary. automatically sets id and uses defaults for
             % other parameters. Segments are handle objects so the returned
             % segment can be altered (channel, quadrature etc.) and those 
             % changes will show up in the segmentLibrary
-            s=paramlib.M8195A.segment(waveform);
+            s=paramlib.M8195A.segment(waveform,varargin);
             obj.addSegment(s);
-        end
-        
-        function p = newPlaylistItem(obj,segment)
-            % appends a new playlistItem to the end of the playlist.
-            % playlistItems are handle objects so the returned
-            % object can be altered and those changes propagate correctly
-            p=paramlib.M8195A.playlistItem(segment);
-            obj.addPlaylistItem(p);
         end
         
         function addSegment(obj,segment)
@@ -54,12 +46,27 @@ classdef wavesetM8195A < handle
             end
         end
         
+        function p = newPlaylistItem(obj,segment,varargin)
+            % appends a new playlistItem to the end of the playlist.
+            % playlistItems are handle objects so the returned
+            % object can be altered and those changes propagate correctly
+            p=paramlib.M8195A.playlistItem(segment,varargin);
+            obj.addPlaylistItem(p);
+        end
+        
         function addPlaylistItem(obj,playlistItem)
             % adds a playlistItem object to the end of the playlist. 
             if isempty(obj.playlist)
+                playlistItem.waveformIndex = 1;
                 obj.playlist = playlistItem; 
             else
                 playlistPosition = size(obj.playlist,2) + 1;
+                lastItem = obj.playlist(playlistPosition-1);
+                if strcmp(lastItem.advance,'Auto')
+                    playlistItem.waveformIndex = lastItem.waveformIndex;
+                else
+                    playlistItem.waveformIndex = lastItem.waveformIndex+1;
+                end
                 obj.playlist(playlistPosition) = playlistItem;
             end
         end
@@ -76,6 +83,7 @@ classdef wavesetM8195A < handle
             for ind = 1:libSize
                 s = obj.segmentLibrary(ind);
                 y = s.waveform+2.5*(ind-1);
+                % y = s.waveform;
                 x = tstep.*(0:(length(y)-1));
                 plot(ax,x,y)
             end
@@ -91,13 +99,25 @@ classdef wavesetM8195A < handle
             ax=axes();
             title('Playlist')
             hold(ax,'on');
+            
+            currentWaveform = [];
             for ind = 1:playlistSize
                 p = obj.playlist(ind);
                 s = p.segment;
                 w = s.waveform;
-                y = repmat(w,1,p.loops)+2.5*(ind-1);
-                x = tstep.*(0:(length(y)-1));
-                plot(ax,x,y)
+                y = repmat(w,1,p.loops);
+                currentWaveform = [currentWaveform y];
+                % whenever conditional trigger setting found, we are done
+                % with a waveform.
+                if strcmp(p.advance,'Conditional') % plot and reset
+                    plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
+                    currentWaveform = [];
+                % if we are at the end of the playlist draw the last
+                % waveform regardless of the trigger setting.
+                elseif ind == playlistSize
+                    plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
+                    currentWaveform = [];
+                end
             end
         end
 

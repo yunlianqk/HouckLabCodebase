@@ -9,14 +9,33 @@ classdef segment < handle
     
     properties
         waveform; % vector of values to be drawn by AWG. Range +/- 1.
-        id = 1; % reference used by playlist
         channel = 1; % hardware won't allow using same segment across channels?
         quadrature = 'I'; % specify I or Q
         applyFilter = true; % currently only have a filter for qubit pulses
+        id = 1; % reference used by playlist
     end
     
     methods
-        function obj=segment(waveform) % constructor
+        function obj=segment(waveform, varargin) % constructor
+            % check and store waveform
+            obj.checkWaveform(waveform)
+            obj.waveform=waveform;
+            % optional arguments
+            nVarargs = length(varargin);
+            switch nVarargs
+                case 1
+                    obj.channel = varargin{1};
+                case 2
+                    obj.channel = varargin{1};
+                    obj.quadrature = varargin{2};
+                case 3
+                    obj.channel = varargin{1};
+                    obj.quadrature = varargin{2};
+                    obj.applyFilter = varargin{3};
+            end
+        end
+        
+        function checkWaveform(obj,waveform)
             % check waveform is just a vector
             if ~isvector(waveform)
                 error('Waveform must be a vector');
@@ -25,7 +44,6 @@ classdef segment < handle
             if max(abs(waveform))>1
                 error('Waveform range beyond +/- 1');
             end
-            obj.waveform=waveform;
         end
         
         function draw(obj)

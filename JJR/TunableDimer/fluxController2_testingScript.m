@@ -12,4 +12,6 @@ fc
 %%
 % fc.calculateLeftQubitFrequency(0)
 % fc.calculateRightQubitFrequency(0)
-fc.calculateLeftQubitFluxFromFrequency(7.338e9)
+fc.calculateLeftQubitFluxFromFrequency(4e9)
+
+%%
