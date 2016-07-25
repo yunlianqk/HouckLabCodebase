@@ -22,7 +22,25 @@ classdef wavesetM8195A < handle
             % generating an empty waveset object.
         end
         
-        function obj=addSegment(obj,segment)
+        function s = newSegment(obj,waveform)
+            % create a new segment from waveform and add it to the
+            % segmentLibrary. automatically sets id and uses defaults for
+            % other parameters. Segments are handle objects so the returned
+            % segment can be altered (channel, quadrature etc.) and those 
+            % changes will show up in the segmentLibrary
+            s=paramlib.M8195A.segment(waveform);
+            obj.addSegment(s);
+        end
+        
+        function p = newPlaylistItem(obj,segment)
+            % appends a new playlistItem to the end of the playlist.
+            % playlistItems are handle objects so the returned
+            % object can be altered and those changes propagate correctly
+            p=paramlib.M8195A.playlistItem(segment);
+            obj.addPlaylistItem(p);
+        end
+        
+        function addSegment(obj,segment)
             % adds a segment object into the segmentLibrary. Changes id of
             % segment object to match it's location within the library
             if isempty(obj.segmentLibrary)
@@ -36,11 +54,54 @@ classdef wavesetM8195A < handle
             end
         end
         
-        function draw()
+        function addPlaylistItem(obj,playlistItem)
+            % adds a playlistItem object to the end of the playlist. 
+            if isempty(obj.playlist)
+                obj.playlist = playlistItem; 
+            else
+                playlistPosition = size(obj.playlist,2) + 1;
+                obj.playlist(playlistPosition) = playlistItem;
+            end
+        end
+        
+        
+        function drawSegmentLibrary(obj)
             % visualize the segment library 
-            % visualize playlist
+            libSize = size(obj.segmentLibrary,2);
+            tstep = 1/obj.samplingRate;
+            figure();
+            ax=axes();
+            title('Segment Library')
+            hold(ax,'on');
+            for ind = 1:libSize
+                s = obj.segmentLibrary(ind);
+                y = s.waveform+2.5*(ind-1);
+                x = tstep.*(0:(length(y)-1));
+                plot(ax,x,y)
+            end
+        end
+        
+        function drawPlaylist(obj)
+            % visualize the playlist
+            % this needs to be updated to concatenate playlist items until
+            % it hits an item that has advance set to 'Conditional' 
+            playlistSize = size(obj.playlist,2);
+            tstep = 1/obj.samplingRate;
+            figure();
+            ax=axes();
+            title('Playlist')
+            hold(ax,'on');
+            for ind = 1:playlistSize
+                p = obj.playlist(ind);
+                s = p.segment;
+                w = s.waveform;
+                y = repmat(w,1,p.loops)+2.5*(ind-1);
+                x = tstep.*(0:(length(y)-1));
+                plot(ax,x,y)
+            end
         end
 
+        
         function save(obj)
             % saving code here
         end

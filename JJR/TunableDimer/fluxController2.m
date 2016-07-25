@@ -103,12 +103,20 @@ classdef fluxController2 < handle
             freq = value;
             fluxVector = linspace(0,.5,10000);
             freqVector = obj.rightQubitFluxToFreqFunc(fluxVector);
-            flux = interp1(freqVector,fluxVector,freq)
-            
+            flux = interp1(freqVector,fluxVector,freq);
         end
             
-        
-        
+        function frequency = calculateLeftQubitFrequency(obj,value)
+            frequency = obj.leftQubitFluxToFreqFunc(value);
+        end
+           
+        function flux = calculateLeftQubitFluxFromFrequency(obj,value)
+            % assumes flux from 0 to .5
+            freq = value;
+            fluxVector = linspace(0,.5,10000);
+            freqVector = obj.leftQubitFluxToFreqFunc(fluxVector);
+            flux = interp1(freqVector,fluxVector,freq);
+        end
         
         %%%%%%%%%%%%%%%%%%%%%%
         

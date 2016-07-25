@@ -11,9 +11,9 @@ classdef playlistItem < handle
     end
     
     methods
-        
-        
-        
+        function obj=playlistItem(segment) % constructor
+            obj.segment = segment;
+        end
         
         function draw(obj)
             % visualize
@@ -26,8 +26,14 @@ classdef playlistItem < handle
             else
                 final = wf;
             end            
-            figure(612);
+            figure();
             plot(final);
+            str={['Segment ID: ' num2str(obj.segment.id)],...
+                 ['Loops: ' num2str(obj.loops)],...
+                 ['markerEnable: ' num2str(obj.markerEnable)],...
+                 ['advance: ' num2str(obj.advance)]};
+            dim = [.7 .8 .1 .1];
+            t = annotation('textbox',dim,'String',str);
         end
     end
 end
