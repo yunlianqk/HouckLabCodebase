@@ -19,14 +19,14 @@ classdef M8195AWG < handle
             % choose the configuration settings
             % Then press Ok button to finalize
             iqconfig();
-            message='Have you finalized M8195AWG configuration?\n If yes press OK';
+            message={'Have you finalized M8195AWG configuration?','If yes press OK'};
             uiwait(msgbox(message));
             
             % Import correction .mat file
             % to be used for downloading predistorted waveforms to the awg
             % this needs to be done only once
             iqcorrmgmt();
-            message='Have you imported correction file?\n If yes press OK';
+            message={'Have you imported correction file?',' If yes press OK'};
             uiwait(msgbox(message));
             
             % Make sure you can connect to the awg
@@ -48,7 +48,7 @@ classdef M8195AWG < handle
         % Each method is defined in a separate file
         WaveLib = ApplyCorrection(self,WaveLib) % returns predistorted waveform library
         Wavedownload(self, WaveLib) % download waveform library to the awg
-        SeqRun(PlayList)       % Run sequence playlist based on the downloaded library
-        SeqStop(PlayList)      % Stop sequence playlist
+        SeqRun(self,PlayList)       % Run sequence playlist based on the downloaded library
+        SeqStop(self,PlayList)      % Stop sequence playlist
     end
 end

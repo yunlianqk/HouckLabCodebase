@@ -11,6 +11,9 @@ function Wavedownload(self,WaveLib)
 %   wavelib(i).run = 0 (default), 1 will run the waveform immediately after downloading it
 %   wavelib(i).correction = 1 (true) if you want to apply FIR filter, 0 otherwise
 
+    % start from scratch and delete all segments
+    iqseq('delete', [], 'keepOpen', 1);
+
     % If waveform library is too big
     if length(WaveLib)>self.maxSegNumber
         error(['Waveform library size exceeds maximum segment number ',int2str(self.maxSegNumber)]);
@@ -37,7 +40,7 @@ function Wavedownload(self,WaveLib)
     end
     
 
-    for i=1:length(wavelib)
+    for i=1:length(WaveLib)
         iqdownload(WaveLib(i).waveform,...
             self.samplerate,...
             'channelMapping',...
