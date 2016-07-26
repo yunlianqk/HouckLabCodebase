@@ -1,4 +1,4 @@
-function SeqStop(PlayList)
+function SeqStop(self,PlayList)
 % function that runs a sequence playlist based on the previously downloaded waveform library
 % Sequence playlist must have the following struct format
 % sequence entry i
