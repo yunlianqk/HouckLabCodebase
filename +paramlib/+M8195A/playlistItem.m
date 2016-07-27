@@ -5,9 +5,9 @@ classdef playlistItem < handle
     
     properties
         segment; % handle to a segment object within the segment library
+        advance = 'Auto'; % Should be 'Conditional' if next item on playlist should wait until another trigger
         loops = 1; % number of times to repeat before moving to next playlist item
         markerEnable = true; % should probably always be true?
-        advance = 'Auto'; % Should be 'Conditional' if next item on playlist should wait until another trigger
         waveformIndex; % when added to playlist this keeps track of which waveform the entry is part of - based on the advance properties of playlist items before it.
     end
     

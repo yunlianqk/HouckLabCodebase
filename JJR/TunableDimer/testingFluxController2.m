@@ -8,5 +8,5 @@ fc. rightQubitFluxToFreqFunc = @(x) sqrt(8.*Ec.*EjSum.*abs(cos(pi.*x)))-Ec;
 fluxVal = 0;
 fc.calculateRightQubitFrequency(fluxVal)
 %%
-freqVal = 7.944e9;
+freqVal = 5e9;
 fc.calculateRightQubitFluxFromFrequency(freqVal)

@@ -28,20 +28,24 @@ classdef wavesetM8195A < handle
             % other parameters. Segments are handle objects so the returned
             % segment can be altered (channel, quadrature etc.) and those 
             % changes will show up in the segmentLibrary
-            s=paramlib.M8195A.segment(waveform,varargin);
+            s=paramlib.M8195A.segment(waveform,varargin{:});
             obj.addSegment(s);
         end
         
         function addSegment(obj,segment)
             % adds a segment object into the segmentLibrary. Changes id of
-            % segment object to match it's location within the library
+            % segment object to match it's location within the library          
             if isempty(obj.segmentLibrary)
-                newId = 1;
-                segment.id = newId; % change segment's id
+                if isempty(segment.id)
+                    newId = 1;
+                    segment.id = newId; % change segment's id
+                end
                 obj.segmentLibrary = segment; 
             else
                 newId = size(obj.segmentLibrary,2) + 1;
-                segment.id = newId; % change segment's id
+                if isempty(segment.id)
+                    segment.id = newId; % change segment's id
+                end
                 obj.segmentLibrary(newId) = segment; % add segment to end of library    
             end
         end
@@ -50,7 +54,7 @@ classdef wavesetM8195A < handle
             % appends a new playlistItem to the end of the playlist.
             % playlistItems are handle objects so the returned
             % object can be altered and those changes propagate correctly
-            p=paramlib.M8195A.playlistItem(segment,varargin);
+            p=paramlib.M8195A.playlistItem(segment,varargin{:});
             obj.addPlaylistItem(p);
         end
         
@@ -77,50 +81,112 @@ classdef wavesetM8195A < handle
             libSize = size(obj.segmentLibrary,2);
             tstep = 1/obj.samplingRate;
             figure();
-            ax=axes();
             title('Segment Library')
-            hold(ax,'on');
+            % array of subplot handles for each channel
+            h(1)=subplot(1,4,1);hold(h(1),'on');
+            h(2)=subplot(1,4,2);hold(h(2),'on');
+            h(3)=subplot(1,4,3);hold(h(2),'on');
+            h(4)=subplot(1,4,4);hold(h(2),'on');
             for ind = 1:libSize
                 s = obj.segmentLibrary(ind);
-                y = s.waveform+2.5*(ind-1);
-                % y = s.waveform;
-                x = tstep.*(0:(length(y)-1));
-                plot(ax,x,y)
+                for ch=1:4
+                    if any(s.channelMap(ch,:))
+                        ax=h(ch);
+                        y = s.waveform;
+                        y = s.waveform+2.5*(ind-1);
+                        x = tstep.*(0:(length(y)-1));
+                        plot(ax,x,y)
+                    end
+                end
             end
+%             linkaxes([h(1), h(3)]) % it would be nice to make all the
+%             axes the same but it's a little annoying to code...
         end
         
         function drawPlaylist(obj)
             % visualize the playlist
-            % this needs to be updated to concatenate playlist items until
-            % it hits an item that has advance set to 'Conditional' 
             playlistSize = size(obj.playlist,2);
             tstep = 1/obj.samplingRate;
             figure();
-            ax=axes();
             title('Playlist')
-            hold(ax,'on');
-            
-            currentWaveform = [];
+            % array of subplot handles for each channel
+            h(1)=subplot(1,4,1);hold(h(1),'on');
+            h(2)=subplot(1,4,2);hold(h(2),'on');
+            h(3)=subplot(1,4,3);hold(h(3),'on');
+            h(4)=subplot(1,4,4);hold(h(4),'on');
+            currentWaveform{1} = [];
+            currentWaveform{2} = [];
+            currentWaveform{3} = [];
+            currentWaveform{4} = [];
             for ind = 1:playlistSize
                 p = obj.playlist(ind);
-                s = p.segment;
-                w = s.waveform;
-                y = repmat(w,1,p.loops);
-                currentWaveform = [currentWaveform y];
-                % whenever conditional trigger setting found, we are done
-                % with a waveform.
-                if strcmp(p.advance,'Conditional') % plot and reset
-                    plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
-                    currentWaveform = [];
-                % if we are at the end of the playlist draw the last
-                % waveform regardless of the trigger setting.
-                elseif ind == playlistSize
-                    plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
-                    currentWaveform = [];
+                segId = p.segment.id; 
+
+                % must find and add all segments in segmentLibrary to their respective channels!
+                libSize = size(obj.segmentLibrary,2);
+                segGroup=[];
+                for ind2 = 1:libSize
+                    sTemp = obj.segmentLibrary(ind2);
+                    if sTemp.id == segId
+                        segGroup = [segGroup sTemp];
+                    end
+                end
+                
+                % run through segment group and add each on to the correct waveform
+                for ind3 = 1:length(segGroup);
+                    s = segGroup(ind3);
+                    % run through 4 possible channels this segment could be
+                    % assigned to
+                    for ch=1:4
+                        if any(s.channelMap(ch,:))
+                            w = s.waveform;
+                            y = repmat(w,1,p.loops);
+                            currentWaveform{ch} = [currentWaveform{ch} y];
+                            % whenever conditional trigger setting found, we are done with a waveform.
+                            if strcmp(p.advance,'Conditional') % plot and reset
+                                plot(h(ch),currentWaveform{ch}+(p.waveformIndex-1)*2.5);
+                                currentWaveform{ch} = [];
+                            elseif ind == playlistSize
+                                plot(h(ch),currentWaveform{ch}+(p.waveformIndex-1)*2.5);
+                                currentWaveform{ch} = [];
+                            end
+                        end
+                    end
                 end
             end
         end
-
+                
+        
+%         function drawPlaylist(obj)
+%             % visualize the playlist
+%             playlistSize = size(obj.playlist,2);
+%             tstep = 1/obj.samplingRate;
+%             figure();
+%             ax=axes();
+%             title('Playlist')
+%             hold(ax,'on');
+%             
+%             currentWaveform = [];
+%             for ind = 1:playlistSize
+%                 p = obj.playlist(ind);
+%                 s = p.segment;
+%                 w = s.waveform;
+%                 y = repmat(w,1,p.loops);
+%                 currentWaveform = [currentWaveform y];
+%                 % whenever conditional trigger setting found, we are done
+%                 % with a waveform.
+%                 if strcmp(p.advance,'Conditional') % plot and reset
+%                     plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
+%                     currentWaveform = [];
+%                     % if we are at the end of the playlist draw the last
+%                     % waveform regardless of the trigger setting.
+%                 elseif ind == playlistSize
+%                     plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
+%                     currentWaveform = [];
+%                 end
+%             end
+%         end
+        
         
         function save(obj)
             % saving code here

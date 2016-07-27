@@ -10,8 +10,10 @@ classdef segment < handle
     properties
         waveform; % vector of values to be drawn by AWG. Range +/- 1.
         channelMap = [1 0; 0 0; 0 0; 0 0];% [Ch1I Ch1Q; Ch2I Ch2Q; Ch3I Ch3Q; Ch4I Ch4Q]
+        id; % reference used by playlist. different segments with the same id (different channels) will be played simultaneously.
         applyFilter = true; % used to determine which waveforms get calibration filter
-        id = 1; % reference used by playlist. different segments with the same id (different channels) will be played simultaneously.
+        keepOpen = 1; % keeps connection to awg open
+        run = 0; % setting this to 1 means it will run as soon as it's downloaded by awg
     end
     
     methods
@@ -23,23 +25,26 @@ classdef segment < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.channel = varargin{1};
+                    obj.channelMap = varargin{1};
                 case 2
-                    obj.channel = varargin{1};
-                    obj.quadrature = varargin{2};
+                    obj.channelMap = varargin{1};
+                    obj.applyFilter = varargin{2};
                 case 3
-                    obj.channel = varargin{1};
-                    obj.quadrature = varargin{2};
-                    obj.applyFilter = varargin{3};
+                    obj.channelMap = varargin{1};
+                    obj.applyFilter = varargin{2};
+                    obj.id = varargin{3};
+                case 4
+                    obj.channelMap = varargin{1};
+                    obj.applyFilter = varargin{2};
+                    obj.id = varargin{3};
+                    obj.keepOpen = varargin{4};
+                case 5
+                    obj.channelMap = varargin{1};
+                    obj.applyFilter = varargin{2};
+                    obj.id = varargin{3};
+                    obj.keepOpen = varargin{4};                  
+                    obj.run = varargin{5};
             end
-        end
-        
-        function set.channel(obj,value) % update underlying channelMap
-            % first check that value is a valid channel.
-            if (value<1)|(value>4)
-                error('Channel must be 1 to 4')
-            end
-            % find current channel
         end
         
         function checkWaveform(obj,waveform)
@@ -58,8 +63,7 @@ classdef segment < handle
             figure()
             plot(obj.waveform)
             str={['id: ' num2str(obj.id)],...
-                 ['channel: ' num2str(obj.channel)],...
-                 ['quadrature: ' obj.quadrature],...
+                 ['channelMap: ' mat2str(obj.channelMap)],...
                  ['applyFilter: ' num2str(obj.applyFilter)]};
             dim = [.7 .8 .1 .1];
             t = annotation('textbox',dim,'String',str);

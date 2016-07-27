@@ -73,7 +73,11 @@ classdef RabiExperiment < handle
             % build waveset object for use with M8195A AWG
             % this makes each trial (or pulse power) its own segment.
             w = paramlib.M8195A.wavesetM8195A();
-            t = 0:1/obj.samplingRate:(obj.measEndTime+obj.waveformEndDelay);
+            tStep = 1/obj.samplingRate;
+            t = 0:tStep:(obj.measEndTime+obj.waveformEndDelay);
+            % end segment that can be repeated until next trigger
+            wfEnd = zeros(1,(40e-9)/tStep);
+            sEnd = w.newSegment(wfEnd,[1 0; 0 0; 1 0; 0 0]);
             for ind=1:length(obj.qubit)
                 q=obj.qubit(ind);
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
@@ -83,9 +87,15 @@ classdef RabiExperiment < handle
                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-                s=w.newSegment(ch1waveform,1,'I');
-                p=w.newPlaylistItem(s);
-                p.advance='Conditional';
+                ch3waveform = iMeasMod+qMeasMod;
+                s1=w.newSegment(ch1waveform);
+                p1=w.newPlaylistItem(s1);
+                pEnd=w.newPlaylistItem(sEnd);
+                pEnd.advance='Conditional';
+                % since s2 will be played simultaneously with s1, it does
+                % not need its own playlist item!
+                s2=w.newSegment(ch3waveform,[0 0; 0 0; 1 0; 0 0]);
+                s2.id=s1.id;
             end
         end
     end
