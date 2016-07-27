@@ -50,5 +50,13 @@ classdef M8195AWG < handle
         Wavedownload(self, WaveLib) % download waveform library to the awg
         SeqRun(self,PlayList)       % Run sequence playlist based on the downloaded library
         SeqStop(self,PlayList)      % Stop sequence playlist
+        
+        % methods to work with waveset interface
+        WaveLib = WavesetExtractSegmentLibraryStruct(self, waveset) % translates segmentLibrary into struct used by iqtools
+        Playlist = WavesetExtractPlaylistStruct(self,waveset) % translates playlist object (see paramlib.M8195A) into playlist struct used by iqtools
+        waveset = WavesetApplyCorrection(self, waveset) % apply predistortion filter to necessary segments in segmentLibrary
+        WavesetDownloadSegmentLibrary(self, waveset) % download segment library of provided waveset object
+        WavesetRunPlaylist(self, waveset) % run playlist
+        WavesetSeqStop(self, waveset) % stop playlist
     end
 end

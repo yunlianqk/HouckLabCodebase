@@ -7,7 +7,6 @@ function SeqRun(self,PlayList)
 %       playlist(i).markerEnable = true (default)
 %       playlist(i).segmentAdvance = 'Auto' - next waveform starts immediately
 %                                    'Conditional' - next waveform after trigger
-    PlayList;
     iqseq('define', PlayList, 'keepOpen', 1, 'run', 1);
     
 end
