@@ -5,10 +5,10 @@ classdef waveset < handle
 
     properties
         % M8195A Settings
-        samplingRate = 32.5e9; % Will this be universal for the entire waveset?
-        triggerRate = 1/111e6;
-        voltageRange = .5; % Output range of AWG in Volts
-        % add other settings for AWG that might need to get changed...
+        samplingRate = 32e9; 
+        %currently not used
+        % triggerRate = 1/111e6;
+        % voltageRange = .5; % Output range of AWG in Volts
         
         % Object Arrays
         segmentLibrary; % array of segment objects
@@ -22,17 +22,17 @@ classdef waveset < handle
         
         function s = newSegment(obj,waveform,varargin)
             % create a new segment from waveform and add it to the
-            % segmentLibrary. automatically sets id and uses defaults for
-            % other parameters. Segments are handle objects so the returned
-            % segment can be altered (channel, quadrature etc.) and those 
+            % segmentLibrary. automatically sets id. Segments are handle 
+            % objects so the returned segment can be altered 
+            % (channel, quadrature etc.) and those 
             % changes will show up in the segmentLibrary
             s=paramlib.M8195A.segment(waveform,varargin{:});
             obj.addSegment(s);
         end
         
         function addSegment(obj,segment)
-            % adds a segment object into the segmentLibrary. Changes id of
-            % segment object to match it's location within the library          
+            % adds a segment object into the segmentLibrary. If segment.id
+            % is not defined it will generate one
             if isempty(obj.segmentLibrary)
                 if isempty(segment.id)
                     newId = 1;
@@ -142,6 +142,9 @@ classdef waveset < handle
                             currentWaveform{ch} = [currentWaveform{ch} y];
                             % whenever conditional trigger setting found, we are done with a waveform.
                             if strcmp(p.advance,'Conditional') % plot and reset
+                                plot(h(ch),currentWaveform{ch}+(p.waveformIndex-1)*2.5);
+                                currentWaveform{ch} = [];
+                            elseif strcmp(p.advance,'Stepped') % plot and reset
                                 plot(h(ch),currentWaveform{ch}+(p.waveformIndex-1)*2.5);
                                 currentWaveform{ch} = [];
                             elseif ind == playlistSize
