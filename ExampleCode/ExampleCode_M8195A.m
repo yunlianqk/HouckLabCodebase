@@ -105,5 +105,5 @@ PlayList1(2).segmentAdvance='Conditional';
 % PlayList4(2).markerEnable=true;
 % PlayList4(2).segmentAdvance='Conditional';
 %% Run sequence
-awg.SeqRun(PlayList);
+awg.SeqRun(PlayList1);
 % iqseq('define', PlayList4, 'keepOpen', 1, 'run', 1);
