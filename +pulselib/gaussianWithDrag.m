@@ -144,9 +144,9 @@ classdef gaussianWithDrag < handle
             axis([-plotMax plotMax -plotMax plotMax -tmax tmax])
             title(obj.name),xlabel('I'),ylabel('Q')
             ax=subplot(3,2,6);
-            blochSpherePlot(ax,0,0);
+            plotlib.blochSpherePlot(ax,0,0);
             [stateOut, stateTilt, stateAzimuth] = obj.actOnState([1;0]);
-            blochSpherePlot(ax,stateTilt,stateAzimuth,'replot');
+            plotlib.blochSpherePlot(ax,stateTilt,stateAzimuth,'replot');
             subplot(3,2,5);
             plot(t,iBaseband,'b',t,qBaseband,'r')
             title('I and Q baseband waveforms')

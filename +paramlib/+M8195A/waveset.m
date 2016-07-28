@@ -1,10 +1,8 @@
-classdef wavesetM8195A < handle
-    % Basically an object/interface for generating the files to be run by
-    % the ultrafast AWG (M8195A). Experiment code will generate the waveset 
-    % object which can be saved for later use.  M8195A object will have 
-    % methods for loading a waveset and then running it.
-    % M8195a is the superfast 65GS/s direct synthesis AWG.
-    
+classdef waveset < handle
+    % Object/interface for using the ultrafast AWG (M8195A). 
+    % Abstract experiment code will generates the waveset object.
+    % M8195A object will has methods for loading/running wavesets.
+
     properties
         % M8195A Settings
         samplingRate = 32.5e9; % Will this be universal for the entire waveset?
@@ -85,8 +83,8 @@ classdef wavesetM8195A < handle
             % array of subplot handles for each channel
             h(1)=subplot(1,4,1);hold(h(1),'on');
             h(2)=subplot(1,4,2);hold(h(2),'on');
-            h(3)=subplot(1,4,3);hold(h(2),'on');
-            h(4)=subplot(1,4,4);hold(h(2),'on');
+            h(3)=subplot(1,4,3);hold(h(3),'on');
+            h(4)=subplot(1,4,4);hold(h(4),'on');
             for ind = 1:libSize
                 s = obj.segmentLibrary(ind);
                 for ch=1:4
@@ -156,44 +154,12 @@ classdef wavesetM8195A < handle
             end
         end
                 
-        
-%         function drawPlaylist(obj)
-%             % visualize the playlist
-%             playlistSize = size(obj.playlist,2);
-%             tstep = 1/obj.samplingRate;
-%             figure();
-%             ax=axes();
-%             title('Playlist')
-%             hold(ax,'on');
-%             
-%             currentWaveform = [];
-%             for ind = 1:playlistSize
-%                 p = obj.playlist(ind);
-%                 s = p.segment;
-%                 w = s.waveform;
-%                 y = repmat(w,1,p.loops);
-%                 currentWaveform = [currentWaveform y];
-%                 % whenever conditional trigger setting found, we are done
-%                 % with a waveform.
-%                 if strcmp(p.advance,'Conditional') % plot and reset
-%                     plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
-%                     currentWaveform = [];
-%                     % if we are at the end of the playlist draw the last
-%                     % waveform regardless of the trigger setting.
-%                 elseif ind == playlistSize
-%                     plot(ax,currentWaveform+(p.waveformIndex-1)*2.5);
-%                     currentWaveform = [];
-%                 end
-%             end
-%         end
-        
-        
         function save(obj)
-            % saving code here
+            % saving code here...
         end
         
         function load(obj)
-            % code to load a waveset from a saved file?
+            % loading code here...
         end
     
     end

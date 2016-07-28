@@ -23,7 +23,7 @@ classdef RBExperiment < handle
         function obj=RBExperiment()% constructor
             obj.initPrimitives();
             obj.initCliffords();
-            obj.measurement=rectMeasurementPulse(0,1,1e-6);
+            obj.measurement=pulselib.rectMeasurementPulse(0,1,1e-6);
             obj.initSequences();
         end
         
@@ -40,27 +40,20 @@ classdef RBExperiment < handle
             % generate primitives
             amplitude=1;
             dragAmplitude=.5;
-%             primitives(1)=gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
-%             primitives(2)=gaussianWithDrag('X180',0,pi,amplitude,dragAmplitude,sigma,cutoff,buffer);
-%             primitives(3)=gaussianWithDrag('X90',0,pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
-%             primitives(4)=gaussianWithDrag('Xm90',0,-pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
-%             primitives(5)=gaussianWithDrag('Y180',pi/2,pi,amplitude,dragAmplitude,sigma,cutoff,buffer);
-%             primitives(6)=gaussianWithDrag('Y90',pi/2,pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
-%             primitives(7)=gaussianWithDrag('Ym90',pi/2,-pi/2,amplitude,dragAmplitude,sigma,cutoff,buffer);
-            primitives(1)=gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
-            primitives(2)=gaussianWithDrag('X180',0,pi,1,.5,sigma,cutoff,buffer);
-            primitives(3)=gaussianWithDrag('X90',0,pi/2,.5,.25,sigma,cutoff,buffer);
-            primitives(4)=gaussianWithDrag('Xm90',0,-pi/2,-.5,.25,sigma,cutoff,buffer);
-            primitives(5)=gaussianWithDrag('Y180',pi/2,pi,.9,.3,sigma,cutoff,buffer);
-            primitives(6)=gaussianWithDrag('Y90',pi/2,pi/2,.45,.15,sigma,cutoff,buffer);
-            primitives(7)=gaussianWithDrag('Ym90',pi/2,-pi/2,-.45,.15,sigma,cutoff,buffer);
+            primitives(1)=pulselib.gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
+            primitives(2)=pulselib.gaussianWithDrag('X180',0,pi,1,.5,sigma,cutoff,buffer);
+            primitives(3)=pulselib.gaussianWithDrag('X90',0,pi/2,.5,.25,sigma,cutoff,buffer);
+            primitives(4)=pulselib.gaussianWithDrag('Xm90',0,-pi/2,-.5,.25,sigma,cutoff,buffer);
+            primitives(5)=pulselib.gaussianWithDrag('Y180',pi/2,pi,.9,.3,sigma,cutoff,buffer);
+            primitives(6)=pulselib.gaussianWithDrag('Y90',pi/2,pi/2,.45,.15,sigma,cutoff,buffer);
+            primitives(7)=pulselib.gaussianWithDrag('Ym90',pi/2,-pi/2,-.45,.15,sigma,cutoff,buffer);
             obj.primitives=primitives;
         end
         
         function obj=initCliffords(obj) % generate object array of cliffords
             % call crazy code to randomly generate the decomposition of
             % cliffords into primitives.
-            [cliffs,Clfrdstring]=SingleQubitCliffords();
+            [cliffs,Clfrdstring]=explib.RB.SingleQubitCliffords();
             for ind1=1:length(cliffs)
                 unitary=cliffs{ind1};
                 primStrings=Clfrdstring{ind1};
@@ -93,7 +86,7 @@ classdef RBExperiment < handle
                         primDecomp = [primDecomp obj.primitives(1)];
                     end
                 end
-                cliffords(ind1)=cliffordGate(ind1,unitary,primDecomp);
+                cliffords(ind1)=explib.RB.cliffordGate(ind1,unitary,primDecomp);
             end
             obj.cliffords=cliffords;
         end
@@ -114,7 +107,7 @@ classdef RBExperiment < handle
                 seqList=maxSequence(1:s(ind));
                 % generate sequence object.  It will find and append the
                 % proper undo gate.
-                sequences(ind)=rbSequence(seqList,obj.cliffords);
+                sequences(ind)=explib.RB.rbSequence(seqList,obj.cliffords);
             end
             obj.sequences=sequences;
             % find max duration of all sequences
@@ -161,7 +154,7 @@ classdef RBExperiment < handle
             qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
             measWaveform=iMeasMod+qMeasMod;
             % build waveSet object
-            ws=waveSetM8195A();
+            ws=paramlib.M8195A.waveset();
             ws.samplingRate=obj.samplingRate;
             ws.addChannel(1,qubitWaveform);
             ws.addChannel(2,measWaveform);

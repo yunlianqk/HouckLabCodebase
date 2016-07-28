@@ -98,21 +98,21 @@ classdef rbSequence < handle
             % draw bloch spheres - 1st w/out undo gate
             ax=subplot(2,3,1);
             state=[1;0];
-            blochSpherePlot(ax,0,0);
+            plotlib.blochSpherePlot(ax,0,0);
             for ind1=1:(length(obj.pulses)-1)
                 gate=obj.pulses(ind1);
                 [state, tilt, azimuth] = gate.actOnState(state);
-                blochSpherePlot(ax,tilt,azimuth,'replot');
+                plotlib.blochSpherePlot(ax,tilt,azimuth,'replot');
             end
             title('Sequence without Undo Gate')
             % with undo gate
             ax2=subplot(2,3,2);
             state=[1;0];
-            blochSpherePlot(ax2,0,0);
+            plotlib.blochSpherePlot(ax2,0,0);
             for ind1=1:length(obj.pulses)
                 gate=obj.pulses(ind1);
                 [state, tilt, azimuth] = gate.actOnState(state);
-                blochSpherePlot(ax2,tilt,azimuth,'replot');
+                plotlib.blochSpherePlot(ax2,tilt,azimuth,'replot');
             end
             title('Sequence with Undo Gate')
             % draw basebands

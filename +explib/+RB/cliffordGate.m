@@ -61,17 +61,17 @@ classdef cliffordGate < handle
             figure(612)
             ax=subplot(2,4,1);
             stateIn=[1;0];
-            blochSpherePlot(ax,0,0);
+            plotlib.blochSpherePlot(ax,0,0);
             [stateOut, stateTilt, stateAzimuth] = obj.actOnState(stateIn);
-            blochSpherePlot(ax,stateTilt,stateAzimuth,'replot');
+            plotlib.blochSpherePlot(ax,stateTilt,stateAzimuth,'replot');
             title(obj.name)
             ax2=subplot(2,4,2);
             state=[1;0];
-            blochSpherePlot(ax2,0,0);
+            plotlib.blochSpherePlot(ax2,0,0);
             for ind1=1:length(obj.primDecomp)
                 pGate=obj.primDecomp(ind1);
                 [state, tilt, azimuth] = pGate.actOnState(state);
-                blochSpherePlot(ax2,tilt,azimuth,'replot');
+                plotlib.blochSpherePlot(ax2,tilt,azimuth,'replot');
             end
             title([obj.primDecomp.name])
             % draw basebands

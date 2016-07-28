@@ -32,7 +32,7 @@ classdef RabiExperiment < handle
             for ind=1:length(obj.ampList)
                 amp=obj.ampList(ind);
                 dragAmp=amp*dragFactor;
-                qubit(ind)=gaussianWithDrag('X180',0,pi,amp,dragAmp,sigma,cutoff,buffer);
+                qubit(ind)=pulselib.gaussianWithDrag('X180',0,pi,amp,dragAmp,sigma,cutoff,buffer);
             end
             obj.qubit=qubit;
             obj.qubitPulseTime=obj.qubitStartTime+obj.qubit(1).totalPulseDuration/2;
@@ -41,7 +41,7 @@ classdef RabiExperiment < handle
         
         function obj=initMeasPulse(obj)
             % generate measurement pulse
-            obj.measurement=rectMeasurementPulse(0,1,1e-6);
+            obj.measurement=pulselib.rectMeasurementPulse(0,1,1e-6);
             obj.measStartTime=obj.qubitEndTime+obj.measDelay;
             obj.measEndTime=obj.measStartTime+obj.measurement.duration;
         end
@@ -69,10 +69,10 @@ classdef RabiExperiment < handle
             end
         end
         
-        function w = genWavesetM8195A(obj)
+        function w = genWaveset_M8195A_directSynthesis(obj)
             % build waveset object for use with M8195A AWG
             % this makes each trial (or pulse power) its own segment.
-            w = paramlib.M8195A.wavesetM8195A();
+            w = paramlib.M8195A.waveset();
             tStep = 1/obj.samplingRate;
             t = 0:tStep:(obj.measEndTime+obj.waveformEndDelay);
             % end segment that can be repeated until next trigger
@@ -96,6 +96,37 @@ classdef RabiExperiment < handle
                 % not need its own playlist item!
                 s2=w.newSegment(ch3waveform,[0 0; 0 0; 1 0; 0 0]);
                 s2.id=s1.id;
+            end
+        end
+        
+        function w = genWaveset_M8195A_baseband(obj)
+            % build waveset object for use with M8195A AWG
+            % outputs baseband signals on separate channels.
+            w = paramlib.M8195A.waveset();
+            tStep = 1/obj.samplingRate;
+            t = 0:tStep:(obj.measEndTime+obj.waveformEndDelay);
+            % end segment that can be repeated until next trigger
+            wfEnd = zeros(1,(40e-9)/tStep);
+            sEnd = w.newSegment(wfEnd,[1 0; 1 0; 1 0; 1 0]);
+            for ind=1:length(obj.qubit)
+                q=obj.qubit(ind);
+                [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
+                ch1waveform = iQubitBaseband;
+                ch2waveform = qQubitBaseband;
+                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+                ch3waveform = iMeasBaseband;
+                ch4waveform = qMeasBaseband;
+                s1=w.newSegment(ch1waveform);
+                s2=w.newSegment(ch2waveform,[0 0; 1 0; 0 0; 0 0]);
+                s2.id=s1.id;
+                s3=w.newSegment(ch3waveform,[0 0; 0 0; 1 0; 0 0]);
+                s3.id=s1.id;
+                s4=w.newSegment(ch4waveform,[0 0; 0 0; 0 0; 1 0]);
+                s4.id=s1.id;
+                % segments played together only have 1 playlist entry
+                p1=w.newPlaylistItem(s1);
+                pEnd=w.newPlaylistItem(sEnd);
+                pEnd.advance='Conditional';
             end
         end
     end

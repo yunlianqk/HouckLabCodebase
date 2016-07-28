@@ -22,7 +22,7 @@ Yp= expm(-1i*sy*pi/2.0);
 
 %getting the cliffords
 Gens = {X90p,Y90p};
-cliffs =Cliffords_(Gens,200,1);
+cliffs =explib.RB.Cliffords_(Gens,200,1);
 length(cliffs);
 
 %getting the decomposition  % the decomposition is in terms of following uw
@@ -31,7 +31,7 @@ Gens = {X90p,Y90p, X90m, Y90m, Id, Xp, Yp};
 Gensstring ={'X90pPulse', 'Y90pPulse', 'X90mPulse', 'Y90mPulse','QIdPulse','XpPulse', 'YpPulse'};
 cliffsdecom={};
 for p=1:length(cliffs)
-    temp = GenStrings_(Gens,Gensstring,cliffs{p},1);
+    temp = explib.RB.GenStrings_(Gens,Gensstring,cliffs{p},1);
     %[p,temp]
     cliffsdecom= [cliffsdecom, {temp}];
 end

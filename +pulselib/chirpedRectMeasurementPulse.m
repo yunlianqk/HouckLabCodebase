@@ -45,7 +45,7 @@ classdef chirpedRectMeasurementPulse < handle
             figure(722);
 %             subplot(3,2,1);
             plot(t,rect,'k',t,iBaseband,'b',t,qBaseband,'r');
-            title('rectMeasurementPulse Object')
+            title('chirpedRectMeasurementPulse Object')
             legend('Amplitude','I','Q')
         end
     end
