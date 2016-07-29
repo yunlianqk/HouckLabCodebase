@@ -39,7 +39,7 @@ function dataArray = ReadChannels(self, chList)
     
     % Perform acquisition
     device.Acquisition.Initiate();
-    timeoutInMs = params.averages*params.segments*params.trigPeriod+1000;%NO MORE THAN 10 SECONDS
+    timeoutInMs = (params.averages*params.segments*params.trigPeriod+1)*1000;%NO MORE THAN 10 SECONDS
     try
         device.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
     catch

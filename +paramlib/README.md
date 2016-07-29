@@ -63,3 +63,22 @@ A class to store parameters for Acqiris digitizer
   * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
+  
+#### *class* paramlib.m9703a
+A class to store parameters for M9703A digitizer
+* **Properties**:
+  * **fullscale** (*float*): Full scale in volts, can be 1 or 2
+  * **offset** (*float*): Offset in volts, can be within ±2×fullscale
+  * **samplerate** (*float*): Sampling rate in Hz, from 1.6 GHz to 50 MHz in factors of 2^n
+  * **samples** (*integer*): Number of samples for each segment, up to 2^27
+  * **averages** (*integer*): Number of averages, from 1 to 65536
+  * **segments** (*integer*): Number of segments, from 1 to 65536
+  * **delaytime** (*float*): Delay time in seconds before starting acquistion
+  * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
+  * **ChI** (*string*): Inphase channel, can be 'Channelx' where x = 1 to 8 (default = 'Channel1')
+  * **ChQ** (*string*): Quadrature channel, can be 'Channelx' where x = 1 to 8 (default = 'Channel2')
+  * **trigSource** (*string*): Trigger source, can be 'Externalx' or 'Channely', where x = 1 to 3 and y = 1 to 8 (default = 'External1')
+  * **trigLevel** (*float*): Trigger level in volts, can be -5 V to 5 V (default = 0.5)
+  * **trigPeriod** (*float*): Trigger period in seconds, used to calculate timeout
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
