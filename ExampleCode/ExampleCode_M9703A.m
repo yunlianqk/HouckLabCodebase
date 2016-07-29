@@ -13,9 +13,9 @@ cardparams.couplemode='DC'; % 'DC'/'AC'
 cardparams.delaytime=5e-6; % Delay time from trigger to start of acquistion, units second
 cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
-cardparams.trigSource='External1'; %TRG1 input
-cardparams.trigLevel=0.5; %Trigger level in units of Volts
-cardparams.trigPeriod=10e-3; % ms units
+cardparams.trigSource='External1'; % Trigger source
+cardparams.trigLevel=0.5; % Trigger level in volts
+cardparams.trigPeriod=10e-6; % Trigger period in seconds
 
 % Update parameters and setup acquisition and trigerring 
 card.SetParams(cardparams);
@@ -28,8 +28,15 @@ taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
 [Idata, Qdata]=card.ReadIandQ();
 % 
 figure()
-subplot(1,2,1); plot(taxis, Idata); xlabel('Time (\mus)'); ylabel('In phase homod voltage (V)')
-subplot(1,2,2); plot(taxis, Qdata); xlabel('Time (\mus)'); ylabel('Quadrature homod voltage (V)')
+subplot(1,2,1);
+plot(taxis, Idata);
+xlabel('Time (\mus)');
+ylabel('homod voltage (V)');
+title('Inphase');
+subplot(1,2,2);
+plot(taxis, Qdata);
+xlabel('Time (\mus)');
+title('Quadrature');
 %% Read I and Q - averaged sequence mode
 % Sequence of 10 segments
 cardparams.segments=10;

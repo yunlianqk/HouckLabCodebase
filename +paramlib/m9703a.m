@@ -8,13 +8,13 @@ classdef m9703a
         segments=1; % segments>1 => sequence mode in readIandQ
         fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
         offset=0;    % in units of volts
-        couplemode='DC'; % DC/AC
+        couplemode='DC'; % 'DC'/'AC'
         delaytime=5e-6; % Delay time from trigger to start of acquistion, units second
         ChI='Channel1';
         ChQ='Channel2';
-        trigSource='External1'; %TRG1 input
-        trigLevel=0.5; %Trigger level in units of Volts
-        trigPeriod=100e-3; % ms units
+        trigSource='External1'; % Trigger source
+        trigLevel=0.5; % Trigger level in volts
+        trigPeriod=100e-6; % Trigger period in seconds
     end
     
     methods

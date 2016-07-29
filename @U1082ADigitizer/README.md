@@ -44,7 +44,7 @@ samplinginterval = card.params.sampleinterval;
 ```matlab
 [Idata, Qdata] = card.ReadIandQ();
 ```
-`Idata` and `Qdata` are both m × n arrays, where m = `card.params.samples` and n = `card.params.segments`.
+`Idata` and `Qdata` are both M × N arrays, where M = `card.params.segments` and N = `card.params.samples`.
 
 ## Discussion
 ### Averaging
@@ -56,7 +56,7 @@ The on-card averaging is set by the parameter `NbrRoundRobins` in the low-level 
 Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191.
 
 ### Timeout
-The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. To ensure a normal completion of acquisition, make sure the timeout is long enough. Also make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives. In the worst case, setting **timeout = (trigger period) × (on-card averages) × segments** should be enough.
+The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. In the code, timeout is set to be **trigger period × on-card averages × segments**. To ensure a normal completion of acquisition, make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives.
 
 ## Class definition
 #### *class* U1082ADigitizer < handle
@@ -69,29 +69,34 @@ The acquistion will terminate if it is completed, or a timeout is reached, which
   * **card = U1082ADigitizer(address)**: Opens the instrument with `address` and returns a `card` object
   * **card.SetParams(cardparams)**: Sets parameters
   * **cardparams = card.GetParams()**: Gets parameters
-  * **[IData, QData] = card.ReadIandQ()**: Reads data. `IData` and `QData` are N × M arrays where N = number of samples and M = number of segments.
+  * **[IData, QData] = card.ReadIandQ()**: Reads data. `IData` and `QData` are M × N arrays where M = number of segments and N = number of samples
   * **card.Finalize()**: Closes the instrument
   
 #### <a name="params"></a>*class* paramlib.acqiris
 A class to store parameters for Acqiris digitizer
 * **Properties**:
   * **fullscale** (*float*): Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
+  * **offset** (*float*): Offset in volts, within ± 2 V for 0.05/0.5 V full scale, and ± 5 V for 1 to 5 V fullscale
   * **sampleinterval** (*float*): Sampling interval in seconds, from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
   * **samples** (*integer*): Number of samples for each segment, from 16 to 2 Mega (2^21) in steps of 16
   * **averages** (*integer*): Number of averages, from 1 to 65536
   * **segments** (*integer*): Number of segments, from 1 to 8191
   * **delaytime** (*float*): Delay time in seconds before starting acquistion
   * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
-  * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds
+  * **trigSource** (*string*): Trigger source, can be 'External1' (default) or 'Channel1', 'Channel2'
+  * **trigLevel** (*float*): Trigger level, in volts within ± 2.5 (default = 0.5) for external trigger, and in fraction of fullscale within ± 0.5 for internal trigger
+  * **trigPeriod** (*float*): Trigger period in seconds (default = 100e-6), used to calculate timeout
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
   
 ## Hardware specifications
 The following specs are only for reference. Check the [datasheet](./Specs.pdf) for details.
 
-- **fullscale**  is selectable from 0.05 V to 5 V in 1, 2, 5 sequence
+- **fullscale**  can be selectable from 0.05 V to 5 V in 1, 2, 5 sequence
+- **offset** can be within ± 2 V for 0.05/0.5 V fullscale, and ± 5 V for 1 to 5 V fullscale
 - **sampleinterval** is selectable from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
 - **samples** can be 16 to 2 Mega (2^21) in steps of 16
 - **segments** can be 1 to 8191
 - **samples × segments** needs to be less than 2^21
 - **averages** can be between 1 and 65536
+- **trigLevel** can be within ± 2.5 V for external trigger, or in fraction of fullscale within ± 0.5 for internal trigger

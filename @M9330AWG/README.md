@@ -76,6 +76,7 @@ The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by s
   * **pulsegen = M9330AWG(address)**: Opens the instrument with `address` and returns a `pulsegen` object
   * **pulsegen.AutoMarker()**: Automatically creates markers
   * **pulsegen.SetSampleRate(samplerate)**: Sets the sampling rate
+  * **samplerate = GetSampleRate(self)**: Gets the sampling rate
   * **pulsegen.Generate()**: Generates waveforms
   * **pulsegen.Stop()**: Turns output off
   * **pulsegen.SyncWith(mastergen)**: Synchronizes two AWG modules. See the [discussion](#sync) for details.

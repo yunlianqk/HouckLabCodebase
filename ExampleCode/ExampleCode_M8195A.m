@@ -6,6 +6,7 @@ awg = M8195AWG();
 %% Generate vector for typical Rabi experiment
 waveLength=20e-6;
 tAxis=(1/awg.samplerate:1/awg.samplerate:waveLength);
+
 % Readout pulse parameters
 read.Amp=0.2;
 read.Freq=6e9;
@@ -13,97 +14,80 @@ read.start=10e-6;
 read.length=5e-6;
 read.buffer=10e-9;
 % Qubit gaussian pulse parameters
-qubit.Amp=0.7;
+% varying amplitudes
+qubit.Amp=(0.2:0.2:1);
 qubit.Freq=4e9;
 qubit.sigma=50e-9;
 qubit.cutoff=4*qubit.sigma;
 qubit.center=read.start-read.buffer-qubit.cutoff/2;
-% Base Gaussian waveform
-gauss=qubit.Amp.*exp(-(tAxis-qubit.center).^2/(2*qubit.sigma^2));
-% Apply cutoff
-offset=qubit.Amp*exp(-qubit.cutoff^2/(8*qubit.sigma^2));
-gaussC=(gauss-offset).*(tAxis>(qubit.center-qubit.cutoff/2)) ...
-                     .*(tAxis<(qubit.center+qubit.cutoff/2));
-% Normalize
-if max(abs(gaussC)) ~=abs(qubit.Amp)
-    gaussC=gaussC/max(abs(gaussC))*abs(qubit.Amp);
+for i=1:length(qubit.Amp)
+    % Base Gaussian waveform
+    gauss=qubit.Amp(i).*exp(-(tAxis-qubit.center).^2/(2*qubit.sigma^2));
+    % Apply cutoff
+    offset=qubit.Amp(i)*exp(-qubit.cutoff^2/(8*qubit.sigma^2));
+    gaussC(i,:)=(gauss-offset).*(tAxis>(qubit.center-qubit.cutoff/2)) ...
+                         .*(tAxis<(qubit.center+qubit.cutoff/2));
+    % Normalize
+    if max(abs(gaussC(i,:))) ~=abs(qubit.Amp(i))
+        gaussC(i,:)=gaussC(i,:)/max(abs(gaussC(i,:)))*abs(qubit.Amp(i));
+    end
+
 end
 
-% Channel 1 waveform = Qubit pulse + Readout 
-waveform1 = read.Amp*(tAxis>read.start & tAxis<read.start+read.length).*cos(2*pi*read.Freq*tAxis)+...
-            gaussC.*cos(2*pi*qubit.Freq*tAxis);
-        
+% Channel 1 waveform = Qubit pulse + Readout
+for i=1:length(qubit.Amp)
+    waveform1(i,:) = read.Amp*(tAxis>read.start & tAxis<read.start+read.length).*cos(2*pi*read.Freq*tAxis)+...
+                gaussC(i,:).*cos(2*pi*qubit.Freq*tAxis);
+end
 % Channel 2 waveform = LO
 waveform2 = read.Amp*(tAxis>read.start & tAxis<read.start+read.length).*cos(2*pi*read.Freq*tAxis);
 
-figure();plot(tAxis,waveform1+2.5,'b',tAxis,waveform2,'r')
-legend('Qubit + Readout pulses', 'LO pulse','Location','NorthWest')
-
-% zero vector after waveform
-% used for setting it as a 'conditional' advance
-endbuffer = zeros(1,awg.minSegSize);
+figure();
+subplot(1,2,1); hold on;
+for i=1:length(qubit.Amp)
+    plot(tAxis,waveform1(i,:)+2*i,'b')
+end
+hold off;
+subplot(1,2,2)
+plot(tAxis,waveform2,'r')
 %% Create waveform library
 
-% Waveforms for Ch1
-WaveLib(1).waveform = waveform1;
-WaveLib(1).channelMap = [1 0;0 0;0 0;0 0];
-WaveLib(1).segNumber = 1;
-WaveLib(1).keepOpen = 1;
-WaveLib(1).run = 0;
-WaveLib(1).correction = 1;
-
-WaveLib(2).waveform = endbuffer;
-WaveLib(2).channelMap = [1 0;0 0;0 0;0 0];
-WaveLib(2).segNumber = 2;
-WaveLib(2).keepOpen = 1;
-WaveLib(2).run = 0;
-WaveLib(2).correction = 0;
-
-% Waveforms for Ch4
-WaveLib(3).waveform = waveform2;
-WaveLib(3).channelMap = [0 0;0 0;0 0;1 0];
-WaveLib(3).segNumber = 1;
-WaveLib(3).keepOpen = 1;
-WaveLib(3).run = 0;
-WaveLib(3).correction = 1;
-
-WaveLib(4).waveform = endbuffer;
-WaveLib(4).channelMap = [0 0;0 0;0 0;1 0];
-WaveLib(4).segNumber = 2;
-WaveLib(4).keepOpen = 1;
-WaveLib(4).run = 0;
-WaveLib(4).correction = 0;
+for i=1:length(qubit.Amp)
+    % Waveforms for Ch1
+    WaveLib(2*i-1).waveform = waveform1(i,:);
+    WaveLib(2*i-1).channelMap = [1 0;0 0;0 0;0 0];
+    WaveLib(2*i-1).segNumber = i;
+    WaveLib(2*i-1).keepOpen = 1;
+    WaveLib(2*i-1).run = 0;
+    WaveLib(2*i-1).correction = 1;
+    
+    % Waveforms for Ch4
+    WaveLib(2*i).waveform = waveform2;
+    WaveLib(2*i).channelMap = [0 0;0 0;0 0;1 0];
+    WaveLib(2*i).segNumber = i;
+    WaveLib(2*i).keepOpen = 1;
+    WaveLib(2*i).run = 0;
+    WaveLib(2*i).correction = 1;
+end
 %% Send library to the awg
 awg.ApplyCorrection(WaveLib);
 awg.Wavedownload(WaveLib);
-
-% Look at the corrected waveform
-% figure();plot(tAxis,WaveLib(1).waveform); ylim([-1.5,1.5])
 %% Setup sequence playlist
-clear PlayList1
-% clear PlayList4
+clear PlayList
+for i=1:(length(qubit.Amp)-1)
+    %Channel 1+4 playlist
+    PlayList(i).segmentNumber=i;
+    PlayList(i).segmentLoops=1;
+    PlayList(i).markerEnable=true;
+    PlayList(i).segmentAdvance='Stepped';
+end
 
-%Channel 1 playlist
-PlayList1(1).segmentNumber=1;
-PlayList1(1).segmentLoops=1;
-PlayList1(1).markerEnable=true;
-PlayList1(1).segmentAdvance='Auto';
+% last element of playlist needs to have 'auto' segment advance mode
+last=length(qubit.Amp);
+PlayList(last).segmentNumber=last;
+PlayList(last).segmentLoops=1;
+PlayList(last).markerEnable=true;
+PlayList(last).segmentAdvance='Auto';
 
-PlayList1(2).segmentNumber=2;
-PlayList1(2).segmentLoops=1;
-PlayList1(2).markerEnable=true;
-PlayList1(2).segmentAdvance='Conditional';
-
-%Channel 4 playlist
-% PlayList4(1).segmentNumber=1;
-% PlayList4(1).segmentLoops=1;
-% PlayList4(1).markerEnable=true;
-% PlayList4(1).segmentAdvance='Auto';
-% 
-% PlayList4(2).segmentNumber=2;
-% PlayList4(2).segmentLoops=1;
-% PlayList4(2).markerEnable=true;
-% PlayList4(2).segmentAdvance='Conditional';
 %% Run sequence
-awg.SeqRun(PlayList1);
-% iqseq('define', PlayList4, 'keepOpen', 1, 'run', 1);
+awg.SeqRun(PlayList);

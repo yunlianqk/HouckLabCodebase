@@ -2,7 +2,7 @@ function params = GetParams(self)
 % Get card parameters
     params = paramlib.acqiris();
     
-    [~, params.fullscale, ~, Vertcouling, ~] = AqD1_getVertical(self.instrID, 1);
+    [~, params.fullscale, params.offset, Vertcouling, ~] = AqD1_getVertical(self.instrID, 1);
     if Vertcouling == 4
         params.couplemode = 'AC';
     else
@@ -17,5 +17,24 @@ function params = GetParams(self)
     params.averages = double(NbrRoundRobins)*self.AqReadParameters.softAvg;
     [~, params.segments] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrSegments');
     params.segments = double(params.segments);
-    params.timeout = self.AqReadParameters.timeOut;
+    [~, ~, trigPattern, ~, ~, ~, ~] = AqD1_getTrigClass(self.instrID);
+    switch double(trigPattern)
+        case 1
+            params.trigSource = 'Channel1';
+            trigCh = 1;
+        case 2
+            params.trigSource = 'Channel2';
+            trigCh = 2;
+        case -hex2dec('80000000')
+            params.trigSource = 'External1';
+            trigCh = -1;
+        otherwise
+    end
+    [~, ~, ~, trigLevel, ~] = AqD1_getTrigSource(self.instrID, trigCh);
+    if trigCh < 0
+        params.trigLevel = double(trigLevel) / 1000;
+    else
+        params.trigLevel = double(trigLevel) / 100;
+    end
+    params.trigPeriod = self.AqReadParameters.trigPeriod;
 end
