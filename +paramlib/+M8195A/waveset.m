@@ -79,9 +79,9 @@ classdef waveset < handle
             libSize = size(obj.segmentLibrary,2);
             tstep = 1/obj.samplingRate;
             figure();
-            title('Segment Library')
             % array of subplot handles for each channel
             h(1)=subplot(1,4,1);hold(h(1),'on');
+            title('Segment Library')
             h(2)=subplot(1,4,2);hold(h(2),'on');
             h(3)=subplot(1,4,3);hold(h(3),'on');
             h(4)=subplot(1,4,4);hold(h(4),'on');
@@ -97,8 +97,6 @@ classdef waveset < handle
                     end
                 end
             end
-%             linkaxes([h(1), h(3)]) % it would be nice to make all the
-%             axes the same but it's a little annoying to code...
         end
         
         function drawPlaylist(obj)
@@ -106,9 +104,9 @@ classdef waveset < handle
             playlistSize = size(obj.playlist,2);
             tstep = 1/obj.samplingRate;
             figure();
-            title('Playlist')
             % array of subplot handles for each channel
             h(1)=subplot(1,4,1);hold(h(1),'on');
+            title('Playlist')
             h(2)=subplot(1,4,2);hold(h(2),'on');
             h(3)=subplot(1,4,3);hold(h(3),'on');
             h(4)=subplot(1,4,4);hold(h(4),'on');

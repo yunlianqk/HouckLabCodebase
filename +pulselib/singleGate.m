@@ -22,7 +22,6 @@ classdef singleGate < handle
     methods
         function self = singleGate(name)   
             % Constructor takes the name of the gate to create an object
-            
             % Default values
             if nargin == 0
                 name = 'Identity';
