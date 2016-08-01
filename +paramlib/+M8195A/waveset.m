@@ -20,13 +20,13 @@ classdef waveset < handle
             % generating an empty waveset object.
         end
         
-        function s = newSegment(obj,waveform,varargin)
+        function s = newSegment(obj,waveform,marker,varargin)
             % create a new segment from waveform and add it to the
             % segmentLibrary. automatically sets id. Segments are handle 
             % objects so the returned segment can be altered 
             % (channel, quadrature etc.) and those 
             % changes will show up in the segmentLibrary
-            s=paramlib.M8195A.segment(waveform,varargin{:});
+            s=paramlib.M8195A.segment(waveform,marker,varargin{:});
             obj.addSegment(s);
         end
         

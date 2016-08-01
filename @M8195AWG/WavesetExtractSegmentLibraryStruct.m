@@ -3,11 +3,12 @@ function wavelib = WavesetExtractSegmentLibraryStruct(self,waveset)
 % by iqtools. 
     s = waveset.segmentLibrary;
     for ind=1:length(s)
-        wavelib(i).waveform = s.waveform;
-        wavelib(i).channelMap = s.channelMap;
-        wavelib(i).segNumber = s.id;
-        wavelib(i).keepOpen = s.keepOpen;
-        wavelib(i).run = s.run;
-        wavelib(i).correction = s.applyFilter;
+        wavelib(i).waveform = s(ind).waveform;
+        wavelib(i).channelMap = s(ind).channelMap;
+        wavelib(i).segNumber = s(ind).id;
+        wavelib(i).keepOpen = s(ind).keepOpen;
+        wavelib(i).run = s(ind).run;
+        wavelib(i).correction = s(ind).applyFilter;
+        wavelib(i).marker = s(ind).marker;
     end
 end

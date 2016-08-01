@@ -14,13 +14,15 @@ classdef segment < handle
         applyFilter = true; % used to determine which waveforms get calibration filter
         keepOpen = 1; % keeps connection to awg open
         run = 0; % setting this to 1 means it will run as soon as it's downloaded by awg
+        marker; % auto generated based on waveform provided
     end
     
     methods
-        function obj=segment(waveform, varargin) % constructor
+        function obj=segment(waveform, marker, varargin) % constructor
             % check and store waveform
             obj.checkWaveform(waveform)
             obj.waveform=waveform;
+            obj.marker = marker;
             % optional arguments
             nVarargs = length(varargin);
             switch nVarargs
