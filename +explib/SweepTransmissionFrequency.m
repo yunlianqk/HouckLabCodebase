@@ -5,7 +5,7 @@ classdef SweepTransmissionFrequency < handle
         % change these to tweak the experiment
         startFreq=10.1e9;
         stopFreq=10.2e9;
-        points = 101;
+        points = 11;
         measDuration = 5e-6;
         startBuffer = 1e-6; % buffer at beginning of waveform
         endBuffer = 50e-9; % buffer after measurement pulse
@@ -50,29 +50,8 @@ classdef SweepTransmissionFrequency < handle
             w = paramlib.M8195A.waveset();
             tStep = 1/obj.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
-            for ind=1:obj.points
-                freq=obj.freqVector(ind);
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*freq*t).*iMeasBaseband;
-                qMeasMod=sin(2*pi*freq*t).*qMeasBaseband;
-                ch1waveform = iMeasMod+qMeasMod;
-                s1=w.newSegment(ch1waveform,[1 0; 0 0; 0 0; 0 0]);
-                p1=w.newPlaylistItem(s1);
-                % generate LO
-                ch2waveform = sin(2*pi*freq*t);
-                s2=w.newSegment(ch2waveform,[0 0; 1 0; 0 0; 0 0]);
-                % set lo to play simultaneously
-                s2.id = s1.id;
-            end
-            % last playlist item must have advance set to 'auto'
-            p1.advance='Auto';
-        end
-        
-        function w = genWaveset_M8195A_v2(obj)
-            w = paramlib.M8195A.waveset();
-            tStep = 1/obj.samplingRate;
-            t = 0:tStep:(obj.waveformEndTime);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+            backgroundWaveform = zeros(1,length(t));
             for ind=1:obj.points
                 freq=obj.freqVector(ind);
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
@@ -86,9 +65,15 @@ classdef SweepTransmissionFrequency < handle
                 s2=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
                 % set lo to play simultaneously
                 s2.id = s1.id;
+                % add background to playlist
+                sBack = w.newSegment(backgroundWaveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
+                pBack = w.newPlaylistItem(sBack);
+                % add lo to play @ same time as background
+                s3=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
+                s3.id = sBack.id;
             end
             % last playlist item must have advance set to 'auto'
-            p1.advance='Auto';
+            pBack.advance='Auto';
         end
         
     end
