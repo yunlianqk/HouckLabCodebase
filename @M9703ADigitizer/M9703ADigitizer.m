@@ -71,7 +71,7 @@ classdef M9703ADigitizer < handle
         iscorrect = CheckParams(~, params);  % Check card parameters
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
-        [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
+        [IData, QData] = ReadIandQ(self,awg,PlayList);	% Acquire data from two channels
         dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
     end
 end

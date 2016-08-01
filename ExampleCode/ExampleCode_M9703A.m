@@ -5,7 +5,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*1e-6;    % samples for a single trace
-cardparams.averages=2000;  % software averages=number of traces acquired
+cardparams.averages=2000;  % software averages PER SEGMENT
 cardparams.segments=1; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts

@@ -8,8 +8,8 @@ waveLength=20e-6;
 tAxis=(1/awg.samplerate:1/awg.samplerate:waveLength);
 
 % Readout pulse parameters
-read.Amp=0.2;
-read.Freq=6e9;
+read.Amp=0.3;
+read.Freq=10e9;
 read.start=10e-6;
 read.length=5e-6;
 read.buffer=10e-9;
@@ -40,12 +40,21 @@ for i=1:length(qubit.Amp)
                 gaussC(i,:).*cos(2*pi*qubit.Freq*tAxis);
 end
 % Channel 2 waveform = LO
-waveform2 = read.Amp*(tAxis>read.start & tAxis<read.start+read.length).*cos(2*pi*read.Freq*tAxis);
+lo.start=5e-6;
+lo.Freq=read.Freq;
+lo.end=read.start+read.length+2e-6;
+waveform2 = (tAxis>lo.start & tAxis<lo.end).*cos(2*pi*lo.Freq*tAxis);
+
+% Marker sued as a trigger for digitizer
+mark.start=0;
+mark.stop=0.5e-6;
+marker=(tAxis>mark.start & tAxis<mark.stop);
 
 figure();
 subplot(1,2,1); hold on;
 for i=1:length(qubit.Amp)
     plot(tAxis,waveform1(i,:)+2*i,'b')
+    plot(tAxis,marker+2*i,'r')
 end
 hold off;
 subplot(1,2,2)
@@ -59,11 +68,12 @@ for i=1:length(qubit.Amp)
     WaveLib(2*i-1).segNumber = i;
     WaveLib(2*i-1).keepOpen = 1;
     WaveLib(2*i-1).run = 0;
+    WaveLib(2*i-1).marker = marker;
     WaveLib(2*i-1).correction = 1;
     
     % Waveforms for Ch4
     WaveLib(2*i).waveform = waveform2;
-    WaveLib(2*i).channelMap = [0 0;0 0;0 0;1 0];
+    WaveLib(2*i).channelMap = [0 0;1 0;0 0;0 0];
     WaveLib(2*i).segNumber = i;
     WaveLib(2*i).keepOpen = 1;
     WaveLib(2*i).run = 0;
@@ -91,3 +101,48 @@ PlayList(last).segmentAdvance='Auto';
 
 %% Run sequence
 awg.SeqRun(PlayList);
+%% Use the digitizer to read the IQ mixed signal from the awg
+% initialize digitizer
+address='PXI0::CHASSIS1::SLOT2::FUNC0::INSTR'; % PXI address
+card=M9703ADigitizer(address);  % create object
+%% Set card parameters
+cardparams=paramlib.m9703a();   %default parameters
+
+cardparams.samplerate=1.6e9;   % Hz units
+cardparams.samples=1.6e9*7e-6;    % samples for a single trace
+cardparams.averages=1;  % software averages PER SEGMENT
+cardparams.segments=5; % segments>1 => sequence mode in readIandQ
+cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
+cardparams.offset=0;    % in units of volts
+cardparams.couplemode='DC'; % 'DC'/'AC'
+cardparams.delaytime=9e-6; % Delay time from trigger to start of acquistion, units second
+cardparams.ChI='Channel1';
+cardparams.ChQ='Channel2';
+cardparams.trigSource='External1'; % Trigger source
+cardparams.trigLevel=0.2; % Trigger level in volts
+cardparams.trigPeriod=100e-6; % Trigger period in seconds
+
+% Update parameters and setup acquisition and trigerring 
+card.SetParams(cardparams);
+%% Read I and Q - averaged sequence mode
+% Sequence of 10 segments
+cardparams.segments=5;
+card.SetParams(cardparams);
+tstep=1/card.params.samplerate;
+taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
+
+[Idata, Qdata]=card.ReadIandQ(awg,PlayList);
+
+figure()
+subplot(1,2,1);
+for i=1:cardparams.segments
+    plot(taxis,Idata(i,:)+i);hold on;
+end
+xlabel('Time (\mus)');
+title('Inphase');
+subplot(1,2,2);
+for i=1:cardparams.segments
+    plot(taxis,Qdata(i,:)+i);hold on;
+end
+xlabel('Time (\mus)');
+title('Quadrature');

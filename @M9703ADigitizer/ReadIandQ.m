@@ -1,5 +1,6 @@
-function [Idata,Qdata]=ReadIandQ(self)
+function [Idata,Qdata]=ReadIandQ(self,awg,PlayList)
 % Perform acquisition for ChI and ChQ
+% Additional inputs required to sync with the awg sequence
       
     
     params = self.params;  % Get params all at once
@@ -8,8 +9,19 @@ function [Idata,Qdata]=ReadIandQ(self)
     device = self.instrID.DeviceSpecific;  % Get device handle
     warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
     % Acquire data
+    
     device.Acquisition.Initiate();
     timeoutInMs = (params.averages*params.segments*params.trigPeriod + 1)*1000;%NO MORE THAN 10 SECONDS
+    if exist('awg','var')
+        if exist('PlayList','var')
+            awg.SeqRun(PlayList);
+        else
+            display('No sequence PlayList input')
+        end
+    else
+        display('No awg input');
+    end
+    
     try
         device.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
     catch
@@ -35,7 +47,7 @@ function [Idata,Qdata]=ReadIandQ(self)
         tempdataI = sum(reshape(IdataArrayReal64, ...
                                 params.segments*(IfirstValidPoint(2)-IfirstValidPoint(1)), ...
                                 params.averages), ...
-                        2)/params.averages;
+                        2);
         clear IdataArrayReal64;
         % reshape matrix so final form has each averaged segement in each row
         tempSeqSigI = reshape(tempdataI, IfirstValidPoint(2)-IfirstValidPoint(1), params.segments)';
@@ -51,7 +63,7 @@ function [Idata,Qdata]=ReadIandQ(self)
         tempdataQ = sum(reshape(QdataArrayReal64, ...
                                 params.segments*(QfirstValidPoint(2)-QfirstValidPoint(1)), ...
                                 params.averages), ...
-                        2)/params.averages;
+                        2);
         clear QdataArrayReal64;
         % reshape matrix so final form has each averaged segement in each row
         tempSeqSigQ = reshape(tempdataQ, QfirstValidPoint(2)-QfirstValidPoint(1), params.segments)';
@@ -64,4 +76,11 @@ function [Idata,Qdata]=ReadIandQ(self)
     clear tempSeqSigQ;
     
     warning('on', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
+    
+    if exist('awg','var')
+        if exist('PlayList','var')
+            awg.SeqStop(PlayList);
+        end
+    end
+    
 end
