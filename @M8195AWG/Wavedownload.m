@@ -36,12 +36,12 @@ function Wavedownload(self,WaveLib)
     % Correct waveform length to ensure it's a multiple of segment granularity
     % pad the waveform with extra zero  valued samples
         newlength=ceil(length(WaveLib(i).waveform)/self.granularity)*self.granularity;
-        WaveLib(i).waveform(:,newlength)=0; 
-    end
-    
-
-    for i=1:length(WaveLib)
-        iqdownload(WaveLib(i).waveform,...
+        old=WaveLib(i).waveform;
+        newWaveform = [old,zeros(1,newlength-length(old))];
+        old=WaveLib(i).marker;
+        newMarker = [old,zeros(1,newlength-length(old))];
+        
+        iqdownload(newWaveform,...
             self.samplerate,...
             'channelMapping',...
             WaveLib(i).channelMap,...
@@ -52,6 +52,7 @@ function Wavedownload(self,WaveLib)
             'run',...
             WaveLib(i).run,...
             'marker',...
-            WaveLib(i).marker);
+            newMarker);
+        
     end
 end

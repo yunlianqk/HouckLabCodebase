@@ -10,6 +10,12 @@ function [Idata,Qdata]=ReadIandQ(self,awg,PlayList)
     warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
     % Acquire data
     
+    if exist('awg','var')
+        if exist('PlayList','var')
+            awg.SeqStop(PlayList);
+        end
+    end
+    
     device.Acquisition.Initiate();
     timeoutInMs = (params.averages*params.segments*params.trigPeriod + 1)*1000;%NO MORE THAN 10 SECONDS
     if exist('awg','var')

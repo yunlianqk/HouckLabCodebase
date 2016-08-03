@@ -13,7 +13,7 @@ classdef M9703ADigitizer < handle
         % Parameters that are NOT hardware coded are stored here to prevent
         % them from being cleared when self.GetParams() is called
         ChI;
-        ChQ
+        ChQ;
         segments;
         trigPeriod;
     end
@@ -72,6 +72,7 @@ classdef M9703ADigitizer < handle
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
         [IData, QData] = ReadIandQ(self,awg,PlayList);	% Acquire data from two channels
+        [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self,awg,PlayList);	% includes background subtraction
         dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
     end
 end
