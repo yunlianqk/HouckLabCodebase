@@ -39,7 +39,7 @@ classdef SweepQubitFrequency < handle
             t = 0:tStep:(obj.waveformEndTime);
             loWaveform = sin(2*pi*obj.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-            backgroundWaveform = zeros(1,length(t));
+%             backgroundWaveform = zeros(1,length(t));
             for ind=1:obj.points
                 q=obj.qubit;
                 freq=obj.freqVector(ind);
@@ -50,6 +50,8 @@ classdef SweepQubitFrequency < handle
                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+                % background is measurement pulse to get contrast
+                backgroundWaveform = iMeasMod+qMeasMod;
                 s1=w.newSegment(ch1waveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
                 p1=w.newPlaylistItem(s1);
                 % create LO segment with same id to play simultaneously
@@ -66,7 +68,7 @@ classdef SweepQubitFrequency < handle
             pBack.advance='Auto';
         end
         
-        function [tempI,tempQ] = runExperimentM8195A(obj,awg,card,cardparams)
+        function [result] = runExperimentM8195A(obj,awg,card,cardparams)
             % integration times
             intStart=2000; intStop=5000;
             % software averages
@@ -105,10 +107,10 @@ classdef SweepQubitFrequency < handle
                 subplot(2,2,4); plot(obj.freqVector,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Frequency (GHz)');
                 pause(0.5);
             end
-            Idata=Idata./softavg;
-            Qdata=Qdata./softavg;
-            Pdata=Pdata./softavg;
-            Pint=Pint./softavg;
+            result.Idata=Idata./softavg;
+            result.Qdata=Qdata./softavg;
+            result.Pdata=Pdata./softavg;
+            result.Pint=Pint./softavg;
         end
         
     end
