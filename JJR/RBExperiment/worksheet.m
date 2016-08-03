@@ -1,6 +1,14 @@
-% script for running transmission scan with M8195A
+% script for running transmission scan with M8195A and M9703A
+% CHECKLIST
+% m8195a SFP open, with the following setting adjustments
+%   - Clock tab: routing to Ref clock in(connected to the Rb clk)
+%   - Output tab: chan 1V amp, Ch2(LO) 200mV amp (don't forget warm amp!)
+%                 ch3(marker) 1V amp +0.5V offset
+%   - Trigger tab: Trigger/Gate, Advance Event -> Trigger In
+
 %% initialize awg 
-% Choose settings in IQ config window -> press Ok
+addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
+% Choose settings in IQ config window (M8195A_2ch_mrk,ext ref clk)-> press Ok
 % Import FIR filter -> press Ok
 awg = M8195AWG();
 %% initialize digitizer
@@ -11,13 +19,13 @@ card=M9703ADigitizer(address);  % create object
 cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
-cardparams.samples=1.6e9*7e-6;    % samples for a single trace
-cardparams.averages=1;  % software averages PER SEGMENT
-cardparams.segments=5; % segments>1 => sequence mode in readIandQ
+cardparams.samples=1.6e9*6e-6;    % samples for a single trace
+cardparams.averages=10;  % software averages PER SEGMENT
+cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
 cardparams.couplemode='DC'; % 'DC'/'AC'
-cardparams.delaytime=9e-6; % Delay time from trigger to start of acquistion, units second
+cardparams.delaytime=4e-6; % Delay time from trigger to start of acquistion, units second
 cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
 cardparams.trigSource='External1'; % Trigger source
@@ -29,45 +37,7 @@ card.SetParams(cardparams);
 
 %% edit this code to change scan settings
 open('explib.SweepTransmissionFrequency')
-
-%% create experiment object
-clear x w
+%%
+clear x tempI tempQ;
 x = explib.SweepTransmissionFrequency();
-w = x.genWaveset_M8195A();
-
-%% visualize
-w.drawSegmentLibrary()
-w.drawPlaylist()
-
-%% Send library to the awg
-% awg.ApplyCorrection(WaveLib);
-% awg.Wavedownload(WaveLib);
-awg.WavesetApplyCorrection(w);
-awg.WavesetDownloadSegmentLibrary(w);
-%% Run sequence
-Playlist = awg.WavesetExtractPlaylistStruct(waveset);
-awg.SeqRun(PlayList);
-
-%% Read Data
-% Sequence of 10 segments
-cardparams.segments=length(w.playlist);
-card.SetParams(cardparams);
-tstep=1/card.params.samplerate;
-taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
-
-[Idata, Qdata]=card.ReadIandQ(awg,PlayList);
-
-figure()
-subplot(1,2,1);
-for i=1:cardparams.segments
-    plot(taxis,Idata(i,:)+i);hold on;
-end
-xlabel('Time (\mus)');
-title('Inphase');
-subplot(1,2,2);
-for i=1:cardparams.segments
-    plot(taxis,Qdata(i,:)+i);hold on;
-end
-xlabel('Time (\mus)');
-title('Quadrature');
-
+[tempI,tempQ] = x.runExperimentM8195A(awg,card,cardparams);

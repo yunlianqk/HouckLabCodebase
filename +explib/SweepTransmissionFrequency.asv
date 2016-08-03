@@ -3,12 +3,12 @@ classdef SweepTransmissionFrequency < handle
     
     properties
         % change these to tweak the experiment
-        startFreq=10.16e9;
-        stopFreq=10.17e9;
-        points = 101;
+        startFreq=8.16e9;
+        stopFreq=8.17e9;
+        points = 11;
         measDuration = 5e-6;
 %         measAmplitude = 0.35/2; % measurement pulse amp.
-        measAmplitude = 1; % measurement pulse amp.
+        measAmplitude = 0.1; % measurement pulse amp.
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -82,10 +82,11 @@ classdef SweepTransmissionFrequency < handle
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
-%             w.drawSegmentLibrary()
-%             w.drawPlaylist()
+            w.drawSegmentLibrary()
+            w.drawPlaylist()
 %             WaveLib = awg.ApplyCorrection(WaveLib);
             awg.Wavedownload(WaveLib);
+%             awg.SeqRun(PlayList);
             cardparams.segments=length(w.playlist);
             cardparams.delaytime=obj.measStartTime-1e-6;
             card.SetParams(cardparams);
@@ -97,28 +98,37 @@ classdef SweepTransmissionFrequency < handle
             Idata=zeros(cardparams.segments/2,samples);
             Qdata=zeros(cardparams.segments/2,samples);
             Pdata=zeros(cardparams.segments/2,samples);
-            intStart=2000; intStop=5000;
-            softavg=100;
+            intStart=2000; intStop=4900;
+            softavg=1;
             for i=1:softavg
                 % "hardware" averaged I,I^2 data
-                [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,PlayList);
+%                 [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,PlayList);
+                [tempI,tempQ] = card.ReadIandQ(awg,PlayList);
                 % software acumulation
-                Idata=Idata+tempI;
-                Qdata=Qdata+tempQ;
-                Pdata=Pdata+tempI2+tempQ2;
-                Pint=mean(Pdata(:,intStart:intStop)');
+%                 Idata=Idata+tempI;
+%                 Qdata=Qdata+tempQ;
+%                 Pdata=Pdata+tempI2+tempQ2;
+%                 Pint=mean(Pdata(:,intStart:intStop)');
                 
                 figure(101);
-                subplot(2,2,1); imagesc(taxis,obj.freqVector,Idata);title('In phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,2,2); imagesc(taxis,obj.freqVector,Qdata);title('Quad phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,2,3); imagesc(taxis,obj.freqVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,2,4); plot(obj.freqVector,Pint);ylabel('Power I^2+Q^2');xlabel('Frequency (GHz)');
+                for i=1:cardparams.segments
+                    subplot(2,1,1); plot(tempI)
+                end
+                subplot(2,2,1);plot(taxis,tempI(1,:));title('Isignal');
+                subplot(2,2,2);plot(taxis,tempI(2,:));title('Iback');
+                subplot(2,2,3);plot(taxis,tempQ(1,:));title('Qsignal');
+                subplot(2,2,4);plot(taxis,tempQ(2,:));title('Qback');
+%                 subplot(2,2,3);plot(Pdata);
+%                 subplot(2,2,1); imagesc(taxis,obj.freqVector,Idata);title('In phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
+%                 subplot(2,2,2); imagesc(taxis,obj.freqVector,Qdata);title('Quad phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
+%                 subplot(2,2,3); imagesc(taxis,obj.freqVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
+%                 subplot(2,2,4); plot(obj.freqVector,Pint);ylabel('Power I^2+Q^2');xlabel('Frequency (GHz)');
                 pause(0.5);
             end
-            Idata=Idata./softavg;
-            Qdata=Qdata./softavg;
-            Pdata=Pdata./softavg;
-            Pint=Pint./softavg;
+%             Idata=Idata./softavg;
+%             Qdata=Qdata./softavg;
+%             Pdata=Pdata./softavg;
+%             Pint=Pint./softavg;
         end
         
     end
