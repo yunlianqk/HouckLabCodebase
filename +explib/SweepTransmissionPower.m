@@ -53,22 +53,30 @@ classdef SweepTransmissionPower < handle
             m=obj.measurement;
             tStep=1/obj.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
+            markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+            backgroundWaveform = zeros(1,length(t));
+            loWaveform = sin(2*pi*obj.cavityFreq*t);
             for ind=1:obj.points
                 m.amplitude=obj.ampVector(ind);
                 [iMeasBaseband qMeasBaseband] = m.uwWaveforms(t,obj.measStartTime);
                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
                 ch1waveform = iMeasMod+qMeasMod;
-                s1=w.newSegment(ch1waveform,[1 0; 0 0; 0 0; 0 0]);
+                s1=w.newSegment(ch1waveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
                 p1=w.newPlaylistItem(s1);
                 % generate LO
-                ch2waveform = sin(2*pi*obj.cavityFreq*t);
-                s2=w.newSegment(ch2waveform,[0 0; 1 0; 0 0; 0 0]);
+                s2=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
                 % set lo to play simultaneously
                 s2.id = s1.id;
+                % add background to playlist
+                sBack = w.newSegment(backgroundWaveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
+                pBack = w.newPlaylistItem(sBack);
+                % add lo to play @ same time as background
+                s3=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
+                s3.id = sBack.id;
             end
             % last playlist item must have advance set to 'auto'
-            p1.advance='Auto';
+            pBack.advance='Auto';
         end
     end
 end
