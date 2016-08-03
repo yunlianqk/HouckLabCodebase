@@ -3,12 +3,12 @@ classdef SweepTransmissionFrequency < handle
     
     properties
         % change these to tweak the experiment
-        startFreq=10.16e9;
-        stopFreq=10.17e9;
+        startFreq=10.15e9;
+        stopFreq=10.18e9;
         points = 101;
         measDuration = 5e-6;
-%         measAmplitude = 0.35/2; % measurement pulse amp.
-        measAmplitude = 1; % measurement pulse amp.
+        measAmplitude = 0.35/2; % measurement pulse amp.
+%         measAmplitude = 1; % measurement pulse amp.
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -112,7 +112,7 @@ classdef SweepTransmissionFrequency < handle
                 subplot(2,2,1); imagesc(taxis,obj.freqVector,Idata);title('In phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
                 subplot(2,2,2); imagesc(taxis,obj.freqVector,Qdata);title('Quad phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
                 subplot(2,2,3); imagesc(taxis,obj.freqVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,2,4); plot(obj.freqVector,Pint);ylabel('Power I^2+Q^2');xlabel('Frequency (GHz)');
+                subplot(2,2,4); plot(obj.freqVector,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Frequency (GHz)');
                 pause(0.5);
             end
             Idata=Idata./softavg;
