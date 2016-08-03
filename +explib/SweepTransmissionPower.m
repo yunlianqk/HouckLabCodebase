@@ -3,13 +3,13 @@ classdef SweepTransmissionPower < handle
     
     properties
         % change these to tweak the experiment
-        cavityFreq=7e9;
+        cavityFreq=10.1652e9;
         startAmp=1;
         stopAmp=0;
-        points = 11;
+        points = 21;
         measDuration = 5e-6;
-        startBuffer = 1e-6; % buffer at beginning of waveform
-        endBuffer = 50e-9; % buffer after measurement pulse
+        startBuffer = 5e-6; % buffer at beginning of waveform
+        endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
         % these are auto calculated
         ampVector;
@@ -77,6 +77,50 @@ classdef SweepTransmissionPower < handle
             end
             % last playlist item must have advance set to 'auto'
             pBack.advance='Auto';
+        end
+        
+        function result = runExperimentM8195A(obj,awg,card,cardparams)
+            % Experiment specific properties
+            intStart=2000; intStop=6000;
+            softavg=100;
+            
+            w = obj.genWaveset_M8195A();
+            WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
+            PlayList = awg.WavesetExtractPlaylistStruct(w);
+%             w.drawSegmentLibrary()
+%             w.drawPlaylist()
+%             WaveLib = awg.ApplyCorrection(WaveLib);
+            awg.Wavedownload(WaveLib);
+            cardparams.segments=length(w.playlist);
+            cardparams.delaytime=obj.measStartTime-1e-6;
+            card.SetParams(cardparams);
+            tstep=1/card.params.samplerate;
+            taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
+            % READ
+            % intialize matrices
+            samples=uint64(cardparams.samples);
+            Idata=zeros(cardparams.segments/2,samples);
+            Qdata=zeros(cardparams.segments/2,samples);
+            Pdata=zeros(cardparams.segments/2,samples);
+            for i=1:softavg
+                % "hardware" averaged I,I^2 data
+                [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,PlayList);
+                % software acumulation
+                Idata=Idata+tempI;
+                Qdata=Qdata+tempQ;
+                Pdata=Pdata+tempI2+tempQ2;
+                Pint=mean(Pdata(:,intStart:intStop)');
+                figure(102);
+                subplot(2,2,1); imagesc(taxis,obj.ampVector,Idata);title('In phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,2,2); imagesc(taxis,obj.ampVector,Qdata);title('Quad phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,2,3); imagesc(taxis,obj.ampVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
+                subplot(2,2,4); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Software Amplitude');
+                pause(0.01);
+            end
+            result.Idata=Idata./softavg;
+            result.Qdata=Qdata./softavg;
+            result.Pdata=Pdata./softavg;
+            result.Pint=Pint./softavg;
         end
     end
 end

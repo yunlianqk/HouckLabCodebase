@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=10;  % software averages PER SEGMENT
+cardparams.averages=50;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -38,6 +38,12 @@ card.SetParams(cardparams);
 %% edit this code to change scan settings
 open('explib.SweepTransmissionFrequency')
 %%
-clear x tempI tempQ;
+clear x;
 x = explib.SweepTransmissionFrequency();
-[tempI,tempQ] = x.runExperimentM8195A(awg,card,cardparams);
+result = x.runExperimentM8195A(awg,card,cardparams);
+%% edit this code to change scan settings
+open('explib.SweepTransmissionPower')
+%%
+clear x;
+x=explib.SweepTransmissionPower();
+result = x.runExperimentM8195A(awg,card,cardparams);
