@@ -3,10 +3,10 @@ classdef SweepTransmissionPower < handle
     
     properties
         % change these to tweak the experiment
-        cavityFreq=10.1652e9;
+        cavityFreq=10.1657e9;
         startAmp=1;
         stopAmp=0;
-        points = 21;
+        points = 101;
         measDuration = 5e-6;
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
@@ -81,7 +81,8 @@ classdef SweepTransmissionPower < handle
         
         function result = runExperimentM8195A(obj,awg,card,cardparams)
             % Experiment specific properties
-            intStart=2000; intStop=6000;
+%             intStart=2000; intStop=6000;
+            intStart=4000; intStop=8000;
             softavg=100;
             
             w = obj.genWaveset_M8195A();
@@ -102,25 +103,38 @@ classdef SweepTransmissionPower < handle
             Idata=zeros(cardparams.segments/2,samples);
             Qdata=zeros(cardparams.segments/2,samples);
             Pdata=zeros(cardparams.segments/2,samples);
+            phaseData=zeros(cardparams.segments/2,samples); 
             for i=1:softavg
                 % "hardware" averaged I,I^2 data
                 [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,PlayList);
                 % software acumulation
                 Idata=Idata+tempI;
                 Qdata=Qdata+tempQ;
-                Pdata=Pdata+tempI2+tempQ2;
+%                 Pdata=Pdata+tempI2+tempQ2;
+                Pdata=Idata.^2+Qdata.^2;
                 Pint=mean(Pdata(:,intStart:intStop)');
+                phaseData = phaseData + atan(tempQ./tempI);
+                phaseInt = mean(phaseData(:,intStart:intStop)');
+                
                 figure(102);
-                subplot(2,2,1); imagesc(taxis,obj.ampVector,Idata);title('In phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
-                subplot(2,2,2); imagesc(taxis,obj.ampVector,Qdata);title('Quad phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
-                subplot(2,2,3); imagesc(taxis,obj.ampVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,2,4); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Software Amplitude');
+                subplot(2,3,1); imagesc(taxis,obj.ampVector./1e9,Idata);title(['In phase. N=' num2str(i)]);ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,3,2); imagesc(taxis,obj.ampVector./1e9,Qdata);title('Quad phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,3,4); imagesc(taxis,obj.ampVector./1e9,Pdata);title('Power I^2+Q^2');ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,3,5); imagesc(taxis,obj.ampVector./1e9,phaseData);title('Phase atan(Q/I)');ylabel('Software Amplitude');xlabel('Time (\mus)');
+                subplot(2,3,3); plot(obj.ampVector./1e9,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Software Amplitude');
+                subplot(2,3,6); plot(obj.ampVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Software Amplitude');
+%                 subplot(2,2,1); imagesc(taxis,obj.ampVector,Idata);title('In phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
+%                 subplot(2,2,2); imagesc(taxis,obj.ampVector,Qdata);title('Quad phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
+%                 subplot(2,2,3); imagesc(taxis,obj.ampVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
+%                 subplot(2,2,4); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Software Amplitude');
                 pause(0.01);
             end
+            result.taxis = taxis;
             result.Idata=Idata./softavg;
             result.Qdata=Qdata./softavg;
             result.Pdata=Pdata./softavg;
             result.Pint=Pint./softavg;
+            display('Experiment Finished')
         end
     end
 end

@@ -1,42 +1,76 @@
-classdef RabiExperiment < handle
-    % Simple Rabi Experiment. X pulse with varying power. JJR 2016, Princeton
-
-    properties 
-        % change these to tweak the experiment. 
-%         qubitFreq=4.771e9;
+classdef X90AmpCal< handle
+    % Pi pulse error amplification. After an initial pi/2 pulse it will
+    % vary the number of subsequent pi pulses.  
+    
+    properties
+        % change these to tweak the experiment
+        numGateVector = 2:2:40;
         qubitFreq=4.772869998748302e9;
-        startAmp=1;
-        stopAmp=0;
-        points = 101;
-        gateType = 'X180';
-        qubitSigma = 25e-9; % qubit pulse sigma
-        interPulseBuffer = 1000e-9; % time between qubit pulse and measurement pulse
+        qubitAmplitude = .5;
+        qubitSigma = 18e-9;
+        iGateType = 'X90'; % initial gate (currently just use a half power pi pulse... need to rethink how this should be done after calibrations!)
+        gateType = 'X90'; % repeated gate type 
+        iGateAmplitude = .5;
+        iGateSigma = 18e-9;
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
         measDuration = 5e-6;
-        measStartTime = 5e-6; 
-        endBuffer = 5e-6; % buffer after measurement pulse
+        measBuffer = 200e-9; % extra delay between end of last gate and start of measurement pulse
+        startBuffer = 5e-6; % buffer at beginning of waveform
+        endBuffer = 5e-9; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
         % these are auto calculated
-        ampVector
-        qubit; % qubit pulse object
-        qubitPulseTime;
+        iGate; % initial qubit pulse object
+        mainGate; % qubit pulse object
+        sequences; % array of gateSequence objects
         measurement; % measurement pulse object
+        measStartTime; 
         measEndTime;
+        sequenceEndTime;
         waveformEndTime;
     end
     
     methods
-        function obj=RabiExperiment()
+        function obj=X90AmpCal()
             % constructor generates the necessary objects and calculates the dependent parameters
-            obj.qubit = pulselib.singleGate(obj.gateType);
-            obj.qubit.sigma = obj.qubitSigma;
-            obj.qubit.cutoff = 4*obj.qubitSigma;
-            obj.measurement=pulselib.measPulse(obj.measDuration,obj.cavityAmp);
-            obj.ampVector = linspace(obj.startAmp,obj.stopAmp,obj.points);
-            obj.qubitPulseTime = obj.measStartTime - obj.interPulseBuffer;
+            obj.initSequences(); % init routine to build gate sequences
+            
+            % generate measurement pulse
+            obj.measurement=pulselib.measPulse(obj.measDuration, obj.cavityAmp);
+            
+            % calculate measurement pulse time - based on the max number of
+            % gates
+            seqDurations = [obj.sequences.totalSequenceDuration];
+            maxSeqDuration = max(seqDurations);
+            obj.measStartTime = obj.startBuffer + maxSeqDuration + obj.measBuffer;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
             obj.waveformEndTime = obj.measEndTime+obj.endBuffer;
+            % gate sequence end times are all the same. start times can be
+            % calculated on the fly
+            obj.sequenceEndTime = obj.measStartTime-obj.measBuffer;
+        end
+        
+        function obj=initSequences(obj)
+            % generate qubit objects
+            obj.iGate= pulselib.singleGate(obj.gateType);
+            obj.iGate.amplitude = obj.iGateAmplitude;
+            obj.iGate.sigma= obj.iGateSigma;
+            obj.iGate.cutoff = obj.iGateSigma*4;
+            obj.mainGate = pulselib.singleGate(obj.gateType);
+            obj.mainGate.amplitude = obj.qubitAmplitude;
+            obj.mainGate.sigma = obj.qubitSigma;
+            obj.mainGate.cutoff = obj.qubitSigma*4;
+            
+            sequences(1,length(obj.numGateVector)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
+            for ind = 1:length(obj.numGateVector)
+                gateArray(1,obj.numGateVector(ind)) = pulselib.singleGate(); % init empty array of gate objects
+                gateArray(1)=obj.iGate;
+                for ind2 = 1:obj.numGateVector(ind)
+                    gateArray(ind2+1) = obj.mainGate;
+                end
+                sequences(ind)=pulselib.gateSequence(gateArray);
+            end
+            obj.sequences=sequences;
         end
         
         function w = genWaveset_M8195A(obj)
@@ -45,11 +79,10 @@ classdef RabiExperiment < handle
             t = 0:tStep:(obj.waveformEndTime);
             loWaveform = sin(2*pi*obj.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-%             backgroundWaveform = zeros(1,length(t));
-            for ind=1:obj.points
-                q=obj.qubit;
-                q.amplitude=obj.ampVector(ind);
-                [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
+            for ind=1:length(obj.sequences)
+                s = obj.sequences(ind);
+                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+                [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
                 iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
@@ -113,12 +146,12 @@ classdef RabiExperiment < handle
                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 figure(101);
-                subplot(2,3,1); imagesc(taxis,obj.ampVector,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('AmpVector');xlabel('Time (\mus)');
-                subplot(2,3,2); imagesc(taxis,obj.ampVector,Qdata/i);title('Quad phase');ylabel('AmpVector');xlabel('Time (\mus)');
-                subplot(2,3,4); imagesc(taxis,obj.ampVector,Pdata/i);title('Power I^2+Q^2');ylabel('AmpVector');xlabel('Time (\mus)');
-                subplot(2,3,5); imagesc(taxis,obj.ampVector./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('AmpVector');xlabel('Time (\mus)');
-                subplot(2,3,3); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude (V)');xlabel('Qubit pulse software amplitude');
-                subplot(2,3,6); plot(obj.ampVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Software Amplitude');
+                subplot(2,3,1); imagesc(taxis,obj.numGateVector,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('gates');xlabel('Time (\mus)');
+                subplot(2,3,2); imagesc(taxis,obj.numGateVector,Qdata/i);title('Quad phase');ylabel('AmpVector');xlabel('Time (\mus)');
+                subplot(2,3,4); imagesc(taxis,obj.numGateVector,Pdata/i);title('Power I^2+Q^2');ylabel('AmpVector');xlabel('Time (\mus)');
+                subplot(2,3,5); imagesc(taxis,obj.numGateVector,phaseData/i);title('Phase atan(Q/I)');ylabel('AmpVector');xlabel('Time (\mus)');
+                subplot(2,3,3); plot(obj.numGateVector,sqrt(Pint));ylabel('Homodyne Amplitude (V)');xlabel('Qubit pulse software amplitude');
+                subplot(2,3,6); plot(obj.numGateVector,phaseInt);ylabel('Integrated Phase');xlabel('Software Amplitude');
                 pause(0.01);
 %                 ax=subplot(2,2,4);
                 % try doing the T1 fit during softaveraging

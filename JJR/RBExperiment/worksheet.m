@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=50;  % software averages PER SEGMENT
+cardparams.averages=20;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -30,20 +30,59 @@ cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
 cardparams.trigSource='External1'; % Trigger source
 cardparams.trigLevel=0.2; % Trigger level in volts
-cardparams.trigPeriod=100e-6; % Trigger period in seconds
+cardparams.trigPeriod=300e-6; % Trigger period in seconds
 
 % Update parameters and setup acquisition and trigerring 
 card.SetParams(cardparams);
 
-%% edit this code to change scan settings
-open('explib.SweepTransmissionFrequency')
 %%
 clear x;
-x = explib.SweepTransmissionFrequency();
-result = x.runExperimentM8195A(awg,card,cardparams);
-%% edit this code to change scan settings
-open('explib.SweepTransmissionPower')
+% x=explib.SweepTransmissionFrequency();
+% x=explib.SweepTransmissionPower();
+% x=explib.SweepQubitFrequency();
+% x=explib.RabiExperiment();
+% x=explib.SweepQubitSigma();
+x=explib.T1Experiment();
+% x=explib.T2Experiment();
+% x=explib.X90AmpCal();
+% w=x.genWaveset_M8195A();
+% w.drawSegmentLibrary()
+% x=explib.T1Experiment();
+% result = x.runExperimentM8195A(awg,card,cardparams);
+playlist = x.directDownloadM8195A(awg);
+result = x.directRunM8195A(awg,card,cardparams,playlist)
 %%
-clear x;
-x=explib.SweepTransmissionPower();
-result = x.runExperimentM8195A(awg,card,cardparams);
+tic
+result = x.directRunM8195A(awg,card,cardparams,playlist)
+toc
+%% t1 repeat
+clear lambda result
+for ind=1:200
+    tic
+    result = x.directRunM8195A(awg,card,cardparams,playlist)
+    toc
+    pvals(ind,:)=result.Pint;
+    lamda(ind)=result.lambda;
+    figure(166)
+    plot(lamda)
+end
+
+%% t2 detuning scan - rerun t2 measurement with multiple detunings
+clear pvals result
+delta = linspace(-.2e6,.2e6,41);
+pvals=zeros(length(delta),101);
+for ind=1:length(delta)
+    tic
+    x=explib.T2Experiment();
+    x.qubitFreq=4.772869998748302e9 + delta(ind);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist);
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(166)
+    imagesc(pvals(1:ind,:));
+    
+end
+
+
+
