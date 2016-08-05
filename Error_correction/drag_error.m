@@ -3,10 +3,10 @@ function [ projection ] = drag_error( num, error )
     sy = [0, -1j ;1j ,0 ];
     sz = [1, 0 ;0 , -1];    
     theta = pi/2;
-    state = [1;0];
+    state = [1;0]; % initial state is a ground state
     rots = (rotate(theta, sy) * rotate(error, sz))^num;
     newstate =  rots * state;
-    projection = newstate(1)^2 -  newstate(2)^2;
-
+    dm  = kron(newstate, newstate');
+    projection = trace(sz * dm);
 end
 

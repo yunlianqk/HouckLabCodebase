@@ -78,4 +78,6 @@ plot(amp_error_data)
 hold on
 plot(drag_error_data)
 
-
+%% Testing tensor product
+q1 = [1/sqrt(3);sqrt(2/3)];
+kron(q1,q1')
