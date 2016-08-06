@@ -2,16 +2,15 @@ function  result = ExpFit2(axis, data, varargin)
 % Exponential fit
 
     % Construct initial guess for parameters
-%     offset_guess = data(end);
-    offset = 7.039e-4;
+    offset_guess = data(end);
     amp_guess = data(1)-data(end);
     lambda_guess = -axis(20)/log(1-(data(1)-data(20))/amp_guess);
-    beta0 = [amp_guess, lambda_guess];
+    beta0 = [amp_guess, lambda_guess,offset_guess];
     % Fit data
     coeff = nlinfit(axis, data, @Exp_beta, beta0);
     result.amp=coeff(1);
     result.lambda=coeff(2);
-
+    result.offset=coeff(3);
     % Plot original and fitted data
     axis_dense = linspace(axis(1), axis(end), 1000);
     Y = Exp_beta(coeff, axis_dense);
@@ -28,9 +27,9 @@ function  result = ExpFit2(axis, data, varargin)
 end
 
 function y = Exp_beta(beta, x)
-    offset = 7.039e-4;    
     amp = beta(1);
     lambda = beta(2);
+    offset = beta(3);
     y = offset+amp*exp(-x/lambda);
 end
 
