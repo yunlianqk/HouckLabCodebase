@@ -1,19 +1,19 @@
-classdef X90AmpCal< handle
+classdef X180AmpCal< handle
     % Pi pulse error amplification. After an initial pi/2 pulse it will
     % vary the number of subsequent pi pulses.  
     
     properties
         % change these to tweak the experiment
-        numGateVector = 2:2:40;
+        numGateVector = 1:1:20;
         qubitFreq=4.772869998748302e9;
 %         qubitAmplitude = .74/2;
 %         iGateAmplitude = .74/2;
-        qubitAmplitude = .5/2;
-        iGateAmplitude = .5/2;
+        qubitAmplitude = .7180;
+        iGateAmplitude = .3575;
         qubitSigma = 25e-9;
         iGateSigma = 25e-9;
         iGateType = 'X90'; % initial gate (currently just use a half power pi pulse... need to rethink how this should be done after calibrations!)
-        gateType = 'X90'; % repeated gate type 
+        gateType = 'X180'; % repeated gate type 
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
         measDuration = 5e-6;
@@ -33,7 +33,7 @@ classdef X90AmpCal< handle
     end
     
     methods
-        function obj=X90AmpCal()
+        function obj=X180AmpCal()
             % constructor generates the necessary objects and calculates the dependent parameters
             obj.initSequences(); % init routine to build gate sequences
             
@@ -54,7 +54,7 @@ classdef X90AmpCal< handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.iGate= pulselib.singleGate(obj.gateType);
+            obj.iGate= pulselib.singleGate(obj.iGateType);
             obj.iGate.amplitude = obj.iGateAmplitude;
             obj.iGate.sigma= obj.iGateSigma;
             obj.iGate.cutoff = obj.iGateSigma*4;
@@ -113,7 +113,7 @@ classdef X90AmpCal< handle
             % integration times
             intStart=4000; intStop=8000;
             % software averages
-            softavg=50;
+            softavg=25;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
