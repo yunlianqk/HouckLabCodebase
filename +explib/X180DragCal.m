@@ -4,9 +4,11 @@ classdef X180DragCal< handle
     
     properties
         % change these to tweak the experiment
+        experimentName = 'X180DragCal';
         numGateVector = 2:2:40;
         qubitFreq=4.772869998748302e9;
         qubitAmplitude = .7198;
+        qubitDragAmplitude = .1;
         qubitSigma = 25e-9;
         gateType1 = 'X180'; % 1st of two opposite gates
         gateType2 = 'Xm180'; % 
@@ -52,10 +54,12 @@ classdef X180DragCal< handle
             % generate qubit objects
             obj.pulse1 = pulselib.singleGate(obj.gateType1);
             obj.pulse1.amplitude = obj.qubitAmplitude;
+            obj.pulse1.dragAmplitude = obj.qubitDragAmplitude;
             obj.pulse1.sigma = obj.qubitSigma;
             obj.pulse1.cutoff = obj.qubitSigma*4;
             obj.pulse2 = pulselib.singleGate(obj.gateType2);
             obj.pulse2.amplitude = obj.qubitAmplitude;
+            obj.pulse2.dragAmplitude = obj.qubitDragAmplitude;
             obj.pulse2.sigma = obj.qubitSigma;
             obj.pulse2.cutoff = obj.qubitSigma*4;
 
@@ -80,7 +84,7 @@ classdef X180DragCal< handle
             % clear awg of segments
             iqseq('delete', [], 'keepOpen', 1);
             % check # segments won't be too large
-            if length(obj.delayList)>awg.maxSegNumber
+            if length(obj.numGateVector)>awg.maxSegNumber
                 error(['Waveform library size exceeds maximum segment number ',int2str(awg.maxSegNumber)]);
             end
 
@@ -189,7 +193,7 @@ classdef X180DragCal< handle
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
             intStart=4000; intStop=8000; % integration times
-            softavg=200; % software averages
+            softavg=25; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
             cardparams.delaytime=obj.measStartTime-1e-6;

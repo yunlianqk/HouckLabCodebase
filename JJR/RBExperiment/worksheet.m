@@ -45,13 +45,14 @@ clear x;
 % x=explib.T1Experiment();
 % x=explib.T2Experiment();
 % x=explib.X90AmpCal();
-x=explib.X180AmpCal();
+% x=explib.X180AmpCal();
+x=explib.X180DragCal();
 % w=x.genWaveset_M8195A();
 % w.drawSegmentLibrary()
 % x=explib.T1Experiment();
-result = x.runExperimentM8195A(awg,card,cardparams);
-% playlist = x.directDownloadM8195A(awg);
-% result = x.directRunM8195A(awg,card,cardparams,playlist)
+% result = x.runExperimentM8195A(awg,card,cardparams);
+playlist = x.directDownloadM8195A(awg);
+result = x.directRunM8195A(awg,card,cardparams,playlist)
 %%
 tic
 result = x.directRunM8195A(awg,card,cardparams,playlist)
@@ -123,5 +124,28 @@ for ind=1:length(ampVector)
     save(['C:\Data\x180AmpCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
 end
+
+%% x180 DRAG calibration sweep amplitude
+tic; time=fix(clock);
+clear pvals result x
+x=explib.X180DragCal();
+ampVector = linspace(-1,1,21);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    display(['x180DragCal step ' num2str(ind) ' running'])
+    x=explib.X180DragCal();
+    x.pulse1.dragAmplitude = ampVector(ind);
+    x.pulse2.dragAmplitude = ampVector(ind);
+    x.qubitDragAmplitude = ampVector(ind);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist)
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(pvals(1:ind,:));
+    save(['C:\Data\x180DragCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
+end
+
 
 
