@@ -8,7 +8,7 @@ function [Idata,Isqdata,Qdata,Qsqdata]=ReadIandQcomplicated(self,awg,PlayList)
     params = self.params;  % Get params all at once
                            % avoid using self.params below because it will
                            % call self.GetParams() and waste time
-    device = self.instrID.DeviceSpecific;  % Get device handle
+%     device = self.instrID.DeviceSpecific;  % Get device handle
     warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
     % Acquire data
     
@@ -20,7 +20,7 @@ function [Idata,Isqdata,Qdata,Qsqdata]=ReadIandQcomplicated(self,awg,PlayList)
         end
     end
     
-    device.Acquisition.Initiate();
+    self.instrID.DeviceSpecific.Acquisition.Initiate();
     timeoutInMs = (params.averages*params.segments*params.trigPeriod + 1)*1000;%NO MORE THAN 10 SECONDS
     if exist('awg','var')
         if exist('PlayList','var')
@@ -33,23 +33,23 @@ function [Idata,Isqdata,Qdata,Qsqdata]=ReadIandQcomplicated(self,awg,PlayList)
     end
     
     try
-        device.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
+        self.instrID.DeviceSpecific.Acquisition.WaitForAcquisitionComplete(timeoutInMs);
     catch
         disp('No valid trigger...force manual triggers.');
     end
     
     % Buffer array
-    arraySize = device.Acquisition.QueryMinWaveformMemory(64,...
+    arraySize = self.instrID.DeviceSpecific.Acquisition.QueryMinWaveformMemory(64,...
         params.averages*params.segments, 0, params.samples);
     inArray = double(zeros(arraySize,1));
     
     % Fetch Idata
     [IdataArrayReal64, IactualRecords, IactualPoints, IfirstValidPoint, IinitialXOffset, IinitialXTimeSeconds, IinitialXTimeFraction, IxIncrement] ...
-     = device.Channels.Item(params.ChI).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
+     = self.instrID.DeviceSpecific.Channels.Item(params.ChI).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
     
     % Fetch Qdata
     [QdataArrayReal64, QactualRecords, QactualPoints, QfirstValidPoint, QinitialXOffset, QinitialXTimeSeconds, QinitialXTimeFraction, QxIncrement] ...
-     = device.Channels.Item(params.ChQ).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
+     = self.instrID.DeviceSpecific.Channels.Item(params.ChQ).MultiRecordMeasurement.FetchMultiRecordWaveformReal64(0,params.averages*params.segments, 0, params.samples, inArray);
     
     if IactualRecords ~= 1
         % Rearrange each single shot experiment in every column

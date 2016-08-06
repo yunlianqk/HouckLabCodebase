@@ -108,5 +108,7 @@ function SetParams(self, params)
     self.trigPeriod = params.trigPeriod;
     
     warning('on', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
+    
+    clear device;
 end
 

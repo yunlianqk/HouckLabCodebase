@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=20;  % software averages PER SEGMENT
+cardparams.averages=100;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -42,15 +42,16 @@ clear x;
 % x=explib.SweepQubitFrequency();
 % x=explib.RabiExperiment();
 % x=explib.SweepQubitSigma();
-x=explib.T1Experiment();
+% x=explib.T1Experiment();
 % x=explib.T2Experiment();
 % x=explib.X90AmpCal();
+x=explib.X180AmpCal();
 % w=x.genWaveset_M8195A();
 % w.drawSegmentLibrary()
 % x=explib.T1Experiment();
-% result = x.runExperimentM8195A(awg,card,cardparams);
-playlist = x.directDownloadM8195A(awg);
-result = x.directRunM8195A(awg,card,cardparams,playlist)
+result = x.runExperimentM8195A(awg,card,cardparams);
+% playlist = x.directDownloadM8195A(awg);
+% result = x.directRunM8195A(awg,card,cardparams,playlist)
 %%
 tic
 result = x.directRunM8195A(awg,card,cardparams,playlist)
@@ -70,7 +71,7 @@ end
 %% t2 detuning scan - rerun t2 measurement with multiple detunings
 clear pvals result
 delta = linspace(-.2e6,.2e6,41);
-pvals=zeros(length(delta),101);
+pvals=zeros(length(delta),51);
 for ind=1:length(delta)
     tic
     x=explib.T2Experiment();
@@ -84,5 +85,43 @@ for ind=1:length(delta)
     
 end
 
+%% x90 amp calibration sweep amplitude
+clear pvals result
+ampVector = linspace(.25,.5,101);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    ind
+    tic
+    x=explib.X90AmpCal();
+    x.iGate.amplitude = ampVector(ind);
+    x.mainGate.amplitude = ampVector(ind);
+    x.qubitAmplitude = ampVector(ind);
+    x.iGateAmplitude = ampVector(ind);
+    result = x.runExperimentM8195A(awg,card,cardparams);
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(pvals(1:ind,:));
+    
+end
+%% x180 amp calibration sweep amplitude
+tic; time=fix(clock);
+clear pvals result x
+x=explib.X180AmpCal();
+ampVector = linspace(.704,.725,21);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    display(['step ' num2str(ind) ' running'])
+    x=explib.X180AmpCal();
+    x.mainGate.amplitude = ampVector(ind);
+    x.qubitAmplitude = ampVector(ind);
+    result = x.runExperimentM8195A(awg,card,cardparams);
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(pvals(1:ind,:));
+    save(['C:\Data\x180AmpCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
+end
 
 

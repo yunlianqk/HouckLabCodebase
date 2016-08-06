@@ -5,12 +5,12 @@ classdef T2Experiment < handle
     
     properties
         % change these to tweak the experiment
-%         qubitFreq=4.7-2e6;
-        qubitFreq=4.772869998748302e9;
-        qubitAmplitude = .5;
-        qubitSigma = 18e-9;
-        gateType = 'X180';
-        delayList = 200e-9:.1e-6:10.2e-6; % delay btw qubit pulses
+%         qubitFreq=4.772869998748302e9;
+        qubitFreq=4.772869998748302e9-2e6;
+        qubitAmplitude = .74/2;
+        qubitSigma = 25e-9;
+        gateType = 'X90';
+        delayList = 200e-9:.05e-6:20.2e-6; % delay btw qubit pulses
         interPulseBuffer = 200e-9; % time between final qubit pulse and measurement pulse
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
@@ -56,36 +56,36 @@ classdef T2Experiment < handle
             end
         end
         
-        function w = genWaveset_M8195A(obj)
-            w = paramlib.M8195A.waveset();
-            tStep = 1/obj.samplingRate;
-            t = 0:tStep:(obj.waveformEndTime);
-            ch2waveform = sin(2*pi*obj.cavityFreq*t); % lo waveform is always the same
-            for ind=1:length(obj.delayList)
-                q1=obj.qubit1;
-                q2=obj.qubit2;
-                [iQubit1Baseband qQubit1Baseband] = q1.uwWaveforms(t, obj.qubit1PulseTimes(ind));
-                [iQubit2Baseband qQubit2Baseband] = q2.uwWaveforms(t, obj.qubit2PulseTime);
-                iQB=iQubit1Baseband+iQubit2Baseband;
-                qQB=qQubit1Baseband+qQubit2Baseband;
-                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQB;
-                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQB;
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
-                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-                s1=w.newSegment(ch1waveform);
-                p1=w.newPlaylistItem(s1);
-                % since s2 will be played simultaneously with s1, it does
-                % not need its own playlist item!
-                slo=w.newSegment(ch2waveform,[0 0; 1 0; 0 0; 0 0]);
-                % set lo to play simultaneously
-                slo.id = s1.id;
-            end
-            % last playlist item must have advance set to 'auto'
-            p1.advance='Auto';
-        end
-        
+%         function w = genWaveset_M8195A(obj)
+%             w = paramlib.M8195A.waveset();
+%             tStep = 1/obj.samplingRate;
+%             t = 0:tStep:(obj.waveformEndTime);
+%             ch2waveform = sin(2*pi*obj.cavityFreq*t); % lo waveform is always the same
+%             for ind=1:length(obj.delayList)
+%                 q1=obj.qubit1;
+%                 q2=obj.qubit2;
+%                 [iQubit1Baseband qQubit1Baseband] = q1.uwWaveforms(t, obj.qubit1PulseTimes(ind));
+%                 [iQubit2Baseband qQubit2Baseband] = q2.uwWaveforms(t, obj.qubit2PulseTime);
+%                 iQB=iQubit1Baseband+iQubit2Baseband;
+%                 qQB=qQubit1Baseband+qQubit2Baseband;
+%                 iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQB;
+%                 qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQB;
+%                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+%                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+%                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+%                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+%                 s1=w.newSegment(ch1waveform);
+%                 p1=w.newPlaylistItem(s1);
+%                 % since s2 will be played simultaneously with s1, it does
+%                 % not need its own playlist item!
+%                 slo=w.newSegment(ch2waveform,[0 0; 1 0; 0 0; 0 0]);
+%                 % set lo to play simultaneously
+%                 slo.id = s1.id;
+%             end
+%             % last playlist item must have advance set to 'auto'
+%             p1.advance='Auto';
+%         end
+%         
         function playlist = directDownloadM8195A(obj,awg)
             % avoid building full wavesets and WaveLib to save memory 
 
@@ -172,7 +172,7 @@ classdef T2Experiment < handle
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
             intStart=4000; intStop=8000; % integration times
-            softavg=10; % software averages
+            softavg=200; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
             cardparams.delaytime=obj.measStartTime-1e-6;
@@ -187,7 +187,7 @@ classdef T2Experiment < handle
             Pdata=zeros(cardparams.segments/2,samples);
             phaseData=zeros(cardparams.segments/2,samples); 
             T2Data=zeros(cardparams.segments/2);
-            for i=1:softavg
+            for ind=1:softavg
                 % "hardware" averaged I,I^2 data
                 [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,playlist);
                 % software acumulation
@@ -199,17 +199,20 @@ classdef T2Experiment < handle
                 phaseData = phaseData + atan(tempQ./tempI);
                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
-                figure(101);
-                subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/i);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/i);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,3); plot(obj.delayList,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Delay');
-                subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
-%                                 ax=subplot(2,3,3);
-%                 try doing the T1 fit during softaveraging
-%                 lambda = funclib.ExpFit(obj.delayList,sqrt(Pint),ax);
-                pause(0.01);
+                if ~mod(ind,10)
+                    figure(101);
+                    subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/ind);title(['In phase. N=' num2str(ind)]);ylabel('Delay');xlabel('Time (\mus)');
+                    subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/ind);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
+                    subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/ind);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
+                    subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/ind);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
+                    subplot(2,3,3); plot(obj.delayList,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Delay');
+                    subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
+                    %                                 ax=subplot(2,3,3);
+                    %                 try doing the T1 fit during softaveraging
+                    %                 lambda = funclib.ExpFit(obj.delayList,sqrt(Pint),ax);
+                    pause(0.01);
+                end
+                
             end
             result.taxis = taxis;
             result.Idata=Idata./softavg;
