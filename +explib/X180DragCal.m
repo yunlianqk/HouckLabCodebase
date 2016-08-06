@@ -5,7 +5,7 @@ classdef X180DragCal< handle
     properties
         % change these to tweak the experiment
         experimentName = 'X180DragCal';
-        numGateVector = 2:2:40;
+        numGateVector = 2:2:80;
         qubitFreq=4.772869998748302e9;
         qubitAmplitude = .7198;
         qubitDragAmplitude = .1;
@@ -193,7 +193,7 @@ classdef X180DragCal< handle
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
             intStart=4000; intStop=8000; % integration times
-            softavg=25; % software averages
+            softavg=50; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
             cardparams.delaytime=obj.measStartTime-1e-6;
