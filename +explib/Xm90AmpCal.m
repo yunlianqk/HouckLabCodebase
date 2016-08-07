@@ -5,7 +5,7 @@ classdef Xm90AmpCal< handle
     properties
         % change these to tweak the experiment
         experimentName = 'Xm90AmpCal';
-        numGateVector = 2:2:40;
+        numGateVector = 2:6:120;
         qubitFreq=4.772869998748302e9;
         qubitAmplitude = .3575;
         qubitDragAmplitude = .016;
@@ -56,7 +56,7 @@ classdef Xm90AmpCal< handle
             obj.iGate.amplitude = obj.qubitAmplitude;
             obj.iGate.dragAmplitude = obj.qubitDragAmplitude;
             obj.iGate.sigma= obj.qubitSigma;
-            obj.iGate.cutoff = obj.iGateSigma*4;
+            obj.iGate.cutoff = obj.qubitSigma*4;
             obj.mainGate = pulselib.singleGate(obj.gateType);
             obj.mainGate.amplitude = obj.qubitAmplitude;
             obj.mainGate.dragAmplitude = obj.qubitDragAmplitude;

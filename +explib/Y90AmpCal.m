@@ -6,12 +6,9 @@ classdef Y90AmpCal< handle
         experimentName = 'Y90AmpCal';
         numGateVector = 2:2:40;
         qubitFreq=4.772869998748302e9;
-%         qubitAmplitude = .74/2;
-%         iGateAmplitude = .74/2;
-        qubitAmplitude = .5/2;
-        iGateAmplitude = .5/2;
+        qubitAmplitude = .3572;
+        qubitDragAmplitude = .016;
         qubitSigma = 25e-9;
-        iGateSigma = 25e-9;
         iGateType = 'Y90'; % initial gate (currently just use a half power pi pulse... need to rethink how this should be done after calibrations!)
         gateType = 'Y90'; % repeated gate type 
         cavityFreq=10.16578e9; % cavity frequency
@@ -55,11 +52,13 @@ classdef Y90AmpCal< handle
         function obj=initSequences(obj)
             % generate qubit objects
             obj.iGate= pulselib.singleGate(obj.gateType);
-            obj.iGate.amplitude = obj.iGateAmplitude;
-            obj.iGate.sigma= obj.iGateSigma;
-            obj.iGate.cutoff = obj.iGateSigma*4;
+            obj.iGate.amplitude = obj.qubitAmplitude;
+            obj.iGate.dragAmplitude = obj.qubitDragAmplitude;
+            obj.iGate.sigma= obj.qubitSigma;
+            obj.iGate.cutoff = obj.qubitSigma*4;
             obj.mainGate = pulselib.singleGate(obj.gateType);
             obj.mainGate.amplitude = obj.qubitAmplitude;
+            obj.mainGate.dragAmplitude = obj.qubitDragAmplitude;
             obj.mainGate.sigma = obj.qubitSigma;
             obj.mainGate.cutoff = obj.qubitSigma*4;
             
@@ -156,7 +155,7 @@ classdef Y90AmpCal< handle
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
             intStart=4000; intStop=8000; % integration times
-            softavg=25; % software averages
+            softavg=50; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
             cardparams.delaytime=obj.measStartTime-1e-6;

@@ -130,7 +130,8 @@ end
 tic; time=fix(clock);
 clear pvals result x
 x=explib.X180DragCal();
-ampVector = linspace(0,.02,21);
+% ampVector = linspace(0,.02,21);
+ampVector = linspace(-.6,.7,201);
 pvals=zeros(length(ampVector),length(x.numGateVector));
 for ind=1:length(ampVector)
     display(['x180DragCal step ' num2str(ind) ' running'])
@@ -166,10 +167,54 @@ for ind=1:length(ampVector)
     toc
     pvals(ind,:)=result.Pint;
     figure(161)
-    imagesc(x.numGateVector, ampVector, pvals(1:ind,:));
+    imagesc(x.numGateVector, ampVector(1:ind), pvals(1:ind,:));
     title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
     save(['C:\Data\X90DragCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
 end
 
+%% Xm90 Amp calibration sweep amplitude
+tic; time=fix(clock);
+clear pvals result x
+x=explib.Xm90AmpCal();
+ampVector = linspace(0.3565,.358,16);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    display(['Xm90AmpCal step ' num2str(ind) ' running'])
+    x=explib.Xm90AmpCal();
+    x.iGate.amplitude = ampVector(ind);
+    x.mainGate.amplitude = ampVector(ind);
+    x.qubitAmplitude = ampVector(ind);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist);
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(x.numGateVector, ampVector(1:ind), pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    save(['C:\Data\Xm90AmpCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
+end
 
+%% Y90 Amp calibration sweep amplitude
+tic; time=fix(clock);
+clear pvals result x
+x=explib.Y90AmpCal();
+ampVector = linspace(0.357,.3587,21);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    display(['Y90AmpCal step ' num2str(ind) ' running'])
+    x=explib.Y90AmpCal();
+    x.iGate.amplitude = ampVector(ind);
+    x.mainGate.amplitude = ampVector(ind);
+    x.qubitAmplitude = ampVector(ind);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist);
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(x.numGateVector, ampVector(1:ind), pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    save(['C:\Data\Y90AmpCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
+end
