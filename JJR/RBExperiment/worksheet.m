@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=50;  % software averages PER SEGMENT
+cardparams.averages=100;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -35,7 +35,7 @@ cardparams.trigPeriod=300e-6; % Trigger period in seconds
 % Update parameters and setup acquisition and trigerring 
 card.SetParams(cardparams);
 
-%%
+%% single experiments
 clear x;
 % x=explib.SweepTransmissionFrequency();
 % x=explib.SweepTransmissionPower();
@@ -47,13 +47,16 @@ clear x;
 % x=explib.X90AmpCal();
 % x=explib.X180AmpCal();
 % x=explib.X180DragCal();
-x=explib.X90DragCal();
+% x=explib.X90DragCal();
+x=explib.RBExperiment();
 % w=x.genWaveset_M8195A();
 % w.drawSegmentLibrary()
 % x=explib.T1Experiment();
 % result = x.runExperimentM8195A(awg,card,cardparams);
+tic
 playlist = x.directDownloadM8195A(awg);
-result = x.directRunM8195A(awg,card,cardparams,playlist)
+toc
+% result = x.directRunM8195A(awg,card,cardparams,playlist);
 %%
 tic
 result = x.directRunM8195A(awg,card,cardparams,playlist)
@@ -218,3 +221,34 @@ for ind=1:length(ampVector)
     save(['C:\Data\Y90AmpCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
 end
+
+%% run a bunch of RB sequences
+
+tic; time=fix(clock);
+clear pvals result x
+x=explib.RBExperiment();
+numSequences = 32;
+pvals=zeros(numSequences,length(x.sequenceLengths)+2);  % plus 2 because of normalization segments at end
+for ind=1:numSequences
+    display(['RBSequence ' num2str(ind) ' running'])
+    x=explib.RBExperiment();
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist);
+    toc
+    pvals(ind,:)=result.Pint;
+    myavg=mean(pvals);
+    mylow=myavg(end-1);
+    myhi=myavg(end);
+    mynorm = 1-(myavg-mylow)/(myhi-mylow);
+    figure(144)
+    subplot(1,2,1)
+    imagesc(pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    subplot(1,2,2)
+    plot(mynorm)
+    title([num2str(ind) ' of ' num2str(numSequences) 'sequences'])
+    save(['C:\Data\RBExperiment_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'numSequences', 'pvals','result','mynorm','myavg','mylow','myhi');
+end
+
+
