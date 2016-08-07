@@ -3,20 +3,30 @@ classdef RBExperiment < handle
     %be sent to the awg. JJR 2016, Princeton
     
     properties
+        % change these to tweak the experiment
+        experimentName = 'RandomizedBenchmark';
+        sequenceLengths = [1 2 4 8 16 32 64 128]; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
+        qubitFreq=4.772869998748302e9;
+        amp180 = .7198;
+        drag180 = .015;
+        amp90 = .3573;
+        drag90 = .016;
+        qubitSigma = 25e-9;
+        cavityFreq=10.16578e9; % cavity frequency
+        cavityAmp=1;       % cavity pulse amplitude
+        measDuration = 5e-6;
+        measBuffer = 200e-9; % extra delay between end of last gate and start of measurement pulse
+        startBuffer = 5e-6; % buffer at beginning of waveform
+        endBuffer = 5e-9; % buffer after measurement pulse
+        samplingRate=32e9; % sampling rate
+        % these are auto calculated
         primitives; % object array of primitive gates.
         cliffords; % object array of clifford gates.
         sequences; % object array of randomized benchmarking sequences
-        sequenceLengths = [1 2 4 8 16 32 64 128]; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
         measurement; % measurement pulse object
-        rbStartTime = 200e-9; % delay in seconds before earliest clifford gate
-        rbEndTime; % uses max rbSequence duration to caluclate
-        measDelay = 50e-9; % time in seconds btw last clifford gate and start of measurement pulse 
         measStartTime; % starts shortly after end of the rbSequence 
         measEndTime;
-        waveformEndDelay = 50e-9; % delay after end of measurement pulse to end waveform
-        qubitFreq=5e9; % qubit frequency
-        cavityFreq=7e9; % cavity frequency
-        samplingRate=15e9; % sampling rate
+        waveformEndTime;
     end
     
     methods
@@ -34,17 +44,15 @@ classdef RBExperiment < handle
         
         function obj=initPrimitives(obj)
             % general pulse parameters
-            sigma=10e-9; % gaussian width in seconds
+            sigma=obj.qubitSigma; % gaussian width in seconds
             cutoff=4*sigma;  % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
             buffer=4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
             % generate primitives
-            amplitude=1;
-            dragAmplitude=.5;
             primitives(1)=pulselib.gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
-            primitives(2)=pulselib.gaussianWithDrag('X180',0,pi,1,.5,sigma,cutoff,buffer);
-            primitives(3)=pulselib.gaussianWithDrag('X90',0,pi/2,.5,.25,sigma,cutoff,buffer);
-            primitives(4)=pulselib.gaussianWithDrag('Xm90',0,-pi/2,-.5,.25,sigma,cutoff,buffer);
-            primitives(5)=pulselib.gaussianWithDrag('Y180',pi/2,pi,.9,.3,sigma,cutoff,buffer);
+            primitives(2)=pulselib.gaussianWithDrag('X180',0,pi,.7198,.015,sigma,cutoff,buffer);
+%             primitives(3)=pulselib.gaussianWithDrag('X90',0,pi/2,.3575,.25,sigma,cutoff,buffer);
+%             primitives(4)=pulselib.gaussianWithDrag('Xm90',0,-pi/2,-.5,.25,sigma,cutoff,buffer);
+%             primitives(5)=pulselib.gaussianWithDrag('Y180',pi/2,pi,.9,.3,sigma,cutoff,buffer);
             primitives(6)=pulselib.gaussianWithDrag('Y90',pi/2,pi/2,.45,.15,sigma,cutoff,buffer);
             primitives(7)=pulselib.gaussianWithDrag('Ym90',pi/2,-pi/2,-.45,.15,sigma,cutoff,buffer);
             obj.primitives=primitives;
