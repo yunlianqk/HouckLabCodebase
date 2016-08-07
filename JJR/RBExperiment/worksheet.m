@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=100;  % software averages PER SEGMENT
+cardparams.averages=50;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -129,7 +129,7 @@ end
 tic; time=fix(clock);
 clear pvals result x
 x=explib.X180DragCal();
-ampVector = linspace(-1,1,21);
+ampVector = linspace(0,.02,21);
 pvals=zeros(length(ampVector),length(x.numGateVector));
 for ind=1:length(ampVector)
     display(['x180DragCal step ' num2str(ind) ' running'])
@@ -142,6 +142,7 @@ for ind=1:length(ampVector)
     toc
     pvals(ind,:)=result.Pint;
     figure(161)
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
     imagesc(pvals(1:ind,:));
     save(['C:\Data\x180DragCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
