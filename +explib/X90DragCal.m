@@ -5,7 +5,7 @@ classdef X90DragCal< handle
     properties
         % change these to tweak the experiment
         experimentName = 'X90DragCal';
-        numGateVector = 2:2:40;
+        numGateVector = 2:4:80;
         qubitFreq=4.772869998748302e9;
         qubitAmplitude = .3575;
 %         qubitAmplitude = .7198;
@@ -196,6 +196,7 @@ classdef X90DragCal< handle
                     subplot(2,3,3); imagesc(taxis,obj.numGateVector,Qdata/ind);title('Quad phase');ylabel('Number of Gates');xlabel('Time (\mus)');
                     subplot(2,3,4); imagesc(taxis,obj.numGateVector,Pdata/ind);title('Power I^2+Q^2');ylabel('Number of Gates');xlabel('Time (\mus)');
                     subplot(2,3,[5 6]); plot(obj.numGateVector,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
+                    drawnow
                     pause(0.01);
                 end
                 

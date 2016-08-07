@@ -46,7 +46,8 @@ clear x;
 % x=explib.T2Experiment();
 % x=explib.X90AmpCal();
 % x=explib.X180AmpCal();
-x=explib.X180DragCal();
+% x=explib.X180DragCal();
+x=explib.X90DragCal();
 % w=x.genWaveset_M8195A();
 % w.drawSegmentLibrary()
 % x=explib.T1Experiment();
@@ -148,5 +149,27 @@ for ind=1:length(ampVector)
         'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
 end
 
+%% x90 DRAG calibration sweep amplitude
+tic; time=fix(clock);
+clear pvals result x
+x=explib.X90DragCal();
+ampVector = linspace(0.013,.018,21);
+pvals=zeros(length(ampVector),length(x.numGateVector));
+for ind=1:length(ampVector)
+    display(['x90DragCal step ' num2str(ind) ' running'])
+    x=explib.X90DragCal();
+    x.pulse1.dragAmplitude = ampVector(ind);
+    x.pulse2.dragAmplitude = ampVector(ind);
+    x.qubitDragAmplitude = ampVector(ind);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist)
+    toc
+    pvals(ind,:)=result.Pint;
+    figure(161)
+    imagesc(x.numGateVector, ampVector, pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    save(['C:\Data\X90DragCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
+end
 
 
