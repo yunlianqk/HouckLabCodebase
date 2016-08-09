@@ -377,7 +377,7 @@ classdef RBExperiment < handle
 %                 phaseData = phaseData + atan(tempQ./tempI);
 %                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
-                if ~mod(ind,10)
+                if ~mod(ind,50)
                     figure(101);
                     h=subplot(2,3,1);
                     set(h,'Visible','off');

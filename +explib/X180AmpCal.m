@@ -7,7 +7,8 @@ classdef X180AmpCal< handle
         experimentName = 'X180AmpCal';
         numGateVector = 1:1:20;
         qubitFreq=4.772869998748302e9;
-        qubitAmplitude = .7198;
+%         qubitAmplitude = .7198;
+        qubitAmplitude = .73;
         qubitDragAmplitude = .015;
         qubitSigma = 25e-9;
         iGateAmplitude = .3575;
@@ -17,14 +18,17 @@ classdef X180AmpCal< handle
         gateType = 'X180'; % repeated gate type 
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
+        measDuration = 8e-6;
         measBuffer = 200e-9; % extra delay between end of last gate and start of measurement pulse
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-9; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
+        
         % these are auto calculated
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object
+        zeroGate; % qubit pulse (identity) for normalization
+        oneGate; % qubit pulse (X180) for normalization
         sequences; % array of gateSequence objects
         measurement; % measurement pulse object
         measStartTime; 
@@ -65,6 +69,8 @@ classdef X180AmpCal< handle
             obj.mainGate.dragAmplitude = obj.qubitDragAmplitude;
             obj.mainGate.sigma = obj.qubitSigma;
             obj.mainGate.cutoff = obj.qubitSigma*4;
+            obj.zeroGate = pulselib.singleGate('Identity');
+            obj.oneGate = obj.mainGate;
             
             sequences(1,length(obj.numGateVector)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
             for ind = 1:length(obj.numGateVector)
@@ -75,6 +81,9 @@ classdef X180AmpCal< handle
                 end
                 sequences(ind)=pulselib.gateSequence(gateArray);
             end
+            % create 0 and 1 normalization sequences at end
+            sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
+            sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
             obj.sequences=sequences;
         end
         
@@ -84,7 +93,7 @@ classdef X180AmpCal< handle
             % clear awg of segments
             iqseq('delete', [], 'keepOpen', 1);
             % check # segments won't be too large
-            if length(obj.numGateVector)>awg.maxSegNumber
+            if length(obj.sequences)>awg.maxSegNumber
                 error(['Waveform library size exceeds maximum segment number ',int2str(awg.maxSegNumber)]);
             end
 
@@ -192,11 +201,12 @@ classdef X180AmpCal< handle
 
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
-            intStart=4000; intStop=8000; % integration times
+            intStart=1; intStop=10000; % integration times
             softavg=25; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
-            cardparams.delaytime=obj.measStartTime-1e-6;
+            cardparams.delaytime=obj.measStartTime-1e-6+2.5e-6;
+%             cardparams.delaytime=obj.measStartTime-1e-6;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
@@ -218,17 +228,21 @@ classdef X180AmpCal< handle
                 Pint=mean(Pdata(:,intStart:intStop)');
 %                 phaseData = phaseData + atan(tempQ./tempI);
 %                 phaseInt = mean(phaseData(:,intStart:intStop)');
-                
                 if ~mod(ind,10)
                     figure(101);
                     h=subplot(2,3,1);
                     set(h,'Visible','off');
                     someText = {obj.experimentName,['softavg = ' num2str(ind)]};
                     text(.1,.9,someText);
-                    subplot(2,3,2); imagesc(taxis,obj.numGateVector,Idata/ind);title('In phase');ylabel('Number of Gates');xlabel('Time (\mus)');
-                    subplot(2,3,3); imagesc(taxis,obj.numGateVector,Qdata/ind);title('Quad phase');ylabel('Number of Gates');xlabel('Time (\mus)');
-                    subplot(2,3,4); imagesc(taxis,obj.numGateVector,Pdata/ind);title('Power I^2+Q^2');ylabel('Number of Gates');xlabel('Time (\mus)');
-                    subplot(2,3,[5 6]); plot(obj.numGateVector,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
+%                     subplot(2,3,2); imagesc(taxis,obj.numGateVector,Idata(:,1:end-2)/ind);title('In phase');ylabel('Number of Gates');xlabel('Time (\mus)');
+%                     subplot(2,3,3); imagesc(taxis,obj.numGateVector,Qdata(:,1:end-2)/ind);title('Quad phase');ylabel('Number of Gates');xlabel('Time (\mus)');
+%                     subplot(2,3,4); imagesc(taxis,obj.numGateVector,Pdata(:,1:end-2)/ind);title('Power I^2+Q^2');ylabel('Number of Gates');xlabel('Time (\mus)');
+%                     subplot(2,3,[5 6]); plot(obj.numGateVector,sqrt(Pint(1:end-2)));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
+                    
+                    subplot(2,3,2); imagesc(taxis,[],Idata/ind);title('In phase');ylabel('Number of Gates');xlabel('Time (\mus)');
+                    subplot(2,3,3); imagesc(taxis,[],Qdata/ind);title('Quad phase');ylabel('Number of Gates');xlabel('Time (\mus)');
+                    subplot(2,3,4); imagesc(taxis,[],Pdata/ind);title('Power I^2+Q^2');ylabel('Number of Gates');xlabel('Time (\mus)');
+                    subplot(2,3,[5 6]); plot(sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
                     drawnow
                 end
                 

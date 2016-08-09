@@ -4,15 +4,18 @@ addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
 % Import FIR filter -> press Ok
 awg = M8195AWG();
 %% Generate vector for typical Rabi experiment
-waveLength=20e-6;
+multiple=1000;
+waveLength=multiple*8e-9;
 tAxis=(1/awg.samplerate:1/awg.samplerate:waveLength);
 
+cwtone=cos(2*pi*4e9*tAxis);
+
 % Readout pulse parameters
-read.Amp=[1,0,1,0,1,0,1,0];
-read.Freq=6e9;
-read.start=10e-6;
-read.length=5e-6;
-read.buffer=10e-9;
+% read.Amp=[1,0,1,0,1,0,1,0];
+% read.Freq=6e9;
+% read.start=10e-6;
+% read.length=5e-6;
+% read.buffer=10e-9;
 % Qubit gaussian pulse parameters
 % varying amplitudes
 % qubit.Amp=0;
