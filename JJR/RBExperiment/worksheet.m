@@ -19,8 +19,8 @@ card=M9703ADigitizer(address);  % create object
 cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
-cardparams.samples=1.6e9*6e-6;    % samples for a single trace
-cardparams.averages=100;  % software averages PER SEGMENT
+cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
+cardparams.averages=10;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -45,10 +45,10 @@ clear x;
 % x=explib.T1Experiment();
 % x=explib.T2Experiment();
 % x=explib.X90AmpCal();
-% x=explib.X180AmpCal();
+x=explib.X180AmpCal();
 % x=explib.X180DragCal();
 % x=explib.X90DragCal();
-x=explib.RBExperiment();
+% x=explib.RBExperiment();
 % w=x.genWaveset_M8195A();
 % w.drawSegmentLibrary()
 % x=explib.T1Experiment();
@@ -225,11 +225,12 @@ end
 %% run a bunch of RB sequences
 
 tic; time=fix(clock);
-clear pvals result x
+% clear pvals result x
 x=explib.RBExperiment();
-numSequences = 32;
-pvals=zeros(numSequences,length(x.sequenceLengths)+2);  % plus 2 because of normalization segments at end
-for ind=1:numSequences
+numSequences = 224;
+% pvals=zeros(numSequences,length(x.sequenceLengths)+2);  % plus 2 because of normalization segments at end
+% for ind=1:numSequences
+for ind=33:224
     display(['RBSequence ' num2str(ind) ' running'])
     x=explib.RBExperiment();
     playlist = x.directDownloadM8195A(awg);
