@@ -10,10 +10,10 @@ pnax = PNAXAnalyzer(address);
 pnax.DeleteAll();
 %% Set channel 1 parameters for transmission S21
 transCh1 = paramlib.pnax.trans();
-transCh1.start = 5e9;
-transCh1.stop = 6e9;
+transCh1.start = 1e9;
+transCh1.stop = 13.5e9;
 transCh1.points = 1001;
-transCh1.power = -50;
+transCh1.power = 10;
 transCh1.averages = 1000;
 transCh1.ifbandwidth = 5e3;
 transCh1.channel = 1;
@@ -25,6 +25,8 @@ pnax.SetParams(transCh1);
 pnax.AvgOn();
 pnax.PowerOn();
 pnax.TrigContinuous();
+%%
+
 %% Set channel 2 paramters for transmission S13
 transCh2 = transCh1;
 transCh2.channel = 2;

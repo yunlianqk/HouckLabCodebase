@@ -3,11 +3,25 @@ classdef RBExperiment < handle
     % be sent to the awg. JJR 2016, Princeton
     
     properties
+        % change these to tweak the experiment
         experimentName = 'RandomizedBenchmark';
-        % inputs
-        pulseCal;
+%         sequenceLengths = 1:4:41; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
+%         sequenceLengths = [1 2 4 8 16 32 64 128 256]; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
-        softwareAverages = 50;
+        %         sequenceLengths = [1 2 4 8 16]; % list containing number of clifford gates in each sequence. if you change this property it'll update the sequences
+        qubitFreq=4.772869998748302e9;
+        amp180 = .7198;
+        drag180 = .015;
+        amp90 = .3573;
+        drag90 = .016;
+        qubitSigma = 25e-9;
+        cavityFreq=10.16578e9; % cavity frequency
+        cavityAmp=1;       % cavity pulse amplitude
+        measDuration = 5e-6;
+        measBuffer = 200e-9; % extra delay between end of last gate and start of measurement pulse
+        startBuffer = 5e-6; % buffer at beginning of waveform
+        endBuffer = 5e-6; % buffer after measurement pulse
+        samplingRate=32e9; % sampling rate
         % these are auto calculated
         primitives; % object array of primitive gates.
         cliffords; % object array of clifford gates.
@@ -20,45 +34,31 @@ classdef RBExperiment < handle
     end
     
     methods
-        function obj=RBExperiment(pulseCal, varargin)% constructor
-            % constructor. Overwrites sequenceLengths if it is passed as an input
-            % then calls the update function to calculate dependent
-            % properties. If these are changed after construction, rerun
-            % update method.
-            obj.pulseCal = pulseCal;
-            nVarargs = length(varargin);
-            switch nVarargs
-                case 1
-                    obj.numGateVector = varargin{1};
-                case 2
-                    obj.numGateVector = varargin{1};
-                    obj.softwareAverages = varargin{2};
-            end
-            obj.update();
-        end
-            
-        function obj=update(obj)
-            % run this to update dependent parameters after changing
-            % experiment details
+        function obj=RBExperiment()% constructor
             obj.initPrimitives();
             obj.initCliffords();
-            obj.measurement = obj.pulseCal.measurement();
+            obj.measurement=pulselib.measPulse(obj.measDuration, obj.cavityAmp);
             obj.initSequences();
         end
         
         function obj=set.sequenceLengths(obj,s)
             obj.sequenceLengths=s;
-            obj.update();
+            obj.initSequences();
         end
         
         function obj=initPrimitives(obj)
-            primitives(1) = obj.pulseCal.Identity();
-            primitives(2) = obj.pulseCal.X180();
-            primitives(3) = obj.pulseCal.X90();
-            primitives(4) = obj.pulseCal.Xm90();
-            primitives(5) = obj.pulseCal.Y180();
-            primitives(6) = obj.pulseCal.Y90();
-            primitives(7) = obj.pulseCal.Ym90();
+            % general pulse parameters
+            sigma=obj.qubitSigma; % gaussian width in seconds
+            cutoff=4*sigma;  % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
+            buffer=4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
+            % generate primitives
+            primitives(1)=pulselib.gaussianWithDrag('Identity',0,0,0,0,sigma,cutoff,buffer);
+            primitives(2)=pulselib.gaussianWithDrag('X180',0,pi,obj.amp180,obj.drag180,sigma,cutoff,buffer);
+            primitives(3)=pulselib.gaussianWithDrag('X90',0,pi/2,obj.amp90,obj.drag90,sigma,cutoff,buffer);
+            primitives(4)=pulselib.gaussianWithDrag('Xm90',0,-pi/2,-obj.amp90,-obj.drag90,sigma,cutoff,buffer);
+            primitives(5)=pulselib.gaussianWithDrag('Y180',pi/2,pi,obj.amp180,obj.drag180,sigma,cutoff,buffer);
+            primitives(6)=pulselib.gaussianWithDrag('Y90',pi/2,pi/2,obj.amp90,obj.drag90,sigma,cutoff,buffer);
+            primitives(7)=pulselib.gaussianWithDrag('Ym90',pi/2,-pi/2,-obj.amp90,-obj.drag90,sigma,cutoff,buffer);
             obj.primitives=primitives;
         end
         
@@ -126,10 +126,10 @@ classdef RBExperiment < handle
             obj.sequences=sequences;
             % find max duration of all sequences
             d=sequences(mInd).sequenceDuration;
-            obj.rbEndTime=obj.pulseCal.startBuffer+d;
-            obj.measStartTime=obj.rbEndTime+obj.pulseCal.measBuffer;
-            obj.measEndTime=obj.measStartTime+obj.measurement.totalDuration;
-            obj.waveformEndTime = obj.measEndTime + obj.pulseCal.endBuffer;
+            obj.rbEndTime=obj.startBuffer+d;
+            obj.measStartTime=obj.rbEndTime+obj.measBuffer;
+            obj.measEndTime=obj.measStartTime+obj.measurement.duration;
+            obj.waveformEndTime = obj.measEndTime + obj.endBuffer;
         end
         
         function draw(obj)
@@ -191,7 +191,7 @@ classdef RBExperiment < handle
             end
 
             % set up time axis and make sure it's correct length for awg
-            tStep = 1/obj.pulseCal.samplingRate;
+            tStep = 1/obj.samplingRate;
             waveformLength = floor(obj.waveformEndTime/tStep)+1;
             paddedLength = ceil(waveformLength/awg.granularity)*awg.granularity;
             paddedWaveformEndTime = (paddedLength-1)*tStep;
@@ -207,7 +207,7 @@ classdef RBExperiment < handle
             t = 0:tStep:paddedWaveformEndTime;            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % generate LO and marker waveforms
-            loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
+            loWaveform = sin(2*pi*obj.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             
             for ind=1:length(obj.sequences)
@@ -215,14 +215,14 @@ classdef RBExperiment < handle
                 s = obj.sequences(ind);
                 % RB Sequence object takes END time as an input!
                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, obj.rbEndTime);
-                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
-                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
                 clear qQubitBaseband;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
                 clear iMeasBaseband 
-                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
                 clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
@@ -260,16 +260,16 @@ classdef RBExperiment < handle
             
             display('loading normalization I pulse');
             ig = obj.primitives(1);
-            tCenter = obj.rbEndTime - ig.totalDuration/2;
+            tCenter = obj.rbEndTime - ig.totalPulseDuration/2;
             [iQubitBaseband qQubitBaseband] = ig.uwWaveforms(t, tCenter);
-            iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+            iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
             clear iQubitBaseband;
-            qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+            qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
             clear qQubitBaseband;
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+            iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
             clear iMeasBaseband
-            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+            qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
             clear qMeasBaseband;
             ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
             clear iQubitMod qQubitMod
@@ -305,16 +305,16 @@ classdef RBExperiment < handle
             
             display('loading normalization X180 pulse');
             ig = obj.primitives(2);
-            tCenter = obj.rbEndTime - ig.totalDuration/2;
+            tCenter = obj.rbEndTime - ig.totalPulseDuration/2;
             [iQubitBaseband qQubitBaseband] = ig.uwWaveforms(t, tCenter);
-            iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+            iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
             clear iQubitBaseband;
-            qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+            qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
             clear qQubitBaseband;
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+            iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
             clear iMeasBaseband
-            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+            qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
             clear qMeasBaseband;
             ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
             clear iQubitMod qQubitMod
@@ -349,13 +349,12 @@ classdef RBExperiment < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
-            % integration and averaging settings from pulseCal
-            intStart = obj.pulseCal.integrationStartIndex;
-            intStop = obj.pulseCal.integrationStopIndex;
-            softavg = obj.softwareAverages;
+            % some hardware specific settings
+            intStart=4000; intStop=8000; % integration times
+            softavg=50; % software averages
             % auto update some card settings
-            cardparams.segments = length(playlist);
-            cardparams.delaytime = obj.measStartTime + obj.pulseCal.cardDelayOffset;
+            cardparams.segments=length(playlist);
+            cardparams.delaytime=obj.measStartTime-1e-6;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
@@ -378,50 +377,26 @@ classdef RBExperiment < handle
 %                 phaseData = phaseData + atan(tempQ./tempI);
 %                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
-                % normalize amplitude
-                xaxisNorm=obj.sequenceLengths; % 
-                amp=sqrt(Pint);
-                norm0=amp(end-1);
-                norm1=amp(end);
-                normRange=norm1-norm0;
-                AmpNorm=(amp(1:end-2)-norm0)/normRange;
-
-                timeString = datestr(datetime);
-                if ~mod(ind,10)
-                    figure(753);
-                    subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm, AmpNorm);
-                    plotlib.hline(0);
-                    plotlib.hline(1);
-                    title([obj.experimentName ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Clifford Sequence Length');
-                    subplot(2,3,4);
-                    imagesc(taxis,[],Idata/ind);
-                    title('I'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,5); 
-                    imagesc(taxis,[],Qdata/ind);
-                    title('Q'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,6);
-                    imagesc(taxis,[],Pdata/ind);
-                    title('I^2+Q^2'); ylabel('segments'); xlabel('Time (\mus)');
+                if ~mod(ind,50)
+                    figure(101);
+                    h=subplot(2,3,1);
+                    set(h,'Visible','off');
+                    someText = {obj.experimentName,['softavg = ' num2str(ind)]};
+                    text(.1,.9,someText);
+                    subplot(2,3,2); imagesc(taxis,[1 length(obj.sequenceLengths)],Idata/ind);title('In phase');ylabel('Subsequence Index');xlabel('Time (\mus)');
+                    subplot(2,3,3); imagesc(taxis,[1 length(obj.sequenceLengths)],Qdata/ind);title('Quad phase');ylabel('Subsequence Index');xlabel('Time (\mus)');
+                    subplot(2,3,4); imagesc(taxis,[1 length(obj.sequenceLengths)],Pdata/ind);title('Power I^2+Q^2');ylabel('Subsequence Index');xlabel('Time (\mus)');
+%                     subplot(2,3,[5 6]); plot(obj.sequenceLengths,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
+                    subplot(2,3,[5 6]); plot(sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
                     drawnow
                 end
+                
             end
-            figure(753);
-            subplot(2,3,[1 2 3]);
-            plot(xaxisNorm, AmpNorm);
-            plotlib.hline(0);
-            plotlib.hline(1);
-            title([obj.experimentName ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Clifford Sequence Length');
-            
             result.taxis = taxis;
-            result.xaxisNorm = xaxisNorm;
             result.Idata=Idata./softavg;
             result.Qdata=Qdata./softavg;
             result.Pdata=Pdata./softavg;
             result.Pint=Pint./softavg;
-            result.AmpNorm = AmpNorm;
             display('Experiment Finished')
         end
         
