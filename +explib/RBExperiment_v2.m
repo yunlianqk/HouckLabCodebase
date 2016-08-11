@@ -57,8 +57,8 @@ classdef RBExperiment_v2 < handle
             primitives(3) = obj.pulseCal.X90();
             primitives(4) = obj.pulseCal.Xm90();
             primitives(5) = obj.pulseCal.Y180();
-            primitives(6) = obj.pulseCal.X90();
-            primitives(7) = obj.pulseCal.Xm90();
+            primitives(6) = obj.pulseCal.Y90();
+            primitives(7) = obj.pulseCal.Ym90();
             obj.primitives=primitives;
         end
         

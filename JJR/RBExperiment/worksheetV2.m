@@ -107,7 +107,7 @@ save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(
 tic; time=fix(clock);
 clear pvals result x
 x=explib.RBExperiment_v2(pulseCal);
-numSequences = 200;
+numSequences = 100;
 for ind=1:numSequences
     display(['RBSequence ' num2str(ind) ' running'])
     x=explib.RBExperiment_v2(pulseCal);
@@ -122,10 +122,10 @@ for ind=1:numSequences
     imagesc(pvals(1:ind,:));
     title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
     subplot(1,2,2)
-    plot(mynorm)
+    plot(ampNormValues')
     title([num2str(ind) ' of ' num2str(numSequences) 'sequences'])
     save(['C:\Data\FullRBExperiment_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
-        'x', 'awg', 'cardparams', 'numSequences', 'pvals','result','mynorm','myavg','mylow','myhi');
+        'x', 'awg', 'cardparams', 'numSequences', 'pvals','ampNormValues','result');
 end
 
 
