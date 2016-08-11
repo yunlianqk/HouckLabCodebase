@@ -387,7 +387,7 @@ classdef RBExperiment < handle
                     subplot(2,3,3); imagesc(taxis,[1 length(obj.sequenceLengths)],Qdata/ind);title('Quad phase');ylabel('Subsequence Index');xlabel('Time (\mus)');
                     subplot(2,3,4); imagesc(taxis,[1 length(obj.sequenceLengths)],Pdata/ind);title('Power I^2+Q^2');ylabel('Subsequence Index');xlabel('Time (\mus)');
 %                     subplot(2,3,[5 6]); plot(obj.sequenceLengths,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
-                    subplot(2,3,[5 6]); plot(sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Number of Gates');
+                    subplot(2,3,[5 6]); plot(sqrt(Pint));ylabel('sqrt(Power) I^2+Q^2');xlabel('Number of Gates');
                     drawnow
                 end
                 
