@@ -20,7 +20,7 @@ cardparams=paramlib.m9703a();   %default parameters
 
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
-cardparams.averages=10;  % software averages PER SEGMENT
+cardparams.averages=50;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -91,23 +91,29 @@ for ind=1:length(delta)
 end
 
 %% x90 amp calibration sweep amplitude
-clear pvals result
-ampVector = linspace(.25,.5,101);
+tic; time=fix(clock);
+clear pvals result x
+x=explib.X90AmpCal();
+ampVector = linspace(.325,.375,51);
 pvals=zeros(length(ampVector),length(x.numGateVector));
 for ind=1:length(ampVector)
-    ind
-    tic
+    display([x.experimentName ' step ' num2str(ind) ' running'])
     x=explib.X90AmpCal();
     x.iGate.amplitude = ampVector(ind);
     x.mainGate.amplitude = ampVector(ind);
     x.qubitAmplitude = ampVector(ind);
     x.iGateAmplitude = ampVector(ind);
-    result = x.runExperimentM8195A(awg,card,cardparams);
+%     result = x.runExperimentM8195A(awg,card,cardparams);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist)
     toc
     pvals(ind,:)=result.Pint;
     figure(161)
-    imagesc(pvals(1:ind,:));
-    
+%     imagesc(pvals(1:ind,:));
+    imagesc(x.numGateVector, ampVector(1:ind), pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'ampVector', 'pvals','result');
 end
 %% x180 amp calibration sweep amplitude
 tic; time=fix(clock);

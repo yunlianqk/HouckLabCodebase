@@ -9,15 +9,15 @@ classdef X90AmpCal< handle
         qubitFreq=4.772869998748302e9;
 %         qubitAmplitude = .74/2;
 %         iGateAmplitude = .74/2;
-        qubitAmplitude = .5/2;
-        iGateAmplitude = .5/2;
+        qubitAmplitude = .3575;
+        iGateAmplitude = .3575;
         qubitSigma = 25e-9;
         iGateSigma = 25e-9;
         iGateType = 'X90'; % initial gate (currently just use a half power pi pulse... need to rethink how this should be done after calibrations!)
         gateType = 'X90'; % repeated gate type 
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
+        measDuration = 10e-6;
         measBuffer = 200e-9; % extra delay between end of last gate and start of measurement pulse
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-9; % buffer after measurement pulse
@@ -191,11 +191,13 @@ classdef X90AmpCal< handle
 
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
             % some hardware specific settings
-            intStart=4000; intStop=8000; % integration times
+%             intStart=4000; intStop=8000; % integration times
+            intStart=1000; intStop=10000; % integration times
             softavg=25; % software averages
             % auto update some card settings
             cardparams.segments=length(playlist);
-            cardparams.delaytime=obj.measStartTime-1e-6;
+%             cardparams.delaytime=obj.measStartTime-1e-6;
+            cardparams.delaytime=obj.measStartTime+1.5e-6;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units

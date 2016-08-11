@@ -1,4 +1,6 @@
-classdef gaussianWithDrag < handle
+% classdef gaussianWithDrag < handle
+%%%%%%%%%%%%%%%%%%%%% KNOWN BUG - REMOVING OFFSET CHANGES AMPLITUDE! USE
+%%%%%%%%%%%%%%%%%%%%% SINGLE GATE PULSE FUNCTION INSTEAD
     % Gate object.  Clifford gates are formed from a few of these primitives
     % together.  This is a basic gaussian pulse with a drag pulse in
     % quadrature. A DC offset is also removed so that @ cutoff voltage is zero. 

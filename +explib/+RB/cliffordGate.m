@@ -22,7 +22,7 @@ classdef cliffordGate < handle
             % find total time required for clifford
             value=0;
             for ind=1:length(obj.primDecomp)
-                value=value+obj.primDecomp(ind).totalPulseDuration;
+                value=value+obj.primDecomp(ind).totalDuration;
             end
             
         end
@@ -35,11 +35,11 @@ classdef cliffordGate < handle
             qBaseband=zeros(size(tAxis));
             for ind=1:length(obj.primDecomp)
                 gate=obj.primDecomp(ind);
-                tCenter=tStart+gate.totalPulseDuration/2;
+                tCenter=tStart+gate.totalDuration/2;
                 [iTemp qTemp] = obj.primDecomp(ind).uwWaveforms(tAxis,tCenter);
                 iBaseband=iBaseband+iTemp;
                 qBaseband=qBaseband+qTemp;
-                tStart=tStart+gate.totalPulseDuration;
+                tStart=tStart+gate.totalDuration;
             end
         end
         

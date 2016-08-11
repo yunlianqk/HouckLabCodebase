@@ -106,11 +106,11 @@ save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(
 %% Run repeat RB experiments
 tic; time=fix(clock);
 clear pvals result x
-x=explib.RBExperiment_v2(pulseCal);
+x=explib.RBExperiment();
 numSequences = 200;
 for ind=1:numSequences
     display(['RBSequence ' num2str(ind) ' running'])
-    x=explib.RBExperiment_v2(pulseCal);
+    x=explib.RBExperiment_v2();
     playlist = x.directDownloadM8195A(awg);
     result = x.directRunM8195A(awg,card,cardparams,playlist);
     toc
