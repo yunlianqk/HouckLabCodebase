@@ -107,7 +107,7 @@ save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(
 tic; time=fix(clock);
 clear pvals result x
 x=explib.RBExperiment(pulseCal);
-numSequences = 100;
+numSequences = 5;
 for ind=1:numSequences
     display(['RBSequence ' num2str(ind) ' running'])
     x=explib.RBExperiment(pulseCal);
