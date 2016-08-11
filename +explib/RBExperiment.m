@@ -1,9 +1,9 @@
-classdef RBExperiment_v2 < handle
+classdef RBExperiment < handle
     % Randomized Benchmarking Experiment object for generating waveforms to
     % be sent to the awg. JJR 2016, Princeton
     
     properties
-        experimentName = 'RandomizedBenchmark_v2';
+        experimentName = 'RandomizedBenchmark';
         % inputs
         pulseCal;
         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
@@ -20,7 +20,7 @@ classdef RBExperiment_v2 < handle
     end
     
     methods
-        function obj=RBExperiment_v2(pulseCal, varargin)% constructor
+        function obj=RBExperiment(pulseCal, varargin)% constructor
             % constructor. Overwrites sequenceLengths if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun

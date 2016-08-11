@@ -1,12 +1,12 @@
-classdef Y90AmpCal_v2 < handle
+classdef X90AmpCal < handle
     % Pi/2 pulse error amplification. After an initial pi/2 pulse it will
     % vary the number of subsequent pairs of pi/2 pulses.  
 
     properties 
-        experimentName = 'Y90AmpCal_v2';
+        experimentName = 'X90AmpCal';
         % inputs
         pulseCal;
-        numGateVector = 0:2:80; % list of # of pi/2 gates to be done. MUST BE EVEN
+        numGateVector = 0:4:160; % list of # of pi/2 gates to be done. MUST BE EVEN
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
@@ -22,7 +22,7 @@ classdef Y90AmpCal_v2 < handle
     end
     
     methods
-        function obj=Y90AmpCal_v2(pulseCal,varargin)
+        function obj=X90AmpCal(pulseCal,varargin)
             % constructor. Overwrites numGateVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -61,10 +61,10 @@ classdef Y90AmpCal_v2 < handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.iGate = obj.pulseCal.Y90();
-            obj.mainGate = obj.pulseCal.Y90();
+            obj.iGate = obj.pulseCal.X90();
+            obj.mainGate = obj.pulseCal.X90();
             obj.zeroGate = obj.pulseCal.Identity();
-            obj.oneGate = obj.pulseCal.Y180(); % do i want to switch this?
+            obj.oneGate = obj.pulseCal.X180(); % do i want to switch this?
             
             sequences(1,length(obj.numGateVector)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
             for ind = 1:length(obj.numGateVector)

@@ -1,23 +1,25 @@
-classdef X180RabiExperiment_v2 < handle
+classdef Y90DragCal < handle
     % Simple Rabi Experiment. X pulse with varying power. JJR 2016, Princeton
 
     properties 
-        experimentName = 'X180RabiExperiment_v2';
+        experimentName = 'Y90DragCal';
         % inputs
         pulseCal;
-        ampVector = linspace(0,1,51);
+        ampVector = linspace(-.5,.5,101);
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
-        qubit; % qubit pulse object
+        upPulse; % 1st qubit pulse
+        downPulse; % 2nd qubit pulse
+        sequence; % a single gateSequence object
         measurement; % measurement pulse object
-        qubitPulseTime;
         measStartTime; 
         measEndTime;
+        sequenceEndTime;
         waveformEndTime;
     end
     
     methods
-        function obj=X180RabiExperiment_v2(pulseCal,varargin)
+        function obj=Y90DragCal(pulseCal,varargin)
             % constructor. Overwrites ampVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -37,10 +39,12 @@ classdef X180RabiExperiment_v2 < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-            obj.qubit = obj.pulseCal.X180();
+            obj.upPulse = obj.pulseCal.Y90();
+            obj.downPulse = obj.pulseCal.Ym90();
+            obj.sequence = pulselib.gateSequence([obj.upPulse obj.downPulse]);
             obj.measurement = obj.pulseCal.measurement();
-            obj.qubitPulseTime = obj.pulseCal.startBuffer+obj.qubit.totalDuration/2;
-            obj.measStartTime = obj.qubitPulseTime + obj.qubit.totalDuration/2 + obj.pulseCal.measBuffer;
+            obj.sequenceEndTime = obj.pulseCal.startBuffer+obj.sequence.totalSequenceDuration;
+            obj.measStartTime = obj.sequenceEndTime + obj.pulseCal.measBuffer;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
             obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
         end
@@ -77,9 +81,11 @@ classdef X180RabiExperiment_v2 < handle
             
             for ind=1:length(obj.ampVector)
                 display(['loading sequence ' num2str(ind)])
-                q = obj.qubit;
-                q.amplitude=obj.ampVector(ind);
-                [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
+                s = obj.sequence;
+                s.gateArray(1).dragAmplitude=obj.ampVector(ind);
+                s.gateArray(2).dragAmplitude=obj.ampVector(ind);
+                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+                [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
@@ -157,131 +163,36 @@ classdef X180RabiExperiment_v2 < handle
                 if ~mod(ind,10)
                     figure(187);
                     subplot(2,3,[1 2 3]); 
-                    newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
-                    % plot(obj.ampVector,sqrt(Pint));
-                    title([obj.experimentName ' ' timeString ' newAmp = ' num2str(newAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+                    newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
+%                     plot(obj.ampVector,sqrt(Pint));
+                    title([obj.experimentName ' ' timeString ' newDragAmp = ' num2str(newDragAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
                     ylabel('Integrated sqrt(I^2+Q^2)'); xlabel('Pulse Amplitude');
                     subplot(2,3,4);
                     imagesc(taxis,obj.ampVector,Idata/ind);
-                    title('I'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
+                    title('I'); ylabel('Drag Amplitude'); xlabel('Time (\mus)');
                     subplot(2,3,5); 
                     imagesc(taxis,obj.ampVector,Qdata/ind);
-                    title('Q'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
+                    title('Q'); ylabel('Drag Amplitude'); xlabel('Time (\mus)');
                     subplot(2,3,6);
                     imagesc(taxis,obj.ampVector,Pdata/ind);
-                    title('I^2+Q^2'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
+                    title('I^2+Q^2'); ylabel('Drag Amplitude'); xlabel('Time (\mus)');
                     drawnow
                 end
             end
             figure(187);
             subplot(2,3,[1 2 3]);
-            newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
-            title([obj.experimentName ' ' timeString ' newAmp = ' num2str(newAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Integrated sqrt(I^2+Q^2)'); xlabel('Pulse Amplitude');
+            newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
+            title([obj.experimentName ' ' timeString ' newDragAmp = ' num2str(newDragAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+            ylabel('Integrated sqrt(I^2+Q^2)'); xlabel('Drag Amplitude');
             
             result.taxis = taxis;
             result.Idata=Idata./softavg;
             result.Qdata=Qdata./softavg;
             result.Pdata=Pdata./softavg;
             result.Pint=Pint./softavg;
-            result.newAmp=newAmp;
+            result.newDragAmp=newDragAmp;
             display('Experiment Finished')
         end
-        
-%         function w = genWaveset_M8195A(obj)
-%             w = paramlib.M8195A.waveset();
-%             tStep = 1/obj.samplingRate;
-%             t = 0:tStep:(obj.waveformEndTime);
-%             loWaveform = sin(2*pi*obj.cavityFreq*t);
-%             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-% %             backgroundWaveform = zeros(1,length(t));
-%             for ind=1:obj.points
-%                 q=obj.qubit;
-%                 q.amplitude=obj.ampVector(ind);
-%                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
-%                 iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
-%                 qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
-%                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-%                 iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-%                 qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
-%                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-%                 % background is measurement pulse to get contrast
-%                 backgroundWaveform = iMeasMod+qMeasMod;
-%                 s1=w.newSegment(ch1waveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
-%                 p1=w.newPlaylistItem(s1);
-%                 % create LO segment with same id to play simultaneously
-%                 s2=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
-%                 s2.id = s1.id;
-%                 % add background to playlist
-%                 sBack = w.newSegment(backgroundWaveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
-%                 pBack = w.newPlaylistItem(sBack);
-%                 % add lo to play @ same time as background
-%                 s3=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
-%                 s3.id = sBack.id;
-%             end
-%             % last playlist item must have advance set to 'auto'
-%             pBack.advance='Auto';
-%         end
-        
-%         function [result] = runExperimentM8195A(obj,awg,card,cardparams)
-%             % integration times
-%             intStart=4000; intStop=8000;
-%             % software averages
-%             softavg=100;
-%             w = obj.genWaveset_M8195A();
-%             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
-%             PlayList = awg.WavesetExtractPlaylistStruct(w);
-% %             w.drawSegmentLibrary()
-% %             w.drawPlaylist()
-% %             WaveLib = awg.ApplyCorrection(WaveLib);
-%             awg.Wavedownload(WaveLib);
-%             clear WaveLib;
-%             cardparams.segments=length(w.playlist);
-%             clear w;
-%             cardparams.delaytime=obj.measStartTime-1e-6;
-%             card.SetParams(cardparams);
-%             tstep=1/card.params.samplerate;
-%             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
-%             % READ
-%             % intialize matrices
-%             samples=uint64(cardparams.samples);
-%             Idata=zeros(cardparams.segments/2,samples);
-%             Qdata=zeros(cardparams.segments/2,samples);
-%             Pdata=zeros(cardparams.segments/2,samples);
-%             phaseData=zeros(cardparams.segments/2,samples); 
-%             for i=1:softavg
-%                 % "hardware" averaged I,I^2 data
-%                 [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,PlayList);
-%                 % software acumulation
-%                 Idata=Idata+tempI;
-%                 Qdata=Qdata+tempQ;
-% %                 Pdata=Pdata+tempI2+tempQ2;
-%                 Pdata=Idata.^2+Qdata.^2;
-%                 Pint=mean(Pdata(:,intStart:intStop)');
-%                 phaseData = phaseData + atan(tempQ./tempI);
-%                 phaseInt = mean(phaseData(:,intStart:intStop)');
-%                 
-%                 figure(101);
-%                 subplot(2,3,1); imagesc(taxis,obj.ampVector,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('AmpVector');xlabel('Time (\mus)');
-%                 subplot(2,3,2); imagesc(taxis,obj.ampVector,Qdata/i);title('Quad phase');ylabel('AmpVector');xlabel('Time (\mus)');
-%                 subplot(2,3,4); imagesc(taxis,obj.ampVector,Pdata/i);title('Power I^2+Q^2');ylabel('AmpVector');xlabel('Time (\mus)');
-%                 subplot(2,3,5); imagesc(taxis,obj.ampVector./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('AmpVector');xlabel('Time (\mus)');
-%                 subplot(2,3,3); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude (V)');xlabel('Qubit pulse software amplitude');
-%                 subplot(2,3,6); plot(obj.ampVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Software Amplitude');
-%                 pause(0.01);
-% %                 ax=subplot(2,2,4);
-%                 % try doing the T1 fit during softaveraging
-% %                 theta = funclib.RabiFit(taxis,Pdata,ax);
-%             end
-%             result.taxis = taxis;
-%             result.Idata=Idata./softavg;
-%             result.Qdata=Qdata./softavg;
-%             result.Pdata=Pdata./softavg;
-%             result.Pint=Pint./softavg;
-%             display('Experiment Finished')
-%             %             result.theta=theta;
-%         end
-        
     end
 end
-       
+        

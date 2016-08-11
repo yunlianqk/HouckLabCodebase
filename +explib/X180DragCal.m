@@ -1,12 +1,12 @@
-classdef Y180DragCal_v2 < handle
+classdef X180DragCal < handle
     % Simple Rabi Experiment. X pulse with varying power. JJR 2016, Princeton
 
     properties 
-        experimentName = 'Y180DragCal_v2';
+        experimentName = 'X180DragCal';
         % inputs
         pulseCal;
         ampVector = linspace(-.5,.5,101);
-        softwareAverages = 10; 
+        softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
         upPulse; % 1st qubit pulse
         downPulse; % 2nd qubit pulse
@@ -19,7 +19,7 @@ classdef Y180DragCal_v2 < handle
     end
     
     methods
-        function obj=Y180DragCal_v2(pulseCal,varargin)
+        function obj=X180DragCal(pulseCal,varargin)
             % constructor. Overwrites ampVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -39,8 +39,8 @@ classdef Y180DragCal_v2 < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-            obj.upPulse = obj.pulseCal.Y180();
-            obj.downPulse = obj.pulseCal.Ym180();
+            obj.upPulse = obj.pulseCal.X180();
+            obj.downPulse = obj.pulseCal.Xm180();
             obj.sequence = pulselib.gateSequence([obj.upPulse obj.downPulse]);
             obj.measurement = obj.pulseCal.measurement();
             obj.sequenceEndTime = obj.pulseCal.startBuffer+obj.sequence.totalSequenceDuration;
@@ -195,4 +195,4 @@ classdef Y180DragCal_v2 < handle
         end
     end
 end
-       
+        
