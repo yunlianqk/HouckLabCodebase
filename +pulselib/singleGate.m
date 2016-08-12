@@ -132,6 +132,30 @@ classdef singleGate < handle
             [iBaseband, qBaseband] = project(self, gc, dc);
         end
         
+        function [iBaseband, qBaseband] = uwWaveformsFast(self, tAxis, tCenter)
+            % given just a time axis and pulse time, returns final baseband
+            % signals. can be added to similar outputs from other gates to
+            % form a composite waveform
+            samplingRate = 1/(tAxis(2)-tAxis(1));
+            tStart = tCenter - self.totalDuration/2;
+            tStop = tCenter + self.totalDuration/2;
+            % calculate start and stop indices for nonzero elements.  includes boundary if it falls on a sample
+            startInd = ceil(tStart*samplingRate);
+            stopInd = floor(tStop*samplingRate);
+            % vector of nonzero indices
+            nonZeroInd = startInd:stopInd;
+            % vector of nonzero times
+            nonZeroTimeAxis = (nonZeroInd-1)/samplingRate;
+            % use short time axis to calculate the pulse waveform
+            [iBasebandShort, qBasebandShort] = uwWaveforms(self, nonZeroTimeAxis, tCenter);
+            % place short pulse vector into large vector of zeros
+            iBaseband = zeros(1,length(tAxis));
+            iBaseband(startInd:stopInd)=iBasebandShort;
+            qBaseband = zeros(1,length(tAxis));
+            qBaseband(startInd:stopInd)=qBasebandShort;
+        end
+        
+        
         function [stateOut, stateTilt, stateAzimuth] = actOnState(self, stateIn)
             % given an input state vector act with unitary and return final state 
             stateOut = self.unitary*stateIn;
