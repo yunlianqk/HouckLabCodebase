@@ -6,7 +6,8 @@ function  newDragAmplitude = DragFit(axis, data, varargin)
     % Construct initial guess for parameters 
     [dataMax, maxInd] = max(data);
     [dataMin, minInd] = min(data);
-    offset_guess = dataMin;
+%     offset_guess = dataMin;
+    offset_guess = 0;
     amp_guess = dataMax-dataMin;
     freq_guess = 2*abs(axis(maxInd)-axis(minInd));
     phase_guess = 0;

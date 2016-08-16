@@ -6,7 +6,7 @@ classdef Y180AmpCal < handle
         % inputs
         pulseCal;
         numGateVector = 0:1:40; % list of # of pi pulses to be done in each sequence
-        softwareAverages = 100; 
+        softwareAverages = 200; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object
