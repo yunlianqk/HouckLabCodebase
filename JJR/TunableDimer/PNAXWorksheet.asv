@@ -48,7 +48,7 @@ currentVoltage=fc.currentVoltage;currentFlux=fc.currentFlux;display(currentVolta
 figure()
 %% Generate flux trajectory (start flux, stop flux, steps)
 clear vtraj ftraj
-fstart=[.2748 -.1975 -.75];fstop=[.2748 -.1975 .75];fsteps=501;
+fstart=[.2748 -.1975 -.75];fstop=[.2748 -.1975 .75];fsteps=101;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
