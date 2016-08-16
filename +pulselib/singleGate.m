@@ -22,7 +22,6 @@ classdef singleGate < handle
     methods
         function self = singleGate(name)   
             % Constructor takes the name of the gate to create an object
-            
             % Default values
             if nargin == 0
                 name = 'Identity';
@@ -97,8 +96,8 @@ classdef singleGate < handle
         function wc = applyGaussianCutoff(self, tAxis, tCenter, w)
             % zeros out values of waveform outside of cutoff and removes offset
             offset = self.amplitude*exp(-self.cutoff^2/(8*self.sigma^2));
-            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)) ...
-                           .*(tAxis<(tCenter+self.cutoff/2));
+            wc = (w-offset).*(tAxis>=(tCenter-self.cutoff/2)) ...
+                           .*(tAxis<=(tCenter+self.cutoff/2));
             % normalize
             if max(abs(wc)) ~= abs(self.amplitude)
                 wc = wc/max(abs(wc))*abs(self.amplitude);
@@ -111,8 +110,8 @@ classdef singleGate < handle
 %             firstPoint=find((tAxis>(tCenter-obj.cutoff/2)),1);            
 %             offset=w(firstPoint);            
             offset=0;
-            wc = (w-offset).*(tAxis>(tCenter-self.cutoff/2)) ...
-                           .*(tAxis<(tCenter+self.cutoff/2));
+            wc = (w-offset).*(tAxis>=(tCenter-self.cutoff/2)) ...
+                           .*(tAxis<=(tCenter+self.cutoff/2));
         end
         
         function [iBaseband, qBaseband] = project(self, g, d)
@@ -122,16 +121,45 @@ classdef singleGate < handle
             qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
         
-        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
+        function [iBaseband, qBaseband] = uwWaveformsSlow(self, tAxis, tCenter)
             % given just a time axis and pulse time, returns final baseband
             % signals. can be added to similar outputs from other gates to
             % form a composite waveform
+            % NOTE: this method will be slow if used directly with a very
+            % long waveform with high sampling rate.
             g = self.gaussian(tAxis, tCenter);
             d = self.drag(tAxis, tCenter);
             gc = self.applyGaussianCutoff(tAxis, tCenter, g);
             dc = self.applyDragCutoff(tAxis, tCenter, d);
             [iBaseband, qBaseband] = project(self, gc, dc);
         end
+        
+        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
+            % given just a time axis and pulse time, returns final baseband
+            % signals. can be added to similar outputs from other gates to
+            % form a composite waveform
+            % NOTE: provides speedup over slow version by using small
+            % waveforms during intermediate calculations
+            samplingRate = 1/(tAxis(2)-tAxis(1));
+            tStart = tCenter - self.totalDuration/2;
+            tStop = tCenter + self.totalDuration/2;
+            % calculate start and stop indices for nonzero elements.  includes boundary if it falls on a sample
+            startInd = ceil(tStart*samplingRate);
+            stopInd = floor(tStop*samplingRate);
+            % vector of nonzero indices
+            nonZeroInd = startInd:stopInd;
+            % vector of nonzero times
+            nonZeroTimeAxis = (nonZeroInd-1)/samplingRate;
+            % use short time axis to calculate the pulse waveform
+            [iBasebandShort, qBasebandShort] = uwWaveformsSlow(self, nonZeroTimeAxis, tCenter);
+            % place short pulse vector into large vector of zeros
+            iBaseband = zeros(1,length(tAxis));
+            iBaseband(startInd:stopInd)=iBasebandShort;
+            qBaseband = zeros(1,length(tAxis));
+            qBaseband(startInd:stopInd)=qBasebandShort;
+        end
+        
+%         function [iBaseband, qBaseband, indStart, indStop] = uwWaveformsFastest(self, samplingRate, tCenter)
         
         function [stateOut, stateTilt, stateAzimuth] = actOnState(self, stateIn)
             % given an input state vector act with unitary and return final state 

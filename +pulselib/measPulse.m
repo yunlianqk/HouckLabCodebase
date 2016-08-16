@@ -1,10 +1,10 @@
 classdef measPulse < handle
     % Simple rectangular measurement pulse object.  
     properties
-        amplitude; % amplitude of main gaussian pulse
-        azimuth; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
-        duration; % pulse length in seconds
-        sigma; % sigma for Gaussian ramp-up
+        duration = 4e-6; % pulse length in seconds
+        amplitude = 1.0; % amplitude of main gaussian pulse
+        azimuth = 0.0; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
+        sigma = 5e-9; % sigma for Gaussian ramp-up
     end
 
     properties (Dependent, SetAccess = private)
@@ -12,14 +12,24 @@ classdef measPulse < handle
     end
     
     methods
-        function self = measPulse(duration)
-            if nargin == 0
-                duration = 4e-6;
+        function self = measPulse(varargin)
+            nVarargs = length(varargin);
+            switch nVarargs
+                case 1
+                    self.duration = varargin{1};
+                case 2
+                    self.duration = varargin{1};
+                    self.amplitude = varargin{2};
+                case 3
+                    self.duration = varargin{1};
+                    self.amplitude = varargin{2};
+                    self.azimuth = varargin{3};
+                case 4
+                    self.duration = varargin{1};
+                    self.amplitude = varargin{2};
+                    self.azimuth = varargin{3};
+                    self.sigma = varargin{4};
             end
-            self.azimuth = 0.0;
-            self.amplitude = 1.0;
-            self.duration = duration;
-            self.sigma = 5e-9;
         end
 
         function value = get.totalDuration(self)

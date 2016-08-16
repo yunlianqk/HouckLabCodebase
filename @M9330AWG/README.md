@@ -42,10 +42,11 @@ pulsegen.Generate();
     - OUTPUTCONFIG = 1: Single-ended output, max amplitude = 0.17 to 0.25 V
     - OUTPUTCONFIG = 2: Amplified single-ended output, max amplitude = 0.34 to 0.5 V
     
-### Sequence mode
+### Sequence mode (Experimental)
 In sequence mode, waveforms and markers are all M × N arrays where M is the number of **segments** (each segment contains a waveform). A trigger output will be generated at the start of each **waveform**. The full sequence is shown below. Note that the AWG only wait for external trigger for each **sequence**, not between segments within the sequence.
 <div style="text-align:center"><img src="./sequence.jpg" alt="Sequence figure" align="middle"/></div>
 
+### Advanced sequence mode (To be implemented)
 ### <a name="sync"/>Multiple Module Synchronization
 The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by setting `pulsegen2` as **slave** and `pulsegen1` as **master**. Make sure the hardware connections are correct, as shown in the figure below.
 <div style="text-align:center"><img src="./sync.jpg" alt="Sync figure" align="middle"/></div>
@@ -55,7 +56,7 @@ The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by s
 * **Properties**: 
   * **address** (*string*, Read-only): PXI address of the instrument
   * **instrhandle** (*object*, Read-only): AgM933x driver object to communicate with instrument
-  * **samplingrate** (*float*, Read-only): Sampling rate. Default value = 1.25e9, can be reduced by factors of 2^n.
+  * **samplingrate** (*float*): Sampling rate. Default value = 1.25e9, can be reduced by factors of 2^n.
   * **timeaxis** (*float*): A row vector that defines the time axis (in unit of seconds)
   * **waveform1** (*float*): A row vector that defines channel 1
   * **waveform2** (*float*): A row vector that defines channel 2
@@ -75,6 +76,7 @@ The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by s
   * **pulsegen = M9330AWG(address)**: Opens the instrument with `address` and returns a `pulsegen` object
   * **pulsegen.AutoMarker()**: Automatically creates markers
   * **pulsegen.SetSampleRate(samplerate)**: Sets the sampling rate
+  * **samplerate = GetSampleRate(self)**: Gets the sampling rate
   * **pulsegen.Generate()**: Generates waveforms
   * **pulsegen.Stop()**: Turns output off
   * **pulsegen.SyncWith(mastergen)**: Synchronizes two AWG modules. See the [discussion](#sync) for details.

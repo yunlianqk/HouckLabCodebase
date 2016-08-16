@@ -10,7 +10,8 @@ classdef U1082ADigitizer < handle
     end
     properties (Access = private)
         AqReadParameters;   % Internal struct for ReadIandQ() method
-        timeout;
+        maxAvg = 65536;  % Maximum on-card averages
+        maxSeg = 8191;   % Maximun segments
     end
     
     methods
@@ -38,22 +39,7 @@ classdef U1082ADigitizer < handle
             
             % Set to averaging mode
             AqD1_configMode(self.instrID, 2, 0, 0);
-
-            % Trigger settings
-            AqD1_configTrigClass(self.instrID, 0, hex2dec('80000000'), 0, 0, 0.0, 0.0);
-            % second parameter = 0 sets trigclass tp edge trigger
-            % third parameter = '80000000' sets trigsource to external trigger 1
-            % last 4 parameters are unused
-            
-            trigLevel = 500; % trigger level in mV
-            AqD1_configTrigSource(self.instrID, -1, 0, 0, trigLevel, 0.0);
-            % second parameter = -1 sets trigger channel to external sources
-            % third parameter = 0/1 sets trigger coupling to DC/AC
-            % fourth parameter = 0/1/2/3 sets trigger slope to 
-            %                    positive/negative/out of window/into window
-            % fifth parameter sets trigger level
-            % sixth parameter sets trigger level 2 when window trigger is used
-            
+          
             % Load default settings
             self.SetParams(paramlib.acqiris());
             display([class(self), ' object created.']);

@@ -101,6 +101,7 @@ The global property just makes it easy to access them inside other functions, bu
     global pnax;
     display(pnax.params);
     ```
+    
 2.  To pass them to a function as an input parameter:
     ```matlab
     function data = MyMeasurement(argument1, ..., pnax)
@@ -110,10 +111,11 @@ The global property just makes it easy to access them inside other functions, bu
         ...
     end
     ```
+    
 3.  You can define your own classes that have `pnax` as a property, or pass `pnax` to your class methods.
 
 ## Saving/Loading objects
-Loading a class object from a .mat file requires that **the class definition file exist and is on the matlab search path**. For more convenient usage, you can save the object to a struct (this will cause a warning):
+Loading a class object from a .mat file requires that **the class definition file exists and is on the matlab search path**. For more convenient usage, you can save the object to a struct (this will cause a warning):
 ```matlab
 s = struct(obj);
 save('data.mat', 's');
@@ -171,5 +173,6 @@ Click the instrument to see the documents.
 - [YOKOGAWA GS200 voltgae/current source](./@YOKOGS200/README.md)
 - [YOKOGAWA 7651 voltage/current source](./@YOKO7651/README.md)
 - [U1082A digitizer](./@U1082ADigitizer/README.md)
+- [M9703A digitizer](./@M9703ADigitizer/README.md)
 - [M9330A arbitrary waveform generator](./@M9330AWG/README.md)
 - [33250A 80 MHz waveform generator](./@AWG33250A/README.md)

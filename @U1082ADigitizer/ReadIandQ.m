@@ -6,7 +6,7 @@ function [IData, QData] = ReadIandQ(self)
     AqD1_stopAcquisition(self.instrID);
     % Start a new acquisition
     AqD1_acquire(self.instrID);
-    % If card.params.timeout > MaxTimeout, repeatedly "waitForEndOfAcquisition"
+    % If timeout > MaxTimeout, repeatedly call "waitForEndOfAcquisition"
     for repeat = 1:ceil(self.AqReadParameters.timeOut/MaxTimeout)
         % This function accepts timeout in milliseconds
         AqD1_waitForEndOfAcquisition(self.instrID, MaxTimeout*1e3);
@@ -15,7 +15,8 @@ function [IData, QData] = ReadIandQ(self)
     [status, dataDesc, ~, IData] = AqD1_readData(self.instrID, 1, ...
                                                  self.AqReadParameters);
     if status ~= 0
-        error('Error reading channel. Make sure trigger is available and timeout is long enough.');
+        error(['Error reading channel. Make sure trigger is available ', ...
+               'and trigger period is set correctly.']);
     end
     % read the second chanel
     [~, ~, ~, QData] = AqD1_readData(self.instrID, 2, self.AqReadParameters);
@@ -45,6 +46,6 @@ function [IData, QData] = ReadIandQ(self)
     segments = self.AqReadParameters.nbrSegments;
     firstPt = dataDesc.indexFirstPoint;
 
-    IData = reshape(IData(firstPt+1:firstPt+samples*segments), samples, segments);
-    QData = reshape(QData(firstPt+1:firstPt+samples*segments), samples, segments);
+    IData = reshape(IData(firstPt+1:firstPt+samples*segments), samples, segments)';
+    QData = reshape(QData(firstPt+1:firstPt+samples*segments), samples, segments)';
 end
