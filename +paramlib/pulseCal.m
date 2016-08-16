@@ -48,6 +48,12 @@ classdef pulseCal
 
     methods
         % methods to generate each type of pulse
+        function pulseObj = Delay(obj,delay)
+            pulseObj = pulselib.singleGate('Identity');
+            pulseObj.sigma = obj.sigma;
+            pulseObj.cutoff = delay;
+            pulseObj.buffer = 0;
+        end
         function pulseObj = Identity(obj)
             pulseObj = pulselib.singleGate('Identity');
             pulseObj.sigma = obj.sigma;

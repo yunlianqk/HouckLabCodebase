@@ -76,11 +76,11 @@ pnax.SetActiveTrace(3);
 % [data_specS41A data_specS41P] = pnax.ReadAmpAndPhase();
 figure();
 subplot(2,1,1);
-% plot(fspec,data_specS21A);
-plot(fspec,data_specS41A);
+plot(fspec,data_specS21A);
+% plot(fspec,data_specS41A);
 subplot(2,1,2);
-% plot(fspec,data_specS21P);
-plot(fspec,data_specS41P);
+plot(fspec,data_specS21P);
+% plot(fspec,data_specS41P);
 
 specFreqVector = fspec;
 specparams.points=pnax.params.points;
@@ -107,8 +107,8 @@ for ind=1:steps
     pnax.SetActiveTrace(1)
     pnax.ClearChannelAverages(1);
     pause(transWaitTime);
-%     pnax.SetActiveTrace(1);
-    pnax.SetActiveTrace(2);
+    pnax.SetActiveTrace(1);
+%     pnax.SetActiveTrace(2);
     [transAmpLine transPhaseLine] = pnax.ReadAmpAndPhase();
     transAmpData(ind,:)=transAmpLine;
     transPhaseData(ind,:)=transPhaseLine;
@@ -130,8 +130,8 @@ for ind=1:steps
     pnax.params.cwfreq=peakFreq;
     pnax.ClearChannelAverages(2);
     pause(specWaitTime);
-%     pnax.SetActiveTrace(3);
-    pnax.SetActiveTrace(4);
+    pnax.SetActiveTrace(3);
+%     pnax.SetActiveTrace(4);
     [specAmpLine specPhaseLine] = pnax.ReadAmpAndPhase();
     specAmpData(ind,:)=specAmpLine;
     specPhaseData(ind,:)=specPhaseLine;
