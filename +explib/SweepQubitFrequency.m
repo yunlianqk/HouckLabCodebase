@@ -32,6 +32,7 @@ classdef SweepQubitFrequency < handle
             obj.qubit = pulselib.singleGate(obj.gateType);
             obj.qubit.amplitude = obj.qubitAmp;
             obj.qubit.sigma = obj.qubitSigma;
+            obj.qubit.cutoff = 4*obj.qubitSigma;
             obj.measurement=pulselib.measPulse(obj.measDuration,obj.cavityAmp);
             obj.freqVector = linspace(obj.startFreq,obj.stopFreq,obj.points);
             obj.qubitPulseTime = obj.measStartTime - obj.interPulseBuffer;

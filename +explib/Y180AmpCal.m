@@ -6,7 +6,7 @@ classdef Y180AmpCal < handle
         % inputs
         pulseCal;
         numGateVector = 0:1:40; % list of # of pi pulses to be done in each sequence
-        softwareAverages = 50; 
+        softwareAverages = 100; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object
@@ -21,7 +21,7 @@ classdef Y180AmpCal < handle
     end
     
     methods
-        function obj=Y180AmpCal_v2(pulseCal,varargin)
+        function obj=Y180AmpCal(pulseCal,varargin)
             % constructor. Overwrites numGateVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun

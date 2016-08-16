@@ -5,8 +5,8 @@ classdef X180AmpCal < handle
         experimentName = 'X180AmpCal';
         % inputs
         pulseCal;
-        numGateVector = 0:1:40; % list of # of pi pulses to be done in each sequence
-        softwareAverages = 50; 
+        numGateVector = 0:1:100; % list of # of pi pulses to be done in each sequence
+        softwareAverages = 400; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object

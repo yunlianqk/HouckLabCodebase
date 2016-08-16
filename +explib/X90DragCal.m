@@ -6,7 +6,7 @@ classdef X90DragCal < handle
         % inputs
         pulseCal;
         ampVector = linspace(-.5,.5,101);
-        softwareAverages = 50; 
+        softwareAverages = 300; 
         % Dependent properties auto calculated in the update method
         upPulse; % 1st qubit pulse
         downPulse; % 2nd qubit pulse

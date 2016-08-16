@@ -8,8 +8,8 @@ waveLength=20e-6;
 tAxis=(1/awg.samplerate:1/awg.samplerate:waveLength);
 
 % Readout pulse parameters
-read.Amp=0.5;
-read.Freq=10.16578e9;
+read.Amp=1;
+read.Freq=4.772869998748302e9;
 read.start=10e-6;
 read.length=5e-6;
 read.buffer=500e-9;
