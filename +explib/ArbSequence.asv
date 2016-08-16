@@ -1,16 +1,17 @@
 classdef ArbSequence < handle
-    % Hahn Echo experiment - pi/2, delay, pi, delay, pi/2.  Should end up
-    % in ground state.  Sweep delays and fit for T2Echo. 
+    % This experiment allows for doing arbitrary sequences of gates.  Pass
+    % as input a cell array containing the desired sequences.
     
     properties 
         experimentName = 'ArbSequence';
         % inputs
         pulseCal;
-        gateLists = {[],[],[]};
+        gateLists = {{'X90', 'Y90', 'Xm90'},...
+                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'},...
+                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'}};
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
-        X90; % qubit pulse object
-        X180; % echo pulse
+        primitives; % array of gate objects the gateLists index into 
         zeroGate; % qubit pulse (identity) for normalization
         oneGate; % qubit pulse (X180) for normalization
         sequences; % gateSequence objects

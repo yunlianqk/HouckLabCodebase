@@ -1,17 +1,24 @@
 classdef ArbSequence < handle
-    % Hahn Echo experiment - pi/2, delay, pi, delay, pi/2.  Should end up
-    % in ground state.  Sweep delays and fit for T2Echo. 
+    % This experiment allows for doing arbitrary sequences of gates.  Pass
+    % as input a cell array containing the desired sequences.
+    % primitives(1) = obj.pulseCal.Identity();
+    % primitives(2) = obj.pulseCal.X180();
+    % primitives(3) = obj.pulseCal.X90();
+    % primitives(4) = obj.pulseCal.Xm90();
+    % primitives(5) = obj.pulseCal.Y180();
+    % primitives(6) = obj.pulseCal.Y90();
+    % primitives(7) = obj.pulseCal.Ym90();
     
     properties 
         experimentName = 'ArbSequence';
         % inputs
         pulseCal;
-        gateLists = {{'X90', 'Y90', 'Xm90'},...
-                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'},...
-                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'}};
+        gateLists = {[3 6 4],...
+                     [3 6 4 3 6 4],...
+                     [3 6 4 3 6 4 3 6 4]};
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
-        primitives; % array 
+        primitives; % array of gate objects the gateLists index into 
         zeroGate; % qubit pulse (identity) for normalization
         oneGate; % qubit pulse (X180) for normalization
         sequences; % gateSequence objects
@@ -43,6 +50,7 @@ classdef ArbSequence < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
+            obj.initPrimitives();
             obj.initSequences(); % init routine to build gate sequences
             
             % generate measurement pulse
@@ -60,18 +68,28 @@ classdef ArbSequence < handle
             obj.sequenceEndTime = obj.measStartTime-obj.pulseCal.measBuffer;
         end
         
+        function obj=initPrimitives(obj)
+            primitives(1) = obj.pulseCal.Identity();
+            primitives(2) = obj.pulseCal.X180();
+            primitives(3) = obj.pulseCal.X90();
+            primitives(4) = obj.pulseCal.Xm90();
+            primitives(5) = obj.pulseCal.Y180();
+            primitives(6) = obj.pulseCal.Y90();
+            primitives(7) = obj.pulseCal.Ym90();
+            obj.primitives=primitives;
+        end
+        
         function obj=initSequences(obj)
-            % generate qubit objects
-            obj.X90 = obj.pulseCal.X90();
-            obj.X180 = obj.pulseCal.X180();
             obj.zeroGate = obj.pulseCal.Identity();
             obj.oneGate = obj.pulseCal.X180(); 
                         
-            sequences(1,length(obj.delayList)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.delayList)
-                delayGateTime = obj.delayList(ind) - obj.X90.totalDuration; % so that pulse delays match the delayList
-                delayGate = obj.pulseCal.Delay(delayGateTime);
-                gateArray = [obj.X90 delayGate obj.X180 delayGate obj.X90];
+            sequences(1,length(obj.gateLists)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
+            for ind = 1:length(obj.gateLists)
+                gateList = gateLists{ind};
+                gateArray = [];
+                for ind2 = 1:length(gateList)
+                    gateArray = [gateArray primitives(gateList(ind2))];
+                end
                 sequences(ind)=pulselib.gateSequence(gateArray);
             end
             % create 0 and 1 normalization sequences at end
@@ -189,7 +207,7 @@ classdef ArbSequence < handle
                 % phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 % normalize amplitude
-                xaxisNorm=obj.delayList; % 
+                xaxisNorm=1:length(obj.gateLists); % 
                 amp=sqrt(Pint);
                 norm0=amp(end-1);
                 norm1=amp(end);
@@ -205,7 +223,7 @@ classdef ArbSequence < handle
 %                     updateFactor = fitResults.updateFactor;
 %                     newAmp = obj.mainGate.amplitude*updateFactor;
                     title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Delay');
+                    ylabel('Normalized Amplitude'); xlabel('Sequence #');
                     subplot(2,3,4);
                     imagesc(taxis,[],Idata/ind);
                     title('I'); ylabel('segments'); xlabel('Time (\mus)');
@@ -225,7 +243,8 @@ classdef ArbSequence < handle
 %             updateFactor = fitResults.updateFactor;
 %             newAmp = obj.mainGate.amplitude*updateFactor;
             title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Delay');
+            ylabel('Normalized Amplitude'); xlabel('Sequence #');            
+
             
             result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;
