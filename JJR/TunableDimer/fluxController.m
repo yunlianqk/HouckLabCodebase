@@ -114,13 +114,18 @@ classdef fluxController < handle
         end
         function visualizeTrajectories(obj,voltageTrajectory,fluxTrajectory) % pass both trajectories and get a nice visualization
             % use scatter plot to visualize
+%             x=1:size(voltageTrajectory,2);
             figure();
             subplot(1,2,1)
-            scatter3(voltageTrajectory(1,:),voltageTrajectory(2,:),voltageTrajectory(3,:))
-            title('Voltage Trajectory'),xlabel('yoko1'),ylabel('yoko2'),zlabel('yoko3')
+            plot(voltageTrajectory')
+%             scatter3(voltageTrajectory(1,:),voltageTrajectory(2,:),voltageTrajectory(3,:))
+            title('Voltage Trajectory'),xlabel('step'),ylabel('Yoko Voltage'),legend('yoko1','yoko2','yoko3')
             subplot(1,2,2)
-            scatter3(fluxTrajectory(1,:),fluxTrajectory(2,:),fluxTrajectory(3,:))
-            title('Flux Trajectory'),xlabel('Left Qubit'),ylabel('Right Qubit'),zlabel('Coupler')
+%             scatter3(fluxTrajectory(1,:),fluxTrajectory(2,:),fluxTrajectory(3,:))
+            plot(fluxTrajectory')
+            title('Flux Trajectory'),xlabel('Step'),ylabel('Flux'),legend('Left Qubit','Right Qubit','Coupler')
+            
+            
         end
     end
 end

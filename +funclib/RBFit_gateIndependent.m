@@ -6,13 +6,15 @@ function  result = RBFit_gateIndependent(axis, data, varargin)
     offset0 = data(end);
     amp0 = data(1)-data(end);
 %     p0 =  -axis(20)/log(1-(data(1)-data(20))/amp_guess);
-    p0 = .95
+    p0 = .98
     beta0 = [offset0, amp0, p0];
     % Fit data
     coeff = nlinfit(axis, data, @gateIndFit, beta0);
     result.offset = coeff(1);
     result.amp = coeff(2);
     result.p = coeff(3);
+    result.avgGateError = 1 - result.p - (1-result.p)/2;
+    result.avgGateFidelity = 1-result.avgGateError;
     
     % Plot original and fitted data
     axis_dense = linspace(axis(1), axis(end), 1000);
@@ -24,7 +26,7 @@ function  result = RBFit_gateIndependent(axis, data, varargin)
         ax = gca;
     end
     plot(ax, axis, data, '.');
-    hold(ax, 'on');
+    hold(ax, 'on'); 
     plot(ax, axis_dense, Y, 'r', 'LineWidth', 2);
     hold(ax, 'off');
 end

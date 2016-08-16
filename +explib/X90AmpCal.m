@@ -6,8 +6,8 @@ classdef X90AmpCal < handle
         experimentName = 'X90AmpCal';
         % inputs
         pulseCal;
-        numGateVector = 0:4:160; % list of # of pi/2 gates to be done. MUST BE EVEN
-        softwareAverages = 50; 
+        numGateVector = 0:6:600; % list of # of pi/2 gates to be done. MUST BE EVEN
+        softwareAverages = 200; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object

@@ -8,7 +8,8 @@ classdef T1Experiment < handle
         qubitAmp = .74;
         qubitSigma = 25e-9;
         gateType = 'X180';
-        delayList = 200e-9:1e-6:100.2e-6; % delay btw qubit pulses and measurement pulse
+%         delayList = 200e-9:1e-6:100.2e-6; % delay btw qubit pulses and measurement pulse
+        delayList = 200e-9:1e-6:10.2e-6; % delay btw qubit pulses and measurement pulse
         cavityFreq=10.16578e9; % cavity frequency
         cavityAmp=1;       % cavity pulse amplitude
         measDuration = 5e-6;

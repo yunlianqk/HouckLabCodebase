@@ -6,7 +6,7 @@ classdef X180RabiExperiment < handle
         % inputs
         pulseCal;
         ampVector = linspace(0,1,51);
-        softwareAverages = 50; 
+        softwareAverages = 200; 
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
