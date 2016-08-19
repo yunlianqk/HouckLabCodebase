@@ -83,6 +83,8 @@ classdef Y180AmpCal < handle
         end
         
         function playlist = directDownloadM8195A(obj,awg)
+            display(' ')
+            display(['Generating waveforms for ' obj.experimentName])
             % avoid building full wavesets and WaveLib to save memory 
 
             % clear awg of segments
@@ -113,7 +115,7 @@ classdef Y180AmpCal < handle
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             
             for ind=1:length(obj.sequences)
-                display(['loading sequence ' num2str(ind)])
+%                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
@@ -161,6 +163,8 @@ classdef Y180AmpCal < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
+            display(' ')
+            display(['Running ' obj.experimentName])
             % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;
             intStop = obj.pulseCal.integrationStopIndex;

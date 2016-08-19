@@ -24,7 +24,7 @@ cardparams=paramlib.m9703a();   %default parameters
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
 % cardparams.averages=50;  % software averages PER SEGMENT
-cardparams.averages=20;  % software averages PER SEGMENT
+cardparams.averages=25;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -58,28 +58,32 @@ pulseCal.integrationStopIndex = 10000; % stoppoint for integration of acquisitio
 pulseCal.cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
 % USAGE: cardparams.delaytime = experimentObject.measStartTime + acquisition.cardDelayOffset;
 % gate specific properties
-pulseCal.X90Amplitude =.3354; 
-pulseCal.X90DragAmplitude = .044302;
+pulseCal.X90Amplitude =.3350;
+pulseCal.X90DragAmplitude = .0479;
 pulseCal.Xm90Amplitude = pulseCal.X90Amplitude;
 pulseCal.Xm90DragAmplitude = pulseCal.X90DragAmplitude;
-pulseCal.X180Amplitude = .68518;
-pulseCal.X180DragAmplitude = .064985;
+pulseCal.X180Amplitude = .6882;
+pulseCal.X180DragAmplitude = .0622;
 pulseCal.Xm180Amplitude = pulseCal.X180Amplitude;
 pulseCal.Xm180DragAmplitude = pulseCal.X180DragAmplitude;
-pulseCal.Y90Amplitude = .33353;
-pulseCal.Y90DragAmplitude = -0.039424;
+pulseCal.Y90Amplitude = .3356;
+pulseCal.Y90DragAmplitude = -0.0449;
 pulseCal.Ym90Amplitude = pulseCal.Y90Amplitude;
 pulseCal.Ym90DragAmplitude = pulseCal.Y90DragAmplitude;
-pulseCal.Y180Amplitude = .68471;
-pulseCal.Y180DragAmplitude = -0.06357;
+pulseCal.Y180Amplitude = .6882;
+pulseCal.Y180DragAmplitude = -0.0622;
 pulseCal.Ym180Amplitude = pulseCal.Y180Amplitude;
 pulseCal.Ym180DragAmplitude = pulseCal.Y180DragAmplitude;
-
+%%
+% pulseCal = updatedPulseCal;
  %% Load an experiment
 clear x
 
+% x = explib.T2Experiment_v2(pulseCal);
+x = explib.HahnEcho(pulseCal);
+
 % x = explib.X180RabiExperiment(pulseCal);
-x = explib.X180DragCal(pulseCal);
+% x = explib.X180DragCal(pulseCal);
 % x = explib.X180AmpCal(pulseCal);
 
 % x = explib.X90AmpCal(pulseCal);
@@ -94,13 +98,12 @@ x = explib.X180DragCal(pulseCal);
 
 % x = explib.RBExperiment(pulseCal);
 
-% tic; playlist = x.directDownloadM8195A(awg); toc
-tic; result = x.directRunM8195A(awg,card,cardparams,playlist); toc
+tic; playlist = x.directDownloadM8195A(awg); toc
+% tic; result = x.directRunM8195A(awg,card,cardparams,playlist); toc
 
 %% Run an experiment
 tic; time=fix(clock);
-result = x.directRunM8195A(awg,card,cardparams,playlist);
-
+result = x.directRunM8195A(awg,card,cardparams,playlist); toc
 save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'result');
 

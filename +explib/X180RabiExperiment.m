@@ -46,6 +46,8 @@ classdef X180RabiExperiment < handle
         end
         
         function playlist = directDownloadM8195A(obj,awg)
+            display(' ')
+            display(['Generating waveforms for ' obj.experimentName])
             % avoid building full wavesets and WaveLib to save memory 
 
             % clear awg of segments
@@ -76,7 +78,7 @@ classdef X180RabiExperiment < handle
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             
             for ind=1:length(obj.ampVector)
-                display(['loading sequence ' num2str(ind)])
+%                 display(['loading sequence ' num2str(ind)])
                 q = obj.qubit;
                 q.amplitude=obj.ampVector(ind);
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
@@ -124,6 +126,8 @@ classdef X180RabiExperiment < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
+            display(' ')
+            display(['Running ' obj.experimentName])
             % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;
             intStop = obj.pulseCal.integrationStopIndex;

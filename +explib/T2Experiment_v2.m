@@ -6,7 +6,7 @@ classdef T2Experiment_v2 < handle
         experimentName = 'T2Experiment_v2';
         % inputs
         pulseCal;
-        delayList = 200e-9:.05e-6:20.2e-6; % delay btw qubit pulses
+        delayList = 200e-9:.5e-6:20.2e-6; % delay btw qubit pulses
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
         X90; % qubit pulse object

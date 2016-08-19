@@ -6,8 +6,10 @@ classdef HahnEcho < handle
         experimentName = 'HahnEcho';
         % inputs
         pulseCal;
-        delayList = 200e-9:.05e-6:20.2e-6; % delay btw qubit pulses
-        softwareAverages = 50; 
+        delayList = 200e-9:2.00e-6:200.2e-6; % total delay from 1st to last pulse
+%         delayList = 200e-9:1.00e-6:2.2e-6; % total delay from 1st to last pulse
+        softwareAverages = 200; 
+%         softwareAverages = 20; 
         % Dependent properties auto calculated in the update method
         X90; % qubit pulse object
         X180; % echo pulse
@@ -22,7 +24,7 @@ classdef HahnEcho < handle
     end
     
     methods
-        function obj=T2Experiment_v2(pulseCal,varargin)
+        function obj=HahnEcho(pulseCal,varargin)
             % constructor. Overwrites delayList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -68,7 +70,7 @@ classdef HahnEcho < handle
                         
             sequences(1,length(obj.delayList)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
             for ind = 1:length(obj.delayList)
-                delayGateTime = obj.delayList(ind) - obj.X90.totalDuration; % so that pulse delays match the delayList
+                delayGateTime = obj.delayList(ind)/2 - obj.X90.totalDuration; % so that pulse delays match the delayList
                 delayGate = obj.pulseCal.Delay(delayGateTime);
                 gateArray = [obj.X90 delayGate obj.X180 delayGate obj.X90];
                 sequences(ind)=pulselib.gateSequence(gateArray);
@@ -199,11 +201,9 @@ classdef HahnEcho < handle
                 if ~mod(ind,10)
                     figure(187);
                     subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm,AmpNorm);
-%                     fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
-%                     updateFactor = fitResults.updateFactor;
-%                     newAmp = obj.mainGate.amplitude*updateFactor;
-                    title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+%                     plot(xaxisNorm,AmpNorm);
+                    fitResults = funclib.ExpFit2(xaxisNorm,AmpNorm);
+                    title([obj.experimentName ' ' timeString '; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
                     ylabel('Normalized Amplitude'); xlabel('Delay');
                     subplot(2,3,4);
                     imagesc(taxis,[],Idata/ind);
@@ -220,10 +220,12 @@ classdef HahnEcho < handle
             figure(187);
             subplot(2,3,[1 2 3]);
             plot(xaxisNorm,AmpNorm);
+            fitResults = funclib.ExpFit2(xaxisNorm,AmpNorm);
 %             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %             updateFactor = fitResults.updateFactor;
 %             newAmp = obj.mainGate.amplitude*updateFactor;
-            title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+            title([obj.experimentName ' ' timeString '; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+%             title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
             ylabel('Normalized Amplitude'); xlabel('Delay');
             
             result.taxis = taxis;
