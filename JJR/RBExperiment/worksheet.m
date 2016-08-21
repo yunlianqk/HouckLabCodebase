@@ -34,7 +34,7 @@ cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
 cardparams.trigSource='External1'; % Trigger source
 cardparams.trigLevel=0.2; % Trigger level in volts
-cardparams.trigPeriod=300e-6; % Trigger period in seconds
+cardparams.trigPeriod=401.111e-6; % Trigger period in seconds
 card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
 %% Create pulseCal object - NOTE: pulseCal objects are VALUE objects not HANDLE objects
 pulseCal = paramlib.pulseCal();
@@ -80,8 +80,8 @@ pulseCal.Ym180DragAmplitude = pulseCal.Y180DragAmplitude;
 clear x
 
 % x = explib.T2Experiment_v2(pulseCal);
-x = explib.HahnEcho(pulseCal);
-
+% x = explib.HahnEcho(pulseCal);
+x = explib.HahnEchoNthOrder(pulseCal);
 % x = explib.X180RabiExperiment(pulseCal);
 % x = explib.X180DragCal(pulseCal);
 % x = explib.X180AmpCal(pulseCal);
@@ -132,6 +132,7 @@ for ind=1:numSequences
     save(['C:\Data\FullRBExperiment_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
         'x', 'awg', 'cardparams', 'numSequences', 'pvals','ampNormValues','result');
 end
+
 
 
 

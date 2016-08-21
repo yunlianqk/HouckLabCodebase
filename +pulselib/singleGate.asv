@@ -205,15 +205,16 @@ classdef singleGate < handle
             [iBasebandShort, qBasebandShort] = uwWaveformsSlow(self, nonZeroTimeAxis, tCenter);
             iModShort = cos(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
             qModShort = sin(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
+            
             % place short pulse vector into large vector of zeros
 %             startIndShifted = startInd-inputTimeAxisOffsetIndex
 %             stopIndShifted = stopInd-inputTimeAxisOffsetIndex
-            iMod = zeros(1,length(tAxis));
+            iBaseband = zeros(1,length(tAxis));
 %             iBaseband(startIndShifted:stopIndShifted)=iBasebandShort;
-            iMod(startInd:stopInd)=iModShort;
-            qMod = zeros(1,length(tAxis));
+            iBaseband(startInd:stopInd)=iBasebandShort;
+            qBaseband = zeros(1,length(tAxis));
 %             qBaseband(startIndShifted:stopIndShifted)=qBasebandShort;
-            qMod(startInd:stopInd)=qModShort;
+            qBaseband(startInd:stopInd)=qBasebandShort;
         end
         
         
