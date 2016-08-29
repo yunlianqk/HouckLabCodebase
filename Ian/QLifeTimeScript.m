@@ -14,8 +14,8 @@ RamseyMeas = measlib.Ramsey();
 EchoMeas = measlib.Echo();
 %% Set up parameters
 params.driveSigma = 5e-9;
-params.driveFreq = 9.278e9 ;
-params.drivePower =-10;
+params.driveFreq =  9.2830e+09 ;
+params.drivePower =-6;
 params.measFreq = 7.664e9;
 params.measPower = -20;
 params.intFreq = 0; %detunning
@@ -66,13 +66,11 @@ T1Meas.run();
 T1Meas.data.tRange = [0.5e-6, 1.8e-6];
 T1Meas.fitData();
 %% Ramsey measurement
-params.numSteps = 101;
+params.numSteps = 51;
 RamseyMeas.params = params;
-
-RamseyMeas.params.driveFreq = 9.278e9;
-
+ RamseyMeas.params.driveFreq = RamseyMeas.params.driveFreq;
 RamseyMeas.params.tStep = 0.01e-6;
-RamseyMeas.params.trigPeriod = 25e-6;
+RamseyMeas.params.trigPeriod = 20e-6;
 RamseyMeas.run();
 RamseyMeas.data.tRange = [0.5e-6, 1.5e-6];
 RamseyMeas.fitData();

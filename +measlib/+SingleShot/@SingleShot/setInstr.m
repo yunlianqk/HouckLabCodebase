@@ -34,8 +34,8 @@ function setInstr(self)
     tMeas = self.instr.mpulsegen.timeaxis(find(self.instr.mpulsegen.waveform1, 1));
     % Total length of the measurement
     tTotal = self.instr.mpulsegen.timeaxis(end)-self.instr.mpulsegen.timeaxis(1);
-    card.params.segments = 1;
-    card.params.averages = self.params.numAvg;
+    card.params.segments = 1000;%self.params.segments;
+    card.params.averages = 1;
     card.params.delaytime = tMeas + self.params.cardDelay;
     card.params.samples = round((self.params.measDuration + 1e-6)/card.params.sampleinterval);
     card.params.trigPeriod = self.params.trigPeriod;

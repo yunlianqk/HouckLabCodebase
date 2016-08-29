@@ -33,6 +33,7 @@ instr.digitizer = card;
 instr.triggen = triggen;
 
 GateMeas.instr = instr;
+
 %% Set up gate array: (X90)^(2n+1)
 sigma = 10e-9;
 maxNum = 81;

@@ -1,6 +1,7 @@
 function  [lambda, freq] = ExpCosFit(axis, data, varargin)
 % Exponentially decaying cosine fit
-
+    %Normalize data
+    data = data/max(data);
     % Construct initial guess for parameters
     offset_guess = (max(data)+min(data))*.5;
     amp_guess = max(data)-min(data);
@@ -11,13 +12,19 @@ function  [lambda, freq] = ExpCosFit(axis, data, varargin)
     [~, index] = max(spec(2:floor(length(axis)/2)));
     fringefreq_guess = fAxis(index);
     index = round(2/fringefreq_guess/(axis(2)-axis(1)));
-    lambda_guess = abs(axis(index)/log(1-(data(1)-data(index))/amp_guess));
+    try
+        lambda_guess = abs(axis(index)/log(1-(data(1)-data(index))/amp_guess));
+    catch
+        lambda_guess = 1;
+    end
+    
     if lambda_guess < 0
         display('Guess for decay is negative. Fit will not work');
     end
     beta0 = [amp_guess, lambda_guess, offset_guess, fringefreq_guess, phaseoffset];
     % Fit data
-    coeff = nlinfit(axis, data, @ExpCos_beta, beta0);
+%     coeff = nlinfit(axis, data, @ExpCos_beta, beta0);
+    coeff = lsqcurvefit(@ExpCos_beta,beta0, axis, data);
     lambda = coeff(2);
     freq = coeff(4)/(2*pi);
     % Plot original and fitted data
