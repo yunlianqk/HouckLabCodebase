@@ -6,7 +6,7 @@ classdef X180RabiExperiment < handle
         % inputs
         pulseCal;
         ampVector = linspace(0,1,51);
-        softwareAverages = 200; 
+        softwareAverages = 20; 
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
@@ -77,10 +77,12 @@ classdef X180RabiExperiment < handle
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             
+            initialDrag = obj.qubit.dragAmplitude;
             for ind=1:length(obj.ampVector)
 %                 display(['loading sequence ' num2str(ind)])
                 q = obj.qubit;
                 q.amplitude=obj.ampVector(ind);
+                q.dragAmplitude=initialDrag*obj.ampVector(ind);
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
@@ -91,10 +93,15 @@ classdef X180RabiExperiment < handle
                 clear iMeasBaseband 
                 qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
                 clear qMeasBaseband;
+%                 correctedQubit = real(iqcorrection(iQubitMod+qQubitMod,awg.samplerate));
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+%                 ch1waveform = correctedQubit+iMeasMod+qMeasMod;
+%                 clear correctedQubit
+%                 ch1waveform = real(iqcorrection(ch1waveform,awg.samplerate));
                 clear iQubitMod qQubitMod
                 % background is measurement pulse to get contrast
                 backgroundWaveform = iMeasMod+qMeasMod;
+%                 backgroundWaveform = real(iqcorrection(backgroundWaveform,awg.samplerate));
                 clear iMeasMod qMeasMod
                 
                 % now directly loading into awg

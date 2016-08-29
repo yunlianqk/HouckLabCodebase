@@ -55,22 +55,23 @@ classdef gateSequence < handle
             end
         end
         
-        function [iMod, qMod] = modWaveforms(self,tAxis, tStart, qubitFreq)
-            % speed up waveform generation by doing avoiding doing
-            % modulation on entire long waveform.
-            iMod=zeros(size(tAxis));
-            qMod=zeros(size(tAxis));
-            for ind=1:length(self.gateArray)
-                gate=self.gateArray(ind);
-                if ~strcmp(gate.name,'Identity') % only calc waveforms if it's actually a gate.
-                    tCenter=tStart+gate.totalDuration/2;
-                    [iTemp qTemp] = gate.modWaveforms(tAxis,tCenter,qubitFreq);
-                    iMod=iMod+iTemp;
-                    qMod=qMod+qTemp;
-                end
-                tStart=tStart+gate.totalDuration;
-            end
-        end
+%         %%%%%%%%%%% has a bug in it...
+%         function [iMod, qMod] = modWaveforms(self,tAxis, tStart, qubitFreq)
+%             % speed up waveform generation by doing avoiding doing
+%             % modulation on entire long waveform.
+%             iMod=zeros(size(tAxis));
+%             qMod=zeros(size(tAxis));
+%             for ind=1:length(self.gateArray)
+%                 gate=self.gateArray(ind);
+%                 if ~strcmp(gate.name,'Identity') % only calc waveforms if it's actually a gate.
+%                     tCenter=tStart+gate.totalDuration/2;
+%                     [iTemp qTemp] = gate.modWaveforms(tAxis,tCenter,qubitFreq);
+%                     iMod=iMod+iTemp;
+%                     qMod=qMod+qTemp;
+%                 end
+%                 tStart=tStart+gate.totalDuration;
+%             end
+%         end
         
 %         function [iBaseband, qBaseband] = uwWaveforms(self,tAxis, tStart)
 %             % given just a time axis and the time to begin, returns final baseband

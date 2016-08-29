@@ -5,7 +5,7 @@ recalTest.X90.DragAmp = [];
 recalTest.X90.Amp = [];
 recalTest.X90.errRad = [];
 recalTest.X180.DragAmp = [];
-recalTest.X180.Amp = [];
+recalTest.X180.Amp = [];    
 recalTest.X180.errRad = [];
 
 testNum = 0;

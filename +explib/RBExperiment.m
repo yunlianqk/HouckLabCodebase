@@ -8,7 +8,7 @@ classdef RBExperiment < handle
         pulseCal;
 %         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
         sequenceLengths = floor(2*(linspace(1,21,32)).^2);
-        softwareAverages = 100;
+        softwareAverages = 50;
         % these are auto calculated
         primitives; % object array of primitive gates.
         cliffords; % object array of clifford gates.

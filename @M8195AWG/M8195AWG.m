@@ -13,7 +13,7 @@ classdef M8195AWG < handle
     methods
         function self = M8195AWG()
             % Add iqtools folder to path
-            addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode\iqtools')
+            addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode\iqtools');
             
             % Open IQ config window in iqtools
             % choose the configuration settings

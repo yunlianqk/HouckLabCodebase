@@ -5,8 +5,8 @@ classdef SweepTransmissionFrequency < handle
         % change these to tweak the experiment
         startFreq=10.165e9;
         stopFreq=10.167e9;
-        points = 101;
-        measDuration = 5e-6;
+        points = 51;
+        measDuration = 10e-6;
 %         measAmplitude = 0.63; % measurement pulse amp.
         measAmplitude = 1; % measurement pulse amp.
         startBuffer = 5e-6; % buffer at beginning of waveform
@@ -80,9 +80,10 @@ classdef SweepTransmissionFrequency < handle
         
         function result = runExperimentM8195A(obj,awg,card,cardparams)
             % Experiment specific properties
-            intStart=2000; intStop=6000;
-            softavg=100;
-            
+%             intStart=2000; intStop=6000;
+%             softavg=100;
+            intStart=1; intStop=10000;
+            softavg=20;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
@@ -91,7 +92,8 @@ classdef SweepTransmissionFrequency < handle
 %             WaveLib = awg.ApplyCorrection(WaveLib);
             awg.Wavedownload(WaveLib);
             cardparams.segments=length(w.playlist);
-            cardparams.delaytime=obj.measStartTime-1e-6;
+%             cardparams.delaytime=obj.measStartTime-1e-6;
+            cardparams.delaytime=obj.measStartTime-3e-6;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units

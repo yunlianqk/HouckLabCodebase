@@ -3,11 +3,12 @@ classdef SweepTransmissionPower < handle
     
     properties
         % change these to tweak the experiment
-        cavityFreq=10.1657e9;
+%         cavityFreq=10.1657e9;
+        cavityFreq=10.16588e9;
         startAmp=1;
         stopAmp=0;
-        points = 101;
-        measDuration = 5e-6;
+        points = 51;
+        measDuration = 10e-6;
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate

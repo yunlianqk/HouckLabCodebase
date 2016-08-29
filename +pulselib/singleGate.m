@@ -179,42 +179,44 @@ classdef singleGate < handle
             qBaseband(startInd:stopInd)=qBasebandShort;
         end
         
-        function [iMod, qMod] = modWaveforms(self, tAxis, tCenter, qubitFreq)
-            % speed up waveform generation by doing avoiding doing
-            % modulation on entire long waveform.
-            if strcmp(self.name,'Identity')
-                iBaseband = zeros(1,length(tAxis));
-                qBaseband = iBaseband;
-                return
-            end
-            samplingRate = 1/(tAxis(2)-tAxis(1));
-%             % if tAxis doesn't start at zero, keep track of index
-%             inputTimeAxisOffsetIndex = round(tAxis(1)*samplingRate);
-            tStart = tCenter - self.totalDuration/2;
-            tStop = tCenter + self.totalDuration/2;
-            % calculate start and stop indices for nonzero elements.  includes boundary if it falls on a sample
-            startInd = ceil(tStart*samplingRate);
-            stopInd = floor(tStop*samplingRate);
-%             startInd = find(tAxis >= tStart, 1);
-%             stopInd = find(tAxis >= tStart, 1, 'last');
-            % vector of nonzero indices
-            nonZeroInd = startInd:stopInd;
-            % vector of nonzero times
-            nonZeroTimeAxis = (nonZeroInd-1)/samplingRate;
-            % use short time axis to calculate the pulse waveform
-            [iBasebandShort, qBasebandShort] = uwWaveformsSlow(self, nonZeroTimeAxis, tCenter);
-            iModShort = cos(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
-            qModShort = sin(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
-            % place short pulse vector into large vector of zeros
-%             startIndShifted = startInd-inputTimeAxisOffsetIndex
-%             stopIndShifted = stopInd-inputTimeAxisOffsetIndex
-            iMod = zeros(1,length(tAxis));
-%             iBaseband(startIndShifted:stopIndShifted)=iBasebandShort;
-            iMod(startInd:stopInd)=iModShort;
-            qMod = zeros(1,length(tAxis));
-%             qBaseband(startIndShifted:stopIndShifted)=qBasebandShort;
-            qMod(startInd:stopInd)=qModShort;
-        end
+        
+        %%%%%%%%%%%%%%%%%%% has a bug in it
+%         function [iMod, qMod] = modWaveforms(self, tAxis, tCenter, qubitFreq)
+%             % speed up waveform generation by doing avoiding doing
+%             % modulation on entire long waveform.
+%             if strcmp(self.name,'Identity')
+%                 iBaseband = zeros(1,length(tAxis));
+%                 qBaseband = iBaseband;
+%                 return
+%             end
+%             samplingRate = 1/(tAxis(2)-tAxis(1));
+% %             % if tAxis doesn't start at zero, keep track of index
+% %             inputTimeAxisOffsetIndex = round(tAxis(1)*samplingRate);
+%             tStart = tCenter - self.totalDuration/2;
+%             tStop = tCenter + self.totalDuration/2;
+%             % calculate start and stop indices for nonzero elements.  includes boundary if it falls on a sample
+%             startInd = ceil(tStart*samplingRate);
+%             stopInd = floor(tStop*samplingRate);
+% %             startInd = find(tAxis >= tStart, 1);
+% %             stopInd = find(tAxis >= tStart, 1, 'last');
+%             % vector of nonzero indices
+%             nonZeroInd = startInd:stopInd;
+%             % vector of nonzero times
+%             nonZeroTimeAxis = (nonZeroInd-1)/samplingRate;
+%             % use short time axis to calculate the pulse waveform
+%             [iBasebandShort, qBasebandShort] = uwWaveformsSlow(self, nonZeroTimeAxis, tCenter);
+%             iModShort = cos(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
+%             qModShort = sin(2*pi*qubitFreq*nonZeroTimeAxis).*iBasebandShort;
+%             % place short pulse vector into large vector of zeros
+% %             startIndShifted = startInd-inputTimeAxisOffsetIndex
+% %             stopIndShifted = stopInd-inputTimeAxisOffsetIndex
+%             iMod = zeros(1,length(tAxis));
+% %             iBaseband(startIndShifted:stopIndShifted)=iBasebandShort;
+%             iMod(startInd:stopInd)=iModShort;
+%             qMod = zeros(1,length(tAxis));
+% %             qBaseband(startIndShifted:stopIndShifted)=qBasebandShort;
+%             qMod(startInd:stopInd)=qModShort;
+%         end
         
         
 %         function [iBaseband, qBaseband, startInd, stopInd] = uwWaveformsFast(self, samplingRate, tCenter)
