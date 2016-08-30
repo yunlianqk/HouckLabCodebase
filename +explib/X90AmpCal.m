@@ -7,7 +7,7 @@ classdef X90AmpCal < handle
         % inputs
         pulseCal;
         numGateVector = 0:6:180; % list of # of pi/2 gates to be done. MUST BE EVEN
-        softwareAverages = 200; 
+        softwareAverages = 20; 
         % Dependent properties auto calculated in the update method
         iGate; % initial qubit pulse object
         mainGate; % qubit pulse object
@@ -84,7 +84,6 @@ classdef X90AmpCal < handle
         end
         
         function playlist = directDownloadM8195A(obj,awg)
-            display(' ')
             display(['Generating waveforms for ' obj.experimentName])
             % avoid building full wavesets and WaveLib to save memory 
 
@@ -110,13 +109,24 @@ classdef X90AmpCal < handle
             end
             % create time axis with correct # size
             t = 0:tStep:paddedWaveformEndTime;            
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+            % since measurement pulse never changes
+            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+            clear iMeasBaseband
+            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+            clear qMeasBaseband;
+            % background is measurement pulse to get contrast
+            backgroundWaveform = iMeasMod+qMeasMod;
             
             for ind=1:length(obj.sequences)
-%                 display(['loading sequence ' num2str(ind)])
+                s = obj.sequences(ind);
+                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+%                 [iQubitMod, qQubitMod] = s.modWaveforms(t, tStart, obj.pulseCal.qubitFreq);
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
@@ -124,16 +134,8 @@ classdef X90AmpCal < handle
                 clear iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
                 clear qQubitBaseband;
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-                clear iMeasBaseband 
-                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
-                clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
-                % background is measurement pulse to get contrast
-                backgroundWaveform = iMeasMod+qMeasMod;
-                clear iMeasMod qMeasMod
                 
                 % now directly loading into awg
                 dataId = ind*2-1;
@@ -150,7 +152,7 @@ classdef X90AmpCal < handle
                 playlist(dataId).segmentAdvance = 'Stepped';
                 % load background segment
                 iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                clear backgroundWaveform;
+%                 clear backgroundWaveform;
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create background playlist entry
@@ -164,7 +166,6 @@ classdef X90AmpCal < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
-            display(' ')
             display(['Running ' obj.experimentName])
             % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;

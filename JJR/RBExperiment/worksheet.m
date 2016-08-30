@@ -23,8 +23,8 @@ card=M9703ADigitizer(address);  % create object
 cardparams=paramlib.m9703a();   %default parameters
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
-% cardparams.averages=50;  % software averages PER SEGMENT
-cardparams.averages=25;  % software averages PER SEGMENT
+cardparams.averages=50;  % software averages PER SEGMENT
+% cardparams.averages=25;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -34,78 +34,40 @@ cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
 cardparams.trigSource='External1'; % Trigger source
 cardparams.trigLevel=0.2; % Trigger level in volts
+% cardparams.trigPeriod=401.111e-6; % Trigger period in seconds
 cardparams.trigPeriod=401.111e-6; % Trigger period in seconds
 card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
-%% Create pulseCal object - NOTE: pulseCal objects are VALUE objects not HANDLE objects
-pulseCal = paramlib.pulseCal();
-% generic qubit pulse properties
-pulseCal.qubitFreq = 4.772869998748302e9;
-pulseCal.sigma = 4e-9;
-pulseCal.cutoff = 4*pulseCal.sigma;
-pulseCal.buffer = 4e-9;
-% measurement pulse properties
-pulseCal.cavityFreq = 10.16578e9;
-pulseCal.cavityAmplitude = 0.3;
-pulseCal.measDuration = 10e-6; % length of measurement pulse
-% waveform properties
-pulseCal.startBuffer = 5e-6; % delay after start before qubit pulses can occur
-pulseCal.measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
-pulseCal.endBuffer = 5e-6; % buffer after measurement pulse
-pulseCal.samplingRate=32e9;
-% acquisition properties
-pulseCal.integrationStartIndex = 1; % start point for integration of acquisition card data
-pulseCal.integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
-pulseCal.cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
-% USAGE: cardparams.delaytime = experimentObject.measStartTime + acquisition.cardDelayOffset;
-% gate specific properties
-pulseCal.X90Amplitude =.3350;
-pulseCal.X90DragAmplitude = .0479;
-pulseCal.Xm90Amplitude = pulseCal.X90Amplitude;
-pulseCal.Xm90DragAmplitude = pulseCal.X90DragAmplitude;
-pulseCal.X180Amplitude = .6882;
-pulseCal.X180DragAmplitude = .0622;
-pulseCal.Xm180Amplitude = pulseCal.X180Amplitude;
-pulseCal.Xm180DragAmplitude = pulseCal.X180DragAmplitude;
-pulseCal.Y90Amplitude = .3356;
-pulseCal.Y90DragAmplitude = -0.0449;
-pulseCal.Ym90Amplitude = pulseCal.Y90Amplitude;
-pulseCal.Ym90DragAmplitude = pulseCal.Y90DragAmplitude;
-pulseCal.Y180Amplitude = .6882;
-pulseCal.Y180DragAmplitude = -0.0622;
-pulseCal.Ym180Amplitude = pulseCal.Y180Amplitude;
-pulseCal.Ym180DragAmplitude = pulseCal.Y180DragAmplitude;
-%%
-% pulseCal = updatedPulseCal;
- %% Load an experiment
+
+%% recalibrate (load a pulseCal object from a recent experiment if one doesn't exist in workspace
+% pulseCal = explib.Recalibrate(pulseCal, awg, card, cardparams,2)
+pulseCal = explib.RecalibrateContinuous(pulseCal, awg, card, cardparams);
+%% old experiments
+% x = explib.SweepQubitFrequency();
+% x = explib.SweepQubitSigma();
+% x = explib.SweepTransmissionPower();
+x.runExperimentM8195A(awg,card,cardparams)
+
+
+%% Load an experiment
 clear x
+% x = explib.X180RabiExperiment(pulseCal)
 
-% x = explib.T2Experiment_v2(pulseCal);
 % x = explib.HahnEcho(pulseCal);
-x = explib.HahnEchoNthOrder(pulseCal);
-% x = explib.X180RabiExperiment(pulseCal);
-% x = explib.X180DragCal(pulseCal);
-% x = explib.X180AmpCal(pulseCal);
-
+% x = explib.HahnEchoNthOrder(pulseCal);
+% x = explib.T2Spectroscopy(pulseCal);
 % x = explib.X90AmpCal(pulseCal);
-% x = explib.X90DragCal(pulseCal);
-
-% x = explib.Y180RabiExperiment(pulseCal);
-% x = explib.Y180DragCal(pulseCal);
-% x = explib.Y180AmpCal(pulseCal);
-
-% x = explib.Y90AmpCal(pulseCal);
-% x = explib.Y90DragCal(pulseCal);
-
 % x = explib.RBExperiment(pulseCal);
-
+% x = explib.X180AmpCal(pulseCal);
+x = explib.X90AmpCal(pulseCal);
+% x = explib.X180RabiExperiment(pulseCal)
+% x = explib.RabiDecay(pulseCal);
 tic; playlist = x.directDownloadM8195A(awg); toc
-% tic; result = x.directRunM8195A(awg,card,cardparams,playlist); toc
 
-%% Run an experiment
+% Run an experiment
 tic; time=fix(clock);
 result = x.directRunM8195A(awg,card,cardparams,playlist); toc
-save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
-        'x', 'awg', 'cardparams', 'result');
+% save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+%         'x', 'awg', 'cardparams', 'result');
 
 %% Run repeat RB experiments
 tic; time=fix(clock);
@@ -133,6 +95,78 @@ for ind=1:numSequences
         'x', 'awg', 'cardparams', 'numSequences', 'pvals','ampNormValues','result');
 end
 
+%% Run repeat RB experiments with calibrations in between
+tic; time=fix(clock);
+clear pvals result x ampNormValues
+x=explib.RBExperiment(pulseCal);
+numSequences = 50;
+for ind=1:numSequences
+    % recalibrate
+    if ~mod(ind,5)
+        pulseCal = explib.Recalibrate(pulseCal, awg, card, cardparams);
+    end
+    display(['RBSequence ' num2str(ind) ' running'])
+    cardparams.averages=50;
+    card.SetParams(cardparams);
+    x=explib.RBExperiment(pulseCal);
+    playlist = x.directDownloadM8195A(awg);
+    result = x.directRunM8195A(awg,card,cardparams,playlist);
+    toc
+    pvals(ind,:)=result.Pint;
+    ampNormValues(ind,:)=result.AmpNorm;
+
+    figure(144)
+    subplot(1,2,1)
+    imagesc(pvals(1:ind,:));
+    title([x.experimentName num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))])
+    subplot(1,2,2)
+    rbFitResult = funclib.RBFit_gateIndependent2(result.xaxisNorm,ampNormValues);
+%     plot(ampNormValues')
+%     title([num2str(ind) ' of ' num2str(numSequences) 'sequences'])
+    save(['C:\Data\FullRBExperimentWithCal_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'numSequences', 'pvals','ampNormValues','result');
+end
+
+
+
+%% Create pulseCal object - NOTE: pulseCal objects are VALUE objects not HANDLE objects
+% pulseCal = paramlib.pulseCal();
+% % generic qubit pulse properties
+% pulseCal.qubitFreq = 4.772869998748302e9;
+% pulseCal.sigma = 4e-9;
+% pulseCal.cutoff = 4*pulseCal.sigma;
+% pulseCal.buffer = 4e-9;
+% % measurement pulse properties
+% pulseCal.cavityFreq = 10.16578e9;
+% pulseCal.cavityAmplitude = 0.3;
+% pulseCal.measDuration = 10e-6; % length of measurement pulse
+% % waveform properties
+% pulseCal.startBuffer = 5e-6; % delay after start before qubit pulses can occur
+% pulseCal.measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
+% pulseCal.endBuffer = 5e-6; % buffer after measurement pulse
+% pulseCal.samplingRate=32e9;
+% % acquisition properties
+% pulseCal.integrationStartIndex = 1; % start point for integration of acquisition card data
+% pulseCal.integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
+% pulseCal.cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
+% % USAGE: cardparams.delaytime = experimentObject.measStartTime + acquisition.cardDelayOffset;
+% % gate specific properties
+% pulseCal.X90Amplitude =.3350;
+% pulseCal.X90DragAmplitude = .0479;
+% pulseCal.Xm90Amplitude = pulseCal.X90Amplitude;
+% pulseCal.Xm90DragAmplitude = pulseCal.X90DragAmplitude;
+% pulseCal.X180Amplitude = .6882;
+% pulseCal.X180DragAmplitude = .0622;
+% pulseCal.Xm180Amplitude = pulseCal.X180Amplitude;
+% pulseCal.Xm180DragAmplitude = pulseCal.X180DragAmplitude;
+% pulseCal.Y90Amplitude = .3356;
+% pulseCal.Y90DragAmplitude = -0.0449;
+% pulseCal.Ym90Amplitude = pulseCal.Y90Amplitude;
+% pulseCal.Ym90DragAmplitude = pulseCal.Y90DragAmplitude;
+% pulseCal.Y180Amplitude = .6882;
+% pulseCal.Y180DragAmplitude = -0.0622;
+% pulseCal.Ym180Amplitude = pulseCal.Y180Amplitude;
+% pulseCal.Ym180DragAmplitude = pulseCal.Y180DragAmplitude;
 
 
 

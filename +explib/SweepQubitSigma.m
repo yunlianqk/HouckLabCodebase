@@ -3,18 +3,19 @@ classdef SweepQubitSigma < handle
 
     properties 
         % change these to tweak the experiment. 
-        startSigma = 5e-9;
-        stopSigma = 40e-9;
-        points = 101;
+        startSigma = 4e-9;
+        stopSigma = 55e-9;
+        points = 51;
         qubitFreq=4.772869998748302e9;
-        qubitAmp=.75;
+        qubitAmp=.5;
         gateType = 'X180';
-        interPulseBuffer = 1000e-9; % time between qubit pulse and measurement pulse
+        interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
 %         cavityFreq=10.1653e9; % cavity frequency
-        cavityFreq=10.16578e9; % cavity frequency
+%         cavityFreq=10.16578e9; % cavity frequency
+        cavityFreq=10.165880e9; % cavity frequency
 %         cavityAmp=0.63;       % cavity pulse amplitude
         cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
+        measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -78,7 +79,7 @@ classdef SweepQubitSigma < handle
             % integration times
             intStart=4000; intStop=8000;
             % software averages
-            softavg=100;
+            softavg=20;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);

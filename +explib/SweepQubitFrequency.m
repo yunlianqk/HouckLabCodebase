@@ -5,15 +5,16 @@ classdef SweepQubitFrequency < handle
         % change these to tweak the experiment
         startFreq=4.7e9;
         stopFreq=4.84e9;
-        points = 101;
+        points = 51;
         gateType = 'X180';
-        qubitAmp = 0; % qubit pulse amplitude
+        qubitAmp = .3; % qubit pulse amplitude
         qubitSigma = 25e-9; % qubit pulse sigma
-        interPulseBuffer = 1000e-9; % time between qubit pulse and measurement pulse
-        cavityFreq=10.16578e9; % cavity frequency
+        interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
+%         cavityFreq=10.16578e9; % cavity frequency
+        cavityFreq=10.16588e9; % cavity frequency
 %         cavityAmp=0.63;       % cavity pulse amplitude
         cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
+        measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
