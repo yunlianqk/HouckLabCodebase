@@ -203,14 +203,14 @@ for freq_ind = 1:length(freq_ls)
             imagesc(freq_ls/1e9,amp_ls,readout_fid_I, clims)
             xlabel('Readout frequency (GHz)')
             ylabel('Readout power(dBm)')
-            title('Measurement fiedlity I')
+            title('Measurement fidelity I')
             colorbar
             subplot(2,1,2)
             imagesc(freq_ls,amp_ls,readout_fid_Q, clims)
             colorbar
             xlabel('Readout frequency (GHz)')
             ylabel('Readout power(dBm)')
-            title('Measurement fiedlity I')
+            title('Measurement fidelity I')
         end
         toc
         message = ['Estimate finish time in: ' num2str(toc * NN_run/60), ' mins'];
