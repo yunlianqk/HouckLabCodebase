@@ -49,7 +49,8 @@ function dataArray = ReadChannels(self, chList)
     % Buffer array
     arraySize = device.Acquisition.QueryMinWaveformMemory(64,...
         params.averages*params.segments, 0, params.samples);
-    inArray = double(zeros(arraySize, 1));
+%     inArray = double(zeros(arraySize, 1));
+    inArray = zeros(arraySize,1,'double');
     dataArray = zeros(length(chList), params.segments, params.samples);
     
     % Fetch data

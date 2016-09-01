@@ -10,6 +10,7 @@
 %   - Trigger tab: Trigger/Gate, Advance Event -> Trigger In
 
 %% initialize awg 
+cd 'C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode'
 addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
 % Choose settings in IQ config window (M8195A_2ch_mrk,ext ref clk)-> press Ok
 % Import FIR filter -> press Ok
@@ -23,8 +24,9 @@ card=M9703ADigitizer(address);  % create object
 cardparams=paramlib.m9703a();   %default parameters
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
-cardparams.averages=50;  % software averages PER SEGMENT
-% cardparams.averages=25;  % software averages PER SEGMENT
+% cardparams.averages=100;  % software averages PER SEGMENT
+cardparams.averages=25;  % software averages PER SEGMENT
+% cardparams.averages=1;  % software averages PER SEGMENT
 cardparams.segments=2; % segments>1 => sequence mode in readIandQ
 cardparams.fullscale=1; % in units of V, IT CAN ONLY TAKE VALUE:1,2, other values will give an error
 cardparams.offset=0;    % in units of volts
@@ -39,41 +41,45 @@ cardparams.trigPeriod=401.111e-6; % Trigger period in seconds
 card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
 
 %% recalibrate (load a pulseCal object from a recent experiment if one doesn't exist in workspace
-% pulseCal = explib.Recalibrate(pulseCal, awg, card, cardparams,2)
-pulseCal = explib.RecalibrateContinuous(pulseCal, awg, card, cardparams);
+pulseCal = explib.Recalibrate(pulseCal, awg, card, cardparams,2)
+% pulseCal = explib.RecalibrateContinuous(pulseCal, awg, card, cardparams);
 %% old experiments
-% x = explib.SweepQubitFrequency();
+x = explib.SweepQubitFrequency();
+% x = explib.SweepTransmissionFrequencyWithQubitPulse();
 % x = explib.SweepQubitSigma();
 % x = explib.SweepTransmissionPower();
+cardparams.averages=25;  % software averages PER SEGMENT
+card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
 x.runExperimentM8195A(awg,card,cardparams)
 
 
 %% Load an experiment
 clear x
 % x = explib.X180RabiExperiment(pulseCal)
-
+% x = explib.T1Experiment(pulseCal)
+x = explib.SingleShotHistograms(pulseCal);
+% x = explib.T2Experiment();
 % x = explib.HahnEcho(pulseCal);
 % x = explib.HahnEchoNthOrder(pulseCal);
 % x = explib.T2Spectroscopy(pulseCal);
 % x = explib.X90AmpCal(pulseCal);
 % x = explib.RBExperiment(pulseCal);
-% x = explib.X180AmpCal(pulseCal);
-x = explib.X90AmpCal(pulseCal);
+% x = explib.X180AmpCal(pulseCal,0:1:20,20);
+% x = explib.X90AmpCal(pulseCal,0:2:40,20);
 % x = explib.X180RabiExperiment(pulseCal)
 % x = explib.RabiDecay(pulseCal);
 tic; playlist = x.directDownloadM8195A(awg); toc
-
 % Run an experiment
 tic; time=fix(clock);
 result = x.directRunM8195A(awg,card,cardparams,playlist); toc
-% save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
-%         'x', 'awg', 'cardparams', 'result');
+save(['C:\Data\' x.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+        'x', 'awg', 'cardparams', 'result');
 
 %% Run repeat RB experiments
 tic; time=fix(clock);
 clear pvals result x ampNormValues
 x=explib.RBExperiment(pulseCal);
-numSequences = 100;
+numSequences = 50;
 for ind=1:numSequences
     display(['RBSequence ' num2str(ind) ' running'])
     x=explib.RBExperiment(pulseCal);

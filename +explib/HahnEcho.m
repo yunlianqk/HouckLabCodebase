@@ -6,9 +6,9 @@ classdef HahnEcho < handle
         experimentName = 'HahnEcho';
         % inputs
         pulseCal;
-        delayList = 200e-9:2.00e-6:200.2e-6; % total delay from 1st to last pulse
+        delayList = 200e-9:.400e-6:40.2e-6; % total delay from 1st to last pulse
 %         delayList = 200e-9:1.00e-6:2.2e-6; % total delay from 1st to last pulse
-        softwareAverages = 200; 
+        softwareAverages = 50; 
 %         softwareAverages = 20; 
         % Dependent properties auto calculated in the update method
         X90; % qubit pulse object

@@ -168,7 +168,7 @@ classdef X90DragCal < handle
 
                 timeString = datestr(datetime);
                 if ~mod(ind,10)
-                    figure(187);
+                    figure(101);
                     subplot(2,3,[1 2 3]); 
                     newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
 %                     plot(obj.ampVector,sqrt(Pint));
@@ -187,7 +187,7 @@ classdef X90DragCal < handle
                 end
             end
             
-            figure(187);
+            figure(101);
             subplot(2,3,[1 2 3]);
             newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
             title([obj.experimentName ' ' timeString ' newDragAmp = ' num2str(newDragAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);

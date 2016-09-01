@@ -73,6 +73,7 @@ classdef M9703ADigitizer < handle
         params = GetParams(self);	% Get card parameters
         [IData, QData] = ReadIandQ(self,awg,PlayList);	% Acquire data from two channels
         [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self,awg,PlayList);	% includes background subtraction
+        [Idata,Qdata] = ReadIandQsingleShot(self, awg, PlayList);
         dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
     end
 end

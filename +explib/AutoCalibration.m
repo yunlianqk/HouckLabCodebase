@@ -1,24 +1,24 @@
 %% Step 1, set up pulsecal with initial values
 % Create pulseCal object - NOTE: pulseCal objects are VALUE objects not HANDLE objects
-initialPulseCal = paramlib.pulseCal();
-% generic qubit pulse properties
-initialPulseCal.qubitFreq = 4.772869998748302e9;
-initialPulseCal.sigma = 4e-9;
-initialPulseCal.cutoff = 4*initialPulseCal.sigma;
-initialPulseCal.buffer = 4e-9;
-% measurement pulse properties
-initialPulseCal.cavityFreq = 10.16578e9;
-initialPulseCal.cavityAmplitude = 0.3;
-initialPulseCal.measDuration = 10e-6; % length of measurement pulse
-% waveform properties
-initialPulseCal.startBuffer = 5e-6; % delay after start before qubit pulses can occur
-initialPulseCal.measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
-initialPulseCal.endBuffer = 5e-6; % buffer after measurement pulse
-initialPulseCal.samplingRate=32e9;
-% acquisition properties
-initialPulseCal.integrationStartIndex = 1; % start point for integration of acquisition card data
-initialPulseCal.integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
-initialPulseCal.cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
+% initialPulseCal = paramlib.pulseCal();
+% % generic qubit pulse properties
+% initialPulseCal.qubitFreq = 4.772869998748302e9;
+% initialPulseCal.sigma = 4e-9;
+% initialPulseCal.cutoff = 4*initialPulseCal.sigma;
+% initialPulseCal.buffer = 4e-9;
+% % measurement pulse properties
+% initialPulseCal.cavityFreq = 10.16578e9;
+% initialPulseCal.cavityAmplitude = 0.3;
+% initialPulseCal.measDuration = 10e-6; % length of measurement pulse
+% % waveform properties
+% initialPulseCal.startBuffer = 5e-6; % delay after start before qubit pulses can occur
+% initialPulseCal.measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
+% initialPulseCal.endBuffer = 5e-6; % buffer after measurement pulse
+% initialPulseCal.samplingRate=32e9;
+% % acquisition properties
+% initialPulseCal.integrationStartIndex = 1; % start point for integration of acquisition card data
+% initialPulseCal.integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
+% initialPulseCal.cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
 % USAGE: cardparams.delaytime = experimentObject.measStartTime + acquisition.cardDelayOffset;
 % gate specific properties
 % initialPulseCal.X90Amplitude =.3354; 

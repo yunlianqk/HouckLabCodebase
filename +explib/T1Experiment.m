@@ -4,8 +4,9 @@ classdef T1Experiment < handle
     
     properties
         pulseCal;
-        delayList = 200e-9:1e-6:100.2e-6; % delay btw qubit pulses and measurement pulse
-        softwareAverages = 50;
+        experimentName='T1Experiment';
+        delayList = 200e-9:.8e-6:80.2e-6; % delay btw qubit pulses and measurement pulse
+        softwareAverages = 8;
         % these are auto calculated
         qubit; % qubit pulse object
         measurement; % measurement pulse object
@@ -177,18 +178,19 @@ classdef T1Experiment < handle
                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 figure(101);
-                subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/i);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/i);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/i);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/i);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
 %                 subplot(2,3,3); plot(obj.delayList,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Delay');
-                subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
-                                ax=subplot(2,3,3);
+%                 subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
+                ax = gca;
+%                 ax=subplot(2,3,3);
 %                 try doing the T1 fit during softaveraging
 %                 fitResult = funclib.ExpFit2(obj.delayList,sqrt(Pint)/i,ax);
                 fitResult.lambda = funclib.ExpFit(obj.delayList,sqrt(Pint)/i,ax);
                 fitResult.amp=0;
-                title(ax,['amp: ' num2str(fitResult.amp) ' T1: ' num2str(fitResult.lambda)])
+                title(ax,[' T1: ' num2str(fitResult.lambda) '; N=' num2str(i)])
                 pause(0.01);
             end
             result.taxis = taxis;

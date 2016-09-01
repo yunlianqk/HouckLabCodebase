@@ -1,17 +1,19 @@
-classdef SweepQubitFrequency < handle
-    % Simple Rabi Experiment. X pulse with varying power. JJR 2016, Princeton
-    
+classdef SweepTransmissionFrequencyWithQubitPulse < handle
+        
     properties
         % change these to tweak the experiment
-        startFreq=4.4e9;
-        stopFreq=4.80e9;
-        points = 101;
+        startFreq=10.163e9;
+        stopFreq=10.168e9;
+        points = 51;
         gateType = 'X180';
+%         qubitFreq = 4.7729e9;
+        qubitFreq = 4.587e9;
         qubitAmp = .7011; % qubit pulse amplitude
+%         qubitAmp = 0; % qubit pulse amplitude
         qubitSigma = 4e-9; % qubit pulse sigma
         interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
 %         cavityFreq=10.16578e9; % cavity frequency
-        cavityFreq=10.16588e9; % cavity frequency
+%         cavityFreq=10.16588e9; % cavity frequency
 %         cavityAmp=0.63;       % cavity pulse amplitude
         cavityAmp=1;       % cavity pulse amplitude
         measDuration = 10e-6;
@@ -28,7 +30,7 @@ classdef SweepQubitFrequency < handle
     end
     
     methods
-        function obj=SweepQubitFrequency()
+        function obj=SweepTransmissionFrequencyWithQubitPulse()
             % constructor generates the necessary objects and calculates the dependent parameters
             obj.qubit = pulselib.singleGate(obj.gateType);
             obj.qubit.amplitude = obj.qubitAmp;
@@ -42,21 +44,24 @@ classdef SweepQubitFrequency < handle
         end
         
         function w = genWaveset_M8195A(obj)
+            display(' ')
+            display('generating waveset')
             w = paramlib.M8195A.waveset();
             tStep = 1/obj.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
-            loWaveform = sin(2*pi*obj.cavityFreq*t);
+            
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
 %             backgroundWaveform = zeros(1,length(t));
             for ind=1:obj.points
                 q=obj.qubit;
                 freq=obj.freqVector(ind);
+                loWaveform = sin(2*pi*freq*t);
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
-                iQubitMod=cos(2*pi*freq*t).*iQubitBaseband;
-                qQubitMod=sin(2*pi*freq*t).*qQubitBaseband;
+                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+                iMeasMod=cos(2*pi*freq*t).*iMeasBaseband;
+                qMeasMod=sin(2*pi*freq*t).*qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 % background is measurement pulse to get contrast
                 backgroundWaveform = iMeasMod+qMeasMod;
@@ -77,6 +82,8 @@ classdef SweepQubitFrequency < handle
         end
         
         function [result] = runExperimentM8195A(obj,awg,card,cardparams)
+            display(' ')
+            display('Running experiment')
             % integration times
             intStart=4000; intStop=8000;
             % software averages

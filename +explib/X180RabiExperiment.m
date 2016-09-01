@@ -166,7 +166,7 @@ classdef X180RabiExperiment < handle
 
                 timeString = datestr(datetime);
                 if ~mod(ind,10)
-                    figure(187);
+                    figure(188);
                     subplot(2,3,[1 2 3]); 
                     newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
                     % plot(obj.ampVector,sqrt(Pint));
@@ -184,7 +184,7 @@ classdef X180RabiExperiment < handle
                     drawnow
                 end
             end
-            figure(187);
+            figure(188);
             subplot(2,3,[1 2 3]);
             newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
             title([obj.experimentName ' ' timeString ' newAmp = ' num2str(newAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);

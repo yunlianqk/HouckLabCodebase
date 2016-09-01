@@ -206,7 +206,7 @@ classdef X90AmpCal < handle
                 
                 timeString = datestr(datetime);
                 if ~mod(ind,10)
-                    figure(187);
+                    figure(102);
                     subplot(2,3,[1 2 3]); 
                     fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
                     updateFactor = fitResults.updateFactor;
@@ -225,7 +225,7 @@ classdef X90AmpCal < handle
                     drawnow
                 end
             end
-            figure(187);
+            figure(102);
             subplot(2,3,[1 2 3]);
             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
             updateFactor = fitResults.updateFactor;
