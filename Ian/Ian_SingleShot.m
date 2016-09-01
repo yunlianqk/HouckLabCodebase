@@ -43,14 +43,17 @@ instr.triggen = triggen;
 SingleShot.instr = instr;
 
 %% Histogram of Identity and X180
+SingleShot.params.measFreq = 7.76e9;
+SingleShot.params.measPower = -20;
 
 Id = pulselib.singleGate('Identity');
 
+NN = 20;
 
 segments = params.segments;
-intdataII = nan(numIter * segments, 1);
-intdataQI = nan(numIter * segments, 1);
-NN = 20;
+intdataII = nan(NN * segments, 1);
+intdataQI = nan(NN * segments, 1);
+
 for numIter = 1:NN
     if numIter == 1
         tic;
@@ -62,8 +65,8 @@ for numIter = 1:NN
         SingleShot.run();
         [numSteps,~] = size(gateArray);
         range = ((numIter - 1) * segments + 1 : numIter * segments);
-        intdataII(range) = mean(SingleShot.data.rawdataI{1}(:,500:1500),2);
-        intdataQI(range) = mean(SingleShot.data.rawdataQ{1}(:,500:1500),2);
+        intdataII(range) = mean(SingleShot.data.rawdataI{1}(:,500:600),2);
+        intdataQI(range) = mean(SingleShot.data.rawdataQ{1}(:,500:600),2);
         ['Estimated wait time: ' num2str(toc * NN * 2/60) ' mins']
     else
         clear('gateArray');
@@ -103,8 +106,6 @@ for numIter = 1:NN
 
 end
 warndlg('Finished','...')
-
-close(14)
 figure(14)
 subplot(2,1,1)
 hold on
@@ -120,31 +121,59 @@ histogram(intdataQI)
 xlabel('V_Q')
 legend('Identity', 'X180')
 hold off
+
+% S curve
+totN = NN * segments;
+
+lower_boundII = min(intdataII);
+lower_boundI180 = min(intdataI180);
+upper_boundII = max(intdataII);
+upper_boundI180 = max(intdataI180);
+
+lower_boundI = min(lower_boundII,lower_boundI180);
+upper_boundI = max(upper_boundII,upper_boundI180 );
+
+diff = upper_boundI - lower_boundI ;
+edgeI = lower_boundI: 0.01 * diff: upper_boundI;
+
+NII = histcounts(intdataII,edgeI);
+NQI = histcounts(intdataQI,edgeI);
+
+
+
+lower_boundQI = min(intdataQI);
+lower_boundQ180 = min(intdataQ180);
+upper_boundQI = max(intdataQI);
+upper_boundQ180 = max(intdataQ180);
+
+lower_boundQ = min(lower_boundQI,lower_boundQ180);
+upper_boundQ = max(upper_boundQI,upper_boundQ180 );
+
+diff = upper_boundQ - lower_boundQ;
+edgeQ = lower_boundQ: 0.01 * diff: upper_boundQ;
+
+NI180 = histcounts(intdataI180,edgeQ);
+NQ180 = histcounts(intdataQ180,edgeQ);
+
+%
+figure(231)
+plot(edgeI(2:end),cumsum(NII)/totN) 
+hold on 
+plot(edgeI(2:end),cumsum(NI180)/totN) 
+title('S curve for I channel')
+
+figure(232)
+plot(edgeQ(2:end),cumsum(NII)/totN) 
+hold on 
+plot(edgeQ(2:end),cumsum(NI180)/totN) 
+title('S curve for Q channel')
+%
+readout_fid_I = max(abs(cumsum(NII) - cumsum(NI180)))/totN
+readout_fid_Q = max(abs(cumsum(NQI) - cumsum(NQ180)))/totN
+    
 %%
-figure(15)
-subplot(2,1,1)
-hold on
-histogram(intdataII)
-
-xlabel('V_I')
-legend('Identity')
-hold off
-subplot(2,1,2)
-hold on
-histogram(intdataQI)
-xlabel('V_Q')
-legend('Identity')
-hold off
-%% Integration
-[NII,edgesII] = histcounts(intdataII);
-[NQI,edgesQI] = histcounts(intdataQI);
-[NI180,edgesI180] = histcounts(intdataI180);
-[NQ180,edgesQ180] = histcounts(intdataQ180);
-
-diff_I = 
-diff_Q = 
-
-
+[III,QQQ] = Readout_fid( SingleShot, Id, X180)
+    
 %%
 card.params.segments = 1;
 card.params.averages = 30000;
@@ -152,3 +181,42 @@ card.params.averages = 30000;
 figure;plot(pulsegen1.timeaxis, pulsegen1.waveform1, pulsegen2.timeaxis, pulsegen2.waveform1, 'r');
 card.params.delaytime
 %%
+freq_ls = linspace(7.5e9,8.0e9,30);
+amp_ls = linspace(-30,30,30);
+readout_fid_I = nan(length(freq_ls),length(amp_ls));
+readout_fid_Q = nan(length(freq_ls),length(amp_ls));
+NN_run = length(freq_ls)*length(amp_ls);
+count = 1;
+h = waitbar(0,'Please wait...');
+for freq_ind = 1:length(freq_ls)
+    for amp_ind = 1:length(amp_ls)
+        tic
+        try
+            SingleShot.params.measFreq = freq_ls(freq_ind);
+            SingleShot.params.measPower = amp_ls(amp_ind);
+            [tempI,tempQ ] = Readout_fid(SingleShot, Id, X180 );
+            readout_fid_I(freq_ind, amp_ind) = tempI;     
+            readout_fid_Q(freq_ind, amp_ind) = tempQ;
+            clims = [0 1];
+            figure(212)
+            subplot(2,1,1)
+            imagesc(freq_ls/1e9,amp_ls,readout_fid_I, clims)
+            xlabel('Readout frequency (GHz)')
+            ylabel('Readout power(dBm)')
+            title('Measurement fidelity I')
+            colorbar
+            subplot(2,1,2)
+            imagesc(freq_ls,amp_ls,readout_fid_Q, clims)
+            colorbar
+            xlabel('Readout frequency (GHz)')
+            ylabel('Readout power(dBm)')
+            title('Measurement fidelity I')
+        end
+        toc
+        message = ['Estimate finish time in: ' num2str(toc * NN_run/60), ' mins'];
+        waitbar(count/NN_run,h,sprintf(message))
+        count = count+1;
+       
+    end
+end
+
