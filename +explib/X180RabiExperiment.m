@@ -6,7 +6,7 @@ classdef X180RabiExperiment < handle
         % inputs
         pulseCal;
         ampVector = linspace(0,1,51);
-        softwareAverages = 20; 
+        softwareAverages = 10; 
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
@@ -165,7 +165,8 @@ classdef X180RabiExperiment < handle
                 % phaseInt = mean(phaseData(:,intStart:intStop)');
 
                 timeString = datestr(datetime);
-                if ~mod(ind,10)
+%                 if ~mod(ind,10)
+                if ~mod(ind,1)
                     figure(188);
                     subplot(2,3,[1 2 3]); 
                     newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));

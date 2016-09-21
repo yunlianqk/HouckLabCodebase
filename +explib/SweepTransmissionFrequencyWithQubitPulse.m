@@ -7,15 +7,15 @@ classdef SweepTransmissionFrequencyWithQubitPulse < handle
         points = 51;
         gateType = 'X180';
 %         qubitFreq = 4.7729e9;
-        qubitFreq = 4.587e9;
-        qubitAmp = .7011; % qubit pulse amplitude
+        qubitFreq = 4.781e9;
+        qubitAmp = .7030; % qubit pulse amplitude
 %         qubitAmp = 0; % qubit pulse amplitude
-        qubitSigma = 4e-9; % qubit pulse sigma
+        qubitSigma = 5e-9; % qubit pulse sigma
         interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
 %         cavityFreq=10.16578e9; % cavity frequency
 %         cavityFreq=10.16588e9; % cavity frequency
 %         cavityAmp=0.63;       % cavity pulse amplitude
-        cavityAmp=1;       % cavity pulse amplitude
+        cavityAmp=.4;       % cavity pulse amplitude
         measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
@@ -87,7 +87,7 @@ classdef SweepTransmissionFrequencyWithQubitPulse < handle
             % integration times
             intStart=4000; intStop=8000;
             % software averages
-            softavg=100;
+            softavg=20;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);

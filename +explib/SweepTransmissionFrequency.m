@@ -2,13 +2,16 @@ classdef SweepTransmissionFrequency < handle
     % Simple sweep of a measurement pulse frequency
     
     properties
+        experimentName='SweepTransmissionFrequency';
         % change these to tweak the experiment
-        startFreq=10.165e9;
+%         startFreq=5e9;
+%         stopFreq=5e9;
+        startFreq=10.162e9;
         stopFreq=10.167e9;
         points = 51;
         measDuration = 10e-6;
 %         measAmplitude = 0.63; % measurement pulse amp.
-        measAmplitude = 1; % measurement pulse amp.
+        measAmplitude = .6; % measurement pulse amp.
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -24,6 +27,7 @@ classdef SweepTransmissionFrequency < handle
         function obj=SweepTransmissionFrequency()
             % constructor generates the necessary objects and calculates the dependent parameters
             obj.measurement = pulselib.measPulse(obj.measDuration);
+            obj.measurement.amplitude = obj.measAmplitude;
             obj.freqVector = linspace(obj.startFreq,obj.stopFreq,obj.points);
             obj.measStartTime = obj.startBuffer;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
@@ -49,6 +53,7 @@ classdef SweepTransmissionFrequency < handle
         end
         
         function w = genWaveset_M8195A(obj)
+            display('Generating Waveset')
             w = paramlib.M8195A.waveset();
             tStep = 1/obj.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
@@ -79,11 +84,12 @@ classdef SweepTransmissionFrequency < handle
         end
         
         function result = runExperimentM8195A(obj,awg,card,cardparams)
+            display('running experiment')
             % Experiment specific properties
 %             intStart=2000; intStop=6000;
 %             softavg=100;
             intStart=1; intStop=10000;
-            softavg=20;
+            softavg=10;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
@@ -93,7 +99,8 @@ classdef SweepTransmissionFrequency < handle
             awg.Wavedownload(WaveLib);
             cardparams.segments=length(w.playlist);
 %             cardparams.delaytime=obj.measStartTime-1e-6;
-            cardparams.delaytime=obj.measStartTime-3e-6;
+%             cardparams.delaytime=obj.measStartTime-3e-6;
+            cardparams.delaytime=obj.measStartTime+1.5e-6;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
@@ -123,7 +130,7 @@ classdef SweepTransmissionFrequency < handle
                 subplot(2,3,5); imagesc(taxis,obj.freqVector./1e9,phaseData);title('Phase atan(Q/I)');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
                 subplot(2,3,3); plot(obj.freqVector./1e9,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Frequency (GHz)');
                 subplot(2,3,6); plot(obj.freqVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Frequency (GHz)');
-                pause(0.01);
+                drawnow
             end
             result.taxis = taxis;
             result.Idata=Idata./softavg;

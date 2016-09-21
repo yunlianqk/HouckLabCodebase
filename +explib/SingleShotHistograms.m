@@ -37,8 +37,8 @@ classdef SingleShotHistograms < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-%             obj.qubit = obj.pulseCal.X180();
-            obj.qubit = obj.pulseCal.Identity();
+            obj.qubit = obj.pulseCal.X180();
+%             obj.qubit = obj.pulseCal.Identity();
             obj.measurement = obj.pulseCal.measurement();
             obj.qubitPulseTime = obj.pulseCal.startBuffer+obj.qubit.totalDuration/2;
             obj.measStartTime = obj.qubitPulseTime + obj.qubit.totalDuration/2 + obj.pulseCal.measBuffer;
@@ -207,8 +207,7 @@ classdef SingleShotHistograms < handle
 %             result.Pdata=Pdata./softavg;
 %             result.Pint=Pint./softavg;
 %             result.newAmp=newAmp;
-result.            
-result.ex = ex;
+            result.ex = ex;
             result.gnd = gnd;
             display('Experiment Finished')
          end

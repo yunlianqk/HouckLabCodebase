@@ -6,7 +6,8 @@ classdef T1Experiment < handle
         pulseCal;
         experimentName='T1Experiment';
         delayList = 200e-9:.8e-6:80.2e-6; % delay btw qubit pulses and measurement pulse
-        softwareAverages = 8;
+%         delayList = logspace(-7,-4,101); % delay btw qubit pulses and measurement pulse
+        softwareAverages = 5;
         % these are auto calculated
         qubit; % qubit pulse object
         measurement; % measurement pulse object

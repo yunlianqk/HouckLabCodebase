@@ -1,8 +1,8 @@
 % simple pnax power scan of s21 and s41 transmission
 transWaitTime = 1;
-startPower=-30;
-stopPower=-50;
-steps=21;
+startPower=15;
+stopPower=-20;
+steps=36;
 
 powerVector=linspace(startPower,stopPower,steps);
 

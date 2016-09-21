@@ -4,7 +4,8 @@ classdef SweepTransmissionPower < handle
     properties
         % change these to tweak the experiment
 %         cavityFreq=10.1657e9;
-        cavityFreq=10.16588e9;
+%         cavityFreq=10.16588e9;
+        cavityFreq=10.16575e9;
         startAmp=1;
         stopAmp=0;
         points = 51;
@@ -128,7 +129,7 @@ classdef SweepTransmissionPower < handle
 %                 subplot(2,2,2); imagesc(taxis,obj.ampVector,Qdata);title('Quad phase');ylabel('Software Amplitude');xlabel('Time (\mus)');
 %                 subplot(2,2,3); imagesc(taxis,obj.ampVector,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
 %                 subplot(2,2,4); plot(obj.ampVector,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Software Amplitude');
-                pause(0.01);
+                drawnow
             end
             result.taxis = taxis;
             result.Idata=Idata./softavg;

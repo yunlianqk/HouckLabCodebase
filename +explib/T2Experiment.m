@@ -7,16 +7,18 @@ classdef T2Experiment < handle
         % change these to tweak the experiment
 %         qubitFreq=4.772869998748302e9;
         experimentName='T2Experiment';
-        qubitFreq=4.772869998748302e9-2e6;
-        qubitAmplitude = .3625;
-        qubitSigma = 25e-9;
+%         qubitFreq=4.772869998748302e9-2e6;
+        qubitFreq=4.7810e9-2e6;
+        qubitAmplitude = .3491;
+        qubitSigma = 5e-9;
         gateType = 'X90';
-        delayList = 200e-9:.05e-6:20.2e-6; % delay btw qubit pulses
+        delayList = 200e-9:.1e-6:20.2e-6; % delay btw qubit pulses
 %         delayList = 200e-9:.1e-6:20.2e-6; % delay btw qubit pulses
         interPulseBuffer = 200e-9; % time between final qubit pulse and measurement pulse
-        cavityFreq=10.16578e9; % cavity frequency
-        cavityAmp=1; % cavity pulse amplitude
-        measDuration = 5e-6;
+%         cavityFreq=10.16578e9; % cavity frequency
+        cavityFreq=10.1655e9; % cavity frequency
+        cavityAmp=.4; % cavity pulse amplitude
+        measDuration = 10e-6;
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate

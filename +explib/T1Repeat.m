@@ -2,7 +2,7 @@
 % this script repeats a single experiment multiple times.  since loading
 % the waveforms is done only once many iterations can be done relatively quickly.
 
-% delayList = .2e-6:1.00e-6:100.2e-6; % total delay from 1st to last pulse
+delayList = .2e-6:1.50e-6:150.2e-6; % total delay from 1st to last pulse
 
 %initializions
 display([' ']);
@@ -10,6 +10,8 @@ display(['T1 Repeat'])
 clear x
 x = explib.T1Experiment(pulseCal);
 playlist = x.directDownloadM8195A(awg);
+cardparams.averages=25;  % software averages PER SEGMENT
+card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
 %%
 time=fix(clock);
 timeString = datestr(datetime);
@@ -19,7 +21,7 @@ while 1
     testNum = testNum+1;
     result = x.directRunM8195A(awg,card,cardparams,playlist);
     
-    loopResults.taxis = result.taxis
+    loopResults.taxis = result.taxis;
     loopResults.pulseCal = x.pulseCal;
     loopResults.experiment = x;
     loopResults.Pint = result.Pint;

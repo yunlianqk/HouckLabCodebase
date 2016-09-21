@@ -6,9 +6,9 @@ classdef HahnEchoNthOrder < handle
         experimentName = 'HahnEchoNthOrder';
         % inputs
         pulseCal;
-        echoOrder = 2; % # of pi pulses done between the two pi/2 pulses, should be odd
-        delayList = 2e-6:1.00e-6:102e-6; % total delay from 1st to last pulse
-        softwareAverages = 50; 
+        echoOrder = 25; % # of pi pulses done between the two pi/2 pulses, should be odd
+        delayList = .660e-6:.1e-6:50e-6; % total delay from 1st to last pulse
+        softwareAverages = 500; 
         % Dependent properties auto calculated in the update method
         X90; % qubit pulse object
         X180; % echo pulse
@@ -133,14 +133,14 @@ classdef HahnEchoNthOrder < handle
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
-                [iQubitMod, qQubitMod] = s.modWaveforms(t, tStart, obj.pulseCal.qubitFreq);
+%                 [iQubitMod, qQubitMod] = s.modWaveforms(t, tStart, obj.pulseCal.qubitFreq);
                 
                 
-%                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
-%                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
-%                 clear iQubitBaseband;
-%                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
-%                 clear qQubitBaseband;
+                [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
+                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+                clear iQubitBaseband;
+                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+                clear qQubitBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
                 % now directly loading into awg

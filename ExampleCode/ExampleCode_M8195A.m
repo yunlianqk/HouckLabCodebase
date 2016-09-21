@@ -1,5 +1,15 @@
-addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
+
+%%%%%%%%%%%%%%% INTIALIZATIONS
+% CHECKLIST
+% m8195a SFP open, with the following setting adjustments
+%   - Clock tab: routing to Ref clock in(connected to the Rb clk)
+%   - Output tab: chan 1V amp, Ch2(LO) 200mV amp (don't forget warm amp!)
+%                 ch3(marker) 1V amp +0.5V offset
+%   - Trigger tab: Trigger/Gate, Advance Event -> Trigger Inaddpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
+
 % Initialize awg object
+cd 'C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode'
+addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
 % Choose settings in IQ config window -> press Ok
 % Import FIR filter -> press Ok
 awg = M8195AWG();
@@ -69,7 +79,7 @@ for i=1:length(qubit.Amp)
     WaveLib(2*i-1).segNumber = i;
     WaveLib(2*i-1).keepOpen = 1;
     WaveLib(2*i-1).run = 0;
-    WaveLib(2*i-1).marker = marker;
+%     WaveLib(2*i-1).marker = marker;
     WaveLib(2*i-1).correction = 1;
     
     % Waveforms for Ch4
@@ -89,7 +99,7 @@ for i=1:(length(qubit.Amp)-1)
     %Channel 1+4 playlist
     PlayList(i).segmentNumber=i;
     PlayList(i).segmentLoops=1;
-    PlayList(i).markerEnable=true;
+%     PlayList(i).markerEnable=true;
     PlayList(i).segmentAdvance='Stepped';
 end
 
@@ -97,7 +107,7 @@ end
 last=length(qubit.Amp);
 PlayList(last).segmentNumber=last;
 PlayList(last).segmentLoops=1;
-PlayList(last).markerEnable=true;
+% PlayList(last).markerEnable=true;
 PlayList(last).segmentAdvance='Auto';
 
 %% Run sequence
@@ -119,9 +129,9 @@ cardparams.couplemode='DC'; % 'DC'/'AC'
 cardparams.delaytime=10e-6; % Delay time from trigger to start of acquistion, units second
 cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
-cardparams.trigSource='External1'; % Trigger source
+cardparams.trigSource='External4'; % Trigger source
 cardparams.trigLevel=0.5; % Trigger level in volts
-cardparams.trigPeriod=300e-6; % Trigger period in seconds
+cardparams.trigPeriod=50e-6; % Trigger period in seconds
 
 % Update parameters and setup acquisition and trigerring 
 card.SetParams(cardparams);

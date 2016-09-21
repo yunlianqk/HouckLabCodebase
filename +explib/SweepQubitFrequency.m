@@ -3,17 +3,16 @@ classdef SweepQubitFrequency < handle
     
     properties
         % change these to tweak the experiment
-        startFreq=4.4e9;
-        stopFreq=4.80e9;
+        startFreq=4.7e9;
+        stopFreq=4.84e9;
         points = 101;
         gateType = 'X180';
-        qubitAmp = .7011; % qubit pulse amplitude
+        qubitAmp = .7; % qubit pulse amplitude
         qubitSigma = 4e-9; % qubit pulse sigma
         interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
-%         cavityFreq=10.16578e9; % cavity frequency
-        cavityFreq=10.16588e9; % cavity frequency
-%         cavityAmp=0.63;       % cavity pulse amplitude
-        cavityAmp=1;       % cavity pulse amplitude
+%         cavityFreq=10.1657e9; % cavity frequency
+        cavityFreq=10.165600e9; % cavity frequency
+        cavityAmp=.6;       % cavity pulse amplitude
         measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
@@ -42,6 +41,7 @@ classdef SweepQubitFrequency < handle
         end
         
         function w = genWaveset_M8195A(obj)
+            display('generating waveset')
             w = paramlib.M8195A.waveset();
             tStep = 1/obj.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
@@ -77,10 +77,11 @@ classdef SweepQubitFrequency < handle
         end
         
         function [result] = runExperimentM8195A(obj,awg,card,cardparams)
+            display('running experiment')
             % integration times
             intStart=4000; intStop=8000;
             % software averages
-            softavg=100;
+            softavg=10;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
