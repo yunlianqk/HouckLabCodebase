@@ -140,8 +140,7 @@ function SetParams(self, params)
     self.AqReadParameters.reserved3 = 0;
     self.AqReadParameters.trigPeriod = params.trigPeriod;
     self.AqReadParameters.softAvg = softAvg;
-    if params.trigPeriod < (StartDelay+NbrSamples)*params.sampleinterval
-        display('Warning: trigPeriod is shorter than delay + acquisition time');
-    end
-    self.AqReadParameters.timeOut = params.trigPeriod*NbrRoundRobins*params.segments + 1;
+    % Timeout is determined by the acquisition time and the trigger period
+    self.AqReadParameters.timeOut = ceil((StartDelay+NbrSamples)*params.sampleinterval/params.trigPeriod) ...
+        *params.trigPeriod*NbrRoundRobins*params.segments + 1;
 end
