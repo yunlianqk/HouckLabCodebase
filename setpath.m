@@ -9,3 +9,4 @@ warning('on', 'MATLAB:rmpath:DirNotFound');
 addpath(pwd);
 % Add U10xx digitizer driver
 addpath(genpath([pwd, '\U10xx_driver']));
+addpath([pwd, '\iqtools']);
