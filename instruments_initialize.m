@@ -40,5 +40,6 @@ pulsegen1 = M9330AWG(address.pulsegen1);
 
 global pulsegen2;
 pulsegen2 = M9330AWG(address.pulsegen2);
+pulsegen2.SyncWith(pulsegen1);
 
 clear('address');

@@ -15,6 +15,10 @@ function Generate(self)
     if size(self.waveform1, 1) ~= size(self.waveform2, 1)
         error('Waveforms should have the same number of segments');
     end
+    if self.mkrauto
+        self.marker1 = double(self.waveform1 ~= 0);
+        self.marker2 = double(self.waveform2 ~= 0);
+    end
     % Interpolate time axis and waveforms using sampling rate
     dt = 1/self.samplingrate;
     taxis = self.timeaxis(1):dt:self.timeaxis(end);
