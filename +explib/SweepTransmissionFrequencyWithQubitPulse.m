@@ -2,20 +2,18 @@ classdef SweepTransmissionFrequencyWithQubitPulse < handle
         
     properties
         % change these to tweak the experiment
-        startFreq=10.163e9;
-        stopFreq=10.168e9;
-        points = 51;
+        startFreq=10.165e9;
+        stopFreq=10.1664e9;
+        points = 101;
         gateType = 'X180';
-%         qubitFreq = 4.7729e9;
-        qubitFreq = 4.781e9;
-        qubitAmp = .7030; % qubit pulse amplitude
-%         qubitAmp = 0; % qubit pulse amplitude
-        qubitSigma = 5e-9; % qubit pulse sigma
+%         qubitFreq = 4.781e9;
+        qubitFreq = 3e9;
+%         qubitAmp = .7030; % qubit pulse amplitude
+        qubitAmp = .00; % qubit pulse amplitude
+        qubitSigma = 4e-9; % qubit pulse sigma
         interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
-%         cavityFreq=10.16578e9; % cavity frequency
-%         cavityFreq=10.16588e9; % cavity frequency
-%         cavityAmp=0.63;       % cavity pulse amplitude
-        cavityAmp=.4;       % cavity pulse amplitude
+        cavityFreq=10.165830e9; % cavity frequency
+        cavityAmp=.55;       % cavity pulse amplitude
         measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
@@ -62,9 +60,11 @@ classdef SweepTransmissionFrequencyWithQubitPulse < handle
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
                 iMeasMod=cos(2*pi*freq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*freq*t).*qMeasBaseband;
-                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+%                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+                ch1waveform = iMeasMod+qMeasMod;
                 % background is measurement pulse to get contrast
-                backgroundWaveform = iMeasMod+qMeasMod;
+%                 backgroundWaveform = iMeasMod+qMeasMod;
+                backgroundWaveform = zeros(size(ch1waveform));
                 s1=w.newSegment(ch1waveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
                 p1=w.newPlaylistItem(s1);
                 % create LO segment with same id to play simultaneously
@@ -85,9 +85,10 @@ classdef SweepTransmissionFrequencyWithQubitPulse < handle
             display(' ')
             display('Running experiment')
             % integration times
-            intStart=4000; intStop=8000;
+%             intStart=4000; intStop=8000;
+            intStart=1; intStop=4000;
             % software averages
-            softavg=20;
+            softavg=50;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);

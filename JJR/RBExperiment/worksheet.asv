@@ -80,10 +80,10 @@ clear x
 % x = explib.X180AmpCal(pulseCal,0:1:20,20);
 % x = explib.X90AmpCal(pulseCal,0:2:40,10);
 % x = explib.X180RabiExperiment(pulseCal)
-stepSize = .1e-6; steps = 50; start = 50e-9;
+stepSize = 10e-9; steps = 50; start = 50e-9;
 durationList=start:stepSize:stepSize*steps+start;
 durationList(end)
-x = explib.RabiDecay_v2(pulseCal,durationList,0,10);
+x = explib.RabiDecay_v2(pulseCal,durationList,.5,10);
 % x = explib.RotaryEcho(pulseCal)
 % x = explib.RBExperimentV2(pulseCal);
 

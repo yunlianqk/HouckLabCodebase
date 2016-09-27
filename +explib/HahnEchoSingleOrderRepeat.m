@@ -2,9 +2,9 @@
 % this script repeats a single experiment multiple times.  since loading
 % the waveforms is done only once many iterations can be done.
 
-echoOrder = 25;
-delayList = 6e-6:1.00e-6:106e-6; % total delay from 1st to last pulse
-softwareAverages = 20; 
+echoOrder = 1;
+delayList = logspace(-5.8,-3.6,50); % total delay from 1st to last pulse
+softwareAverages = 5; 
 
 %initializions
 display([' ']);

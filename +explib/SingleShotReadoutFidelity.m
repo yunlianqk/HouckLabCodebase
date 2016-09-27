@@ -1,12 +1,13 @@
-classdef SingleShotHistograms < handle
+classdef SingleShotReadoutFidelity < handle
     % alternate between trials in the ground state and trials in the
     % excited. Keep single shot data and histogram them.
     
     properties 
-        experimentName = 'SingleShotHistograms';
+        experimentName = 'SingleShotReadoutFidelity';
         % inputs
         pulseCal;
-        softwareRepeats = 100; % to collect more trials
+        trials;
+        doPlot = 1;
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
@@ -17,20 +18,20 @@ classdef SingleShotHistograms < handle
     end
     
     methods
-        function obj=SingleShotHistograms(pulseCal,varargin)
+        function obj=SingleShotReadoutFidelity(pulseCal,varargin)
             % constructor. Overwrites ampVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
             % update method.
             obj.pulseCal = pulseCal;
-%             nVarargs = length(varargin);
-%             switch nVarargs
-%                 case 1
-%                     obj.softwareRepeats = varargin{1};
-%                 case 2
-%                     obj.ampVector = varargin{1};
-%                     obj.softwareAverages = varargin{2};
-%             end
+            nVarargs = length(varargin);
+            switch nVarargs
+                case 1
+                    obj.trials = varargin{1};
+                case 2
+                    obj.trials = varargin{1};
+                    obj.doPlot = varargin{2};
+            end
             obj.update();
         end
     
@@ -48,6 +49,7 @@ classdef SingleShotHistograms < handle
         
         function playlist = directDownloadM8195A(obj,awg)
             display(' ')
+        softwareRepeats = 1; % to collect more trials
             display(['Generating waveforms for ' obj.experimentName])
 
             % clear awg of segments
@@ -131,6 +133,7 @@ classdef SingleShotHistograms < handle
 %             intStop = obj.pulseCal.integrationStopIndex;
 %             softavg = obj.softwareAverages;
             % auto update some card settings
+            cardparams.averages=obj.trials;  % software averages PER SEGMENT
             cardparams.segments = length(playlist);
             cardparams.delaytime = obj.measStartTime + obj.pulseCal.cardDelayOffset;
             card.SetParams(cardparams);
@@ -138,82 +141,90 @@ classdef SingleShotHistograms < handle
 %             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
             
             % READ
-            % intialize matrices
-            ex = zeros(obj.softwareRepeats,cardparams.averages);
-            gnd = zeros(obj.softwareRepeats,cardparams.averages);
-            for ind = 1:obj.softwareRepeats
-                [Idata, Qdata] = card.ReadIandQsingleShot(awg,playlist);
-                Isum = sum(Idata);
-                Isum = sum(Qdata);
-                Adata = sqrt(Idata.^2+Qdata.^2);
-                Aint = sum(Adata);
-                ex(ind,:) = Aint(1,1:2:end);
-                gnd(ind,:) = Aint(1,2:2:end);
-                
-                figure(111);
-                h1 = histogram(ex(1:ind,:))
-                hold on
-                h2 = histogram(gnd(1:ind,:))
-                h2.BinWidth = h1.BinWidth;
-                h1.Normalization = 'probability';
-                h2.Normalization = 'probability';
-                hold off
-                drawnow
+            [Idata, Qdata] = card.ReadIandQsingleShot(awg,playlist);
+            Idata=Idata(1:cardparams.samples,:);
+            Qdata=Qdata(1:cardparams.samples,:);
+            Adata = sqrt(Idata.^2+Qdata.^2);
+            
+            % trying all different integration windows
+            Icumsum = cumsum(Idata)./repmat((1:cardparams.samples)',1,cardparams.averages*2);
+            Qcumsum = cumsum(Qdata)./repmat((1:cardparams.samples)',1,cardparams.averages*2);
+            Acumsum = cumsum(Adata)./repmat((1:cardparams.samples)',1,cardparams.averages*2);
+            % extracting excited and ground states
+            exCumsum = Acumsum(:,1:2:end);
+            gndCumsum = Acumsum(:,2:2:end);
+            % finding threshold and fidelity for all possible windows
+            % sort to create cumulative distribution function
+            gndCDF=sort(gndCumsum,2);
+            exCDF=sort(exCumsum,2);
+            yvals = (1:size(gndCDF,2))./size(gndCDF,2);
+            % find max voltage range over which to do interpolation
+            xstart = min([gndCDF(:,1); exCDF(:,1)]);
+            xstop = max([gndCDF(:,end); exCDF(:,end)]);
+            denseCDFxaxis = linspace(xstart,xstop,300);
+            % do interpolation for each window
+%             gndCDFSmooth = zeros(size(gndCDF,1),length(denseCDFxaxis));
+%             exCDFSmooth = zeros(size(gndCDF,1),length(denseCDFxaxis));
+            gndCDFSmooth = zeros(size(gndCDF,1),length(denseCDFxaxis))';
+            exCDFSmooth = zeros(size(gndCDF,1),length(denseCDFxaxis))';
+            for ind2 = 2:1:size(gndCDF,1)
+%                 gndCDFsmooth(ind2,:) = interp1(gndCDF(ind2,:),yvals,denseCDFxaxis,'nearest','extrap');
+%                 exCDFsmooth(ind2,:) = interp1(exCDF(ind2,:),yvals,denseCDFxaxis,'nearest','extrap');
+                gndCDFsmooth(:,ind2) = interp1(gndCDF(ind2,:),yvals,denseCDFxaxis,'nearest','extrap');
+                exCDFsmooth(:,ind2) = interp1(exCDF(ind2,:),yvals,denseCDFxaxis,'nearest','extrap');
             end
-                
-%             
-%             %             for ind=1:softavg
-%                 % "hardware" averaged I,I^2 data
-%             
-%                 clear tempI2 tempQ2 % these aren't being used right now...
-%                 % software acumulation
-%                 Idata=Idata+tempI;
-%                 Qdata=Qdata+tempQ;
-%                 % Pdata=Pdata+tempI2+tempQ2; % correlation function version
-%                 Pdata=Idata.^2+Qdata.^2;
-%                 Pint=mean(Pdata(:,intStart:intStop)');
-%                 % phaseData = phaseData + atan(tempQ./tempI);
-%                 % phaseInt = mean(phaseData(:,intStart:intStop)');
-% 
-%                 timeString = datestr(datetime);
-%                 if ~mod(ind,10)
-%                     figure(187);
-%                     subplot(2,3,[1 2 3]); 
-%                     newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
-%                     % plot(obj.ampVector,sqrt(Pint));
-%                     title([obj.experimentName ' ' timeString ' newAmp = ' num2str(newAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-%                     ylabel('Integrated sqrt(I^2+Q^2)'); xlabel('Pulse Amplitude');
-%                     subplot(2,3,4);
-%                     imagesc(taxis,obj.ampVector,Idata/ind);
-%                     title('I'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
-%                     subplot(2,3,5); 
-%                     imagesc(taxis,obj.ampVector,Qdata/ind);
-%                     title('Q'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
-%                     subplot(2,3,6);
-%                     imagesc(taxis,obj.ampVector,Pdata/ind);
-%                     title('I^2+Q^2'); ylabel('Pulse Amplitude'); xlabel('Time (\mus)');
-%                     drawnow
-%                 end
-%             end
-%             figure(187);
-%             subplot(2,3,[1 2 3]);
-%             newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));
-%             title([obj.experimentName ' ' timeString ' newAmp = ' num2str(newAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-%             ylabel('Integrated sqrt(I^2+Q^2)'); xlabel('Pulse Amplitude');
-%             
-%             result.taxis = taxis;
-%             result.Idata=Idata./softavg;
-%             result.Qdata=Qdata./softavg;
-%             result.Pdata=Pdata./softavg;
-%             result.Pint=Pint./softavg;
-%             result.newAmp=newAmp;
-            result.ex = ex;
-            result.gnd = gnd;
+            gndCDFsmooth=gndCDFsmooth';
+            exCDFsmooth=exCDFsmooth';
+            % subract to find fidelity and threshold
+            CDFdiff=gndCDFsmooth-exCDFsmooth;
+            [fidelity, threshInd] = max(CDFdiff,[],2);
+            thresholds = denseCDFxaxis(threshInd);
+            % locate optimum window
+            [optimalFidelity, optimalWindow] = max(fidelity);
+            optimalThreshold = thresholds(optimalWindow);
+            gndOptCDF=gndCDF(optimalWindow,:);
+            exOptCDF=exCDF(optimalWindow,:);
+            
+            
+            if obj.doPlot
+                timeString = datestr(datetime);
+                % plot results
+                figure(691);
+                subplot(1,3,1)
+                histogram(gndOptCDF),hold on
+                histogram(exOptCDF),hold off
+                plotlib.vline(optimalThreshold)
+                title([obj.experimentName ' ' timeString])
+                xlabel('Integrated Voltage')
+                ylabel('Single Shot Count')
+                subplot(1,3,2)
+                plot(gndOptCDF,yvals,'b.',exOptCDF,yvals,'r.')
+                plotlib.vline(optimalThreshold)
+                xlabel('Integrated Voltage')
+                ylabel('Cumulative Distribution Functions')
+                title(['Fidelity: ' num2str(optimalFidelity) ' Threshold: ' num2str(optimalThreshold)])
+                subplot(1,3,3)
+                plot(fidelity(2:end))
+                plotlib.vline(optimalWindow)
+                xlabel('Samples in Window')
+                ylabel('Cumulative Distribution Functions')
+                title(['Optimal Samples: ' num2str(optimalWindow)])
+            end
+            
+            result.optimalFidelity = optimalFidelity;
+            result.optimalWindow = optimalWindow;
+            result.optimalThreshold = optimalThreshold;
+            result.fidelity = fidelity;
+            result.threshold = thresholds;
+            result.gndOptCDF = gndOptCDF;
+            result.exOptCDF = exOptCDF;
+
             display('Experiment Finished')
          end
     end
 end
-        
+
+
         
         
         

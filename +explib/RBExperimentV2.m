@@ -8,7 +8,7 @@ classdef RBExperimentV2 < handle
         pulseCal;
 %         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
         sequenceLengths = floor(2*(linspace(1,21,32)).^2);
-        softwareAverages = 50;
+        softwareAverages = 5;
         % these are auto calculated
         primitives; % object array of primitive gates.
         iPrimitiveWaveforms; % baseband waveforms never change, so only calculate them once.
@@ -201,7 +201,8 @@ classdef RBExperimentV2 < handle
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-            
+            iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
+            qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
             % since measurement pulse never changes
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
@@ -241,9 +242,9 @@ classdef RBExperimentV2 < handle
                 
                 % RB Sequence object takes END time as an input!
 %                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, obj.rbEndTime);
-                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+                iQubitMod=iQubitCarrier*iQubitBaseband;
 %                 clear iQubitBaseband;
-                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+                qQubitMod=qQubitCarrier.*qQubitBaseband;
 %                 clear qQubitBaseband;
 %                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
 %                 iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
@@ -288,9 +289,9 @@ classdef RBExperimentV2 < handle
             ig = obj.primitives(1);
             tCenter = obj.rbEndTime - ig.totalDuration/2;
             [iQubitBaseband qQubitBaseband] = ig.uwWaveforms(t, tCenter);
-            iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+            iQubitMod=iQubitCarrier.*iQubitBaseband;
             clear iQubitBaseband;
-            qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+            qQubitMod=qQubitCarrier.*qQubitBaseband;
             clear qQubitBaseband;
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
@@ -333,9 +334,9 @@ classdef RBExperimentV2 < handle
             ig = obj.primitives(2);
             tCenter = obj.rbEndTime - ig.totalDuration/2;
             [iQubitBaseband qQubitBaseband] = ig.uwWaveforms(t, tCenter);
-            iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+            iQubitMod=iQubitCarrier.*iQubitBaseband;
             clear iQubitBaseband;
-            qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+            qQubitMod=qQubitCarrier.*qQubitBaseband;
             clear qQubitBaseband;
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;

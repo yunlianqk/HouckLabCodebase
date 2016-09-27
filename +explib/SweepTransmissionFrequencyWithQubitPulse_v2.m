@@ -1,21 +1,14 @@
-classdef HahnEchoNthOrder < handle
-    % Hahn Echo experiment - pi/2, delay, pi, delay, pi/2.  Should end up
-    % in ground state.  Sweep delays and fit for T2Echo. 
+classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
+    % T1 Experiment. X pulse with varying delay. JJR 2016, Princeton
     
     properties 
-        experimentName = 'HahnEchoNthOrder';
+        experimentName = 'SweepTransmissionFrequencyWithQubitPulse_v2';
         % inputs
         pulseCal;
-        echoOrder = 1; % # of pi pulses done between the two pi/2 pulses, should be odd
-%         delayList = .660e-6:.1e-6:50e-6; % total delay from 1st to last pulse
-%         delayList = logspace(-7,-3.6,50); % total delay from 1st to last pulse
-        delayList = logspace(-5.8,-3.6,50); % total delay from 1st to last pulse
-        softwareAverages = 5; 
+        freqVector = linspace(10.164e9,10.167e9,101);
+        softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
-        X90; % qubit pulse object
-        X180; % echo pulse
-        zeroGate; % qubit pulse (identity) for normalization
-        oneGate; % qubit pulse (X180) for normalization
+        qubit; % main pulse
         sequences; % gateSequence objects
         measurement; % measurement pulse object
         measStartTime; 
@@ -25,7 +18,7 @@ classdef HahnEchoNthOrder < handle
     end
     
     methods
-        function obj=HahnEchoNthOrder(pulseCal,varargin)
+        function obj=SweepTransmissionFrequencyWithQubitPulse_v2(pulseCal,varargin)
             % constructor. Overwrites delayList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -34,18 +27,14 @@ classdef HahnEchoNthOrder < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.echoOrder = varargin{1};
+                    obj.freqVector = varargin{1};
                 case 2
-                    obj.echoOrder = varargin{1};
-                    obj.delayList = varargin{2};
-                case 3
-                    obj.echoOrder = varargin{1};
-                    obj.delayList = varargin{2};
-                    obj.softwareAverages = varargin{3};
+                    obj.freqVector = varargin{1};
+                    obj.softwareAverages = varargin{2};
             end
             obj.update();
         end
-
+        
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
@@ -68,32 +57,22 @@ classdef HahnEchoNthOrder < handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.X90 = obj.pulseCal.X90();
-            obj.X180 = obj.pulseCal.X180();
-            obj.zeroGate = obj.pulseCal.Identity();
-            obj.oneGate = obj.pulseCal.X180(); 
+            obj.qubit = obj.pulseCal.X180();
+%             obj.zeroGate = obj.pulseCal.Identity();
+%             obj.oneGate = obj.pulseCal.X180(); 
                         
-            sequences(1,length(obj.delayList)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.delayList)
-                % use echoOrder chop up delay time into correct # of pieces
-                numDelays = obj.echoOrder+1;
-                delayGateTime = obj.delayList(ind)/numDelays - obj.X90.totalDuration; % so that pulse delays match the delayList
-                delayGate = obj.pulseCal.Delay(delayGateTime);
-                gateArray = [obj.X90 delayGate];
-                for ind2 = 1:obj.echoOrder
-                    gateArray = [gateArray obj.X180 delayGate];
-                end
-                gateArray = [gateArray obj.X90];
+            sequences(1,length(obj.freqVector)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
+            for ind = 1:length(obj.freqVector)
+                gateArray = [obj.qubit];
                 sequences(ind)=pulselib.gateSequence(gateArray);
             end
             % create 0 and 1 normalization sequences at end
-            sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
-            sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
+%             sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
+%             sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
             obj.sequences=sequences;
         end
         
         function playlist = directDownloadM8195A(obj,awg)
-            display(['Generating waveforms for ' obj.experimentName])
             % avoid building full wavesets and WaveLib to save memory 
 
             % clear awg of segments
@@ -119,32 +98,30 @@ classdef HahnEchoNthOrder < handle
             % create time axis with correct # size
             t = 0:tStep:paddedWaveformEndTime;            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % generate LO and marker waveforms
-            loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
+            % generate marker waveforms
+            
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-            % since measurement pulse never changes
-            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-            clear iMeasBaseband
-            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
-            clear qMeasBaseband;
-            % background is measurement pulse to get contrast
-            backgroundWaveform = iMeasMod+qMeasMod;
             
             for ind=1:length(obj.sequences)
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
-%                 [iQubitMod, qQubitMod] = s.modWaveforms(t, tStart, obj.pulseCal.qubitFreq);
-                
-                
                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
                 clear qQubitBaseband;
+                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+                iMeasMod=cos(2*pi*obj.freqVector(ind)*t).*iMeasBaseband;
+                clear iMeasBaseband
+                qMeasMod=sin(2*pi*obj.freqVector(ind)*t).*qMeasBaseband;
+                clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+%                 ch1waveform = iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
+                loWaveform = sin(2*pi*obj.freqVector(ind)*t);
+                backgroundWaveform = zeros(size(ch1waveform));
+
                 % now directly loading into awg
                 dataId = ind*2-1;
                 backId = ind*2;
@@ -160,7 +137,6 @@ classdef HahnEchoNthOrder < handle
                 playlist(dataId).segmentAdvance = 'Stepped';
                 % load background segment
                 iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-%                 clear backgroundWaveform;
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create background playlist entry
@@ -174,7 +150,6 @@ classdef HahnEchoNthOrder < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
-            display(['Running ' obj.experimentName])
             % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;
             intStop = obj.pulseCal.integrationStopIndex;
@@ -201,55 +176,30 @@ classdef HahnEchoNthOrder < handle
                 % Pdata=Pdata+tempI2+tempQ2; % correlation function version
                 Pdata=Idata.^2+Qdata.^2;
                 Pint=mean(Pdata(:,intStart:intStop)');
-                % phaseData = phaseData + atan(tempQ./tempI);
-                % phaseInt = mean(phaseData(:,intStart:intStop)');
                 
-                % normalize amplitude
-                xaxisNorm=obj.delayList; % 
-                amp=sqrt(Pint);
-                norm0=amp(end-1);
-                norm1=amp(end);
-                normRange=norm1-norm0;
-                AmpNorm=(amp(1:end-2)-norm0)/normRange;
+%                 % normalize amplitude
+%                 xaxisNorm=obj.delayList; % 
+%                 amp=sqrt(Pint);
+%                 norm0=amp(end-1);
+%                 norm1=amp(end);
+%                 normRange=norm1-norm0;
+%                 AmpNorm=(amp(1:end-2)-norm0)/normRange;
                 
                 timeString = datestr(datetime);
-                if ~mod(ind,10)
-                    figure(187);
-                    subplot(2,3,[1 2 3]); 
-                    fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
-                    title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Delay');
-                    subplot(2,3,4);
-                    imagesc(taxis,[],Idata/ind);
-                    title('I'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,5); 
-                    imagesc(taxis,[],Qdata/ind);
-                    title('Q'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,6);
-                    imagesc(taxis,[],Pdata/ind);
-                    title('I^2+Q^2'); ylabel('segments'); xlabel('Time (\mus)');
+                if ~mod(ind,1)
+                    figure(101);
+                    plot(obj.freqVector,Pint);
+%                     ax = gca;
+%                     fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm,ax);
+%                     title(ax,[' T1: ' num2str(fitResults.lambda) '; N=' num2str(ind)])
+%                     ylabel('Normalized Amplitude'); xlabel('Delay');
                     drawnow
                 end
             end
-            figure(187);
-            subplot(2,3,[1 2 3]);
-            plot(xaxisNorm,AmpNorm);
-            fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
-            title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Delay');
-            result.taxis = taxis;
-            result.xaxisNorm = xaxisNorm;
-            result.Idata=Idata./softavg;
-            result.Qdata=Qdata./softavg;
-            result.Pdata=Pdata./softavg;
-            result.Pint=Pint./softavg;
-            result.AmpNorm=AmpNorm;
-            result.fitResults = fitResults;
-            display('Experiment Finished')
+            result.freqVector = obj.freqVector;
+            result.Pint = Pint;
         end
     end
 end
-       
-        
-        
+     
         

@@ -5,13 +5,14 @@ classdef RabiDecay < handle
     properties
         pulseCal;
         experimentName = 'RabiDecay'
-        durationList = 47e-9:.5e-6:150.05e-6;
-        rabiDrive = .05; % amplitdue for drive
-        softwareAverages = 500;
+%         durationList = 50e-9:.30e-6:100.05e-6;
+        durationList = 50e-9:1e-9:150e-9;
+        rabiDrive = .1; % amplitude for drive
+        softwareAverages = 10;
         % these are auto calculated
         qubit; % qubit pulse object
         measurement; % measurement pulse object
-        qubitStartTimes; % calculated times for when qubit rabi dravie should start
+        qubitStartTimes; % calculated times for when qubit rabi drive should start
         measStartTime; 
         measEndTime;
         waveformEndTime;
@@ -75,6 +76,7 @@ classdef RabiDecay < handle
             backgroundWaveform = iMeasMod+qMeasMod;
             
             for ind=1:length(obj.durationList)
+                display(['generating sequence ' num2str(ind)])
                 q=obj.qubit;
                 q.duration = obj.durationList(ind);
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitStartTimes(ind));
@@ -116,6 +118,7 @@ classdef RabiDecay < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
+            display('direct run started')
              % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;
             intStop = obj.pulseCal.integrationStopIndex;
