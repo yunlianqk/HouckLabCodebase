@@ -40,6 +40,16 @@ classdef GPIBINSTR < handle
                 display('Instrument is not open');
             end
         end
+        
+        function s = Info(self)
+            % Display and return instrument info
+            fprintf(self.instrhandle, '*IDN?');
+            s = fscanf(self.instrhandle, '%s');
+        end
+        function Reset(self)
+            % Reset instrument
+            fprintf(self.instrhandle, '*RST');
+        end
     end
     
 end
