@@ -39,3 +39,4 @@ power = rfgen.power;
   * **gen.PowerOff()**: Turns off power
   * **gen.ModOn()**: Turns on modulation
   * **gen.ModOff()**: Turns off modulation
+  * **gen.ShowError()**: Display and clear all error messages

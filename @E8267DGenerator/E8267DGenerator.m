@@ -36,5 +36,7 @@ classdef E8267DGenerator < GPIBINSTR
         
         ModOn(gen);
         ModOff(gen);
+        
+        ShowError(gen);
     end
 end
