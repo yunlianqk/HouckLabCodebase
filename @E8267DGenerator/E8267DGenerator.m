@@ -4,6 +4,7 @@ classdef E8267DGenerator < GPIBINSTR
     properties
         freq;
         power;
+        phase;
     end
     
     methods
@@ -16,20 +17,28 @@ classdef E8267DGenerator < GPIBINSTR
         function set.power(gen, power)
             SetPower(gen, power);
         end
+        function set.phase(gen, phase)
+            SetPhase(gen, phase);
+        end
         function freq = get.freq(gen)
             freq = GetFreq(gen);
         end
         function power = get.power(gen)
             power = GetPower(gen);
         end
+        function phase = get.phase(gen)
+            phase = GetPhase(gen);
+        end
         
         % Declaration of all other methods
         % Each method is defined in a separate file        
         SetFreq(gen, freq);
         SetPower(gen, power);
+        SetPhase(gen, phase);
         
         freq = GetFreq(gen);
         power = GetPower(gen);
+        phase = GetPhase(gen);
         
         PowerOn(gen);
         PowerOff(gen);
