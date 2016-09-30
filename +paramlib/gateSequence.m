@@ -62,7 +62,7 @@ classdef gateSequence < handle
                     % Replace the segment that covers the current gate
                     % with its waveforms
                     [iBaseband(start:stop), qBaseband(start:stop)] ...
-                        = gate{:}.iqSegment(tAxis(start:stop), tStart + tGate/2);
+                        = gate{:}.iqSegment(tAxis(start:stop), tStart);
                 end
                 tStart = tStart + tGate;
             end

@@ -86,12 +86,12 @@ classdef singleGate < handle
             % params can be either a struct or a pulseCal object
             
                 % List relevant fields/properties of params here 
-                paramlist = {'sigma', 'cutoff', 'buffer', ...
+                paramlist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
                              [self.name, 'Amplitude'], ...
                              [self.name, 'DragAmplitude']};
                 % List corresponding properites of self here
                 % The two list must have the same length
-                proplist = {'sigma', 'cutoff', 'buffer', ...
+                proplist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
                             'amplitude', 'dragAmplitude'};
                 for idx = 1:length(paramlist)
                     param = paramlist{idx};
@@ -149,11 +149,12 @@ classdef singleGate < handle
             qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
 
-        function [iBaseband, qBaseband] = iqSegment(self, tSegment, tCenter)
+        function [iBaseband, qBaseband] = iqSegment(self, tSegment, tStart)
             % Returns baseband signals for a given time segment
             iBaseband = zeros(1, length(tSegment));
             qBaseband = iBaseband;
             if ~strcmp(self.name, 'Identity')
+                tCenter = tStart + self.totalDuration/2;
                 g = self.gaussian(tSegment, tCenter);
                 d = self.drag(tSegment, tCenter);
                 gc = self.applyGaussianCutoff(tSegment, tCenter, g);
@@ -176,7 +177,7 @@ classdef singleGate < handle
                 start = find(tAxis>=(tCenter-tGate/2), 1);
                 stop = find(tAxis<=(tCenter+tGate/2), 1, 'last');
                 [iBaseband(start:stop), qBaseband(start:stop)] ...
-                    = self.iqSegment(tAxis(start:stop), tCenter);
+                    = self.iqSegment(tAxis(start:stop), tAxis(start));
             end
         end 
         
