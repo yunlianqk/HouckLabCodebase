@@ -1,13 +1,19 @@
 function Generate(self)
 % Load waveforms, create markers and generate output
 
-    % If waveform lengths are note equal or less than 128, throw error
+    % Auto generate markers
+    if self.mkrauto
+        self.marker1 = double(self.waveform1 ~= 0);
+        self.marker2 = double(self.waveform2 ~= 0);
+    end
+    % If waveform and marker lengths are note equal, throw error
     for len = [size(self.waveform1, 2), size(self.waveform2, 2), ...
                size(self.marker1, 2), size(self.marker2, 2)]
         if len ~= size(self.timeaxis, 2)
             error('Waveforms, markers and timeaxis should have same length');
         end
     end
+    % If waveform lengths are less than 128, throw error
     if size(self.waveform1, 2) < 128
         error('Waveforms should contain at least 128 points');
     end
@@ -15,10 +21,7 @@ function Generate(self)
     if size(self.waveform1, 1) ~= size(self.waveform2, 1)
         error('Waveforms should have the same number of segments');
     end
-    if self.mkrauto
-        self.marker1 = double(self.waveform1 ~= 0);
-        self.marker2 = double(self.waveform2 ~= 0);
-    end
+
     % Interpolate time axis and waveforms using sampling rate
     dt = 1/self.samplingrate;
     taxis = self.timeaxis(1):dt:self.timeaxis(end);
