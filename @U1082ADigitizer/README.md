@@ -17,7 +17,7 @@ cardparams.averages = 30000;
 cardparams.segments = 1;
 cardparams.delaytime = 10e-6;
 cardparams.couplemode = 'DC';
-cardparams.timeout = 10;
+cardparams.trigPeriod = 50e-6;
 ```
 Then either use the `SetParams` method
 ```matlab
