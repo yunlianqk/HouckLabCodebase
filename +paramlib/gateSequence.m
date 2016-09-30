@@ -24,7 +24,7 @@ classdef gateSequence < handle
             end
         end
 
-        function len = length(self)
+        function len = len(self)
             len = length(self.gateArray);
         end
         
