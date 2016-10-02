@@ -33,6 +33,7 @@ vpp = triggen.vpp;
   * **frequency**(*float*): Frequency
   
     For sine and square waves, the mininum frequency is 1 μHz and maximum is 80 MHz.
+  * **period**(*float*): Period
   * **vpp**(*float*): Peak-to-peak voltage
   * **offset**(*float*): Offset voltage
   
@@ -47,11 +48,13 @@ vpp = triggen.vpp;
   * **triggen = AWG33250A(address)**: Opens the instrument with `address` and creates an object `triggen`
   * **triggen.SetWaveform(waveform)**: Sets the waveform
   * **triggen.SetFreq(frequency)**: Sets the frequency
+  * **triggen.SetPeriod(period)**: Sets the period
   * **triggen.SetVpp(vpp)**: Sets peak-to-peak voltage
   * **triggen.SetOffset(offset)**: Sets offset voltage
   * **triggen.SetDutyCycle(dutycycle)**: Sets duty cycle
   * **waveform = triggen.GetWaveform()**: Gets the waveform
   * **frequency = triggen.GetFreq()**: Gets the frequency
+  * **period = triggen.GetPeriod()**: Gets the period
   * **vpp = triggen.GetVpp()**: Gets peak-to-peak voltage
   * **offset = triggen.GetOffset()**: Gets offset voltage
   * **dutycycle = triggen.GetDutyCycle()**: Gets duty cycle
