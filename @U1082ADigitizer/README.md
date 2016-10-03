@@ -116,7 +116,7 @@ A class to store parameters for Acqiris digitizer
 ## Hardware specifications
 The following specs are only for reference. Check the [datasheet](./Specs.pdf) for details.
 
-- **fullscale**  can be selectable from 0.05 V to 5 V in 1, 2, 5 sequence
+- **fullscale** is selectable from 0.05 V to 5 V in 1, 2, 5 sequence
 - **offset** can be within ± 2 V for 0.05/0.5 V fullscale, and ± 5 V for 1 to 5 V fullscale
 - **sampleinterval** is selectable from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
 - **samples** can be 16 to 2 Mega (2^21) in steps of 16

@@ -28,6 +28,7 @@ classdef YOKOGS200 < GPIBINSTR
         voltage = GetVoltage(yoko); % Get voltage
         SetCurrent(yoko, current); % Set current
         current = GetCurrent(yoko); % Get current
+		
         PowerOn(yoko); % Turn on output
         PowerOff(yoko); % Turn off output
         ShowError(yoko); % Display and clear error

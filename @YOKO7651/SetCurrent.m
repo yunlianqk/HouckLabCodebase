@@ -1,11 +1,11 @@
 function SetCurrent(yoko, current)
 % Set current
-	start = yoko.GetCurrent();
+    start = yoko.GetCurrent();
     stop = current;
     steps = round(abs(stop - start)/yoko.rampstep);
-    yoko.PowerOn();
+	yoko.PowerOn();
     for tempcurrent = linspace(start, stop, steps)
-        fprintf(yoko.instrhandle, ':SOURce:LEVel:AUTO %f', tempcurrent);
+        fprintf(yoko.instrhandle, 'SA%f;E;', tempcurrent);
         pause(yoko.rampinterval);
     end
 end

@@ -32,12 +32,15 @@ voltage = yoko.voltage;
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only): Handle to communicate with instrument
-  * **rampstep** (*float*): Voltage increment for each step, in volts
+  * **rampstep** (*float*): Voltage/current increment for each step, in volts/amperes
   * **rampinterval** (*float*): Time interval between 2 steps, in seconds
   * **voltage** (*float*): Output voltage, in volts
+  * **current**(*float*): Output current, in amperes
 * **Methods**:
   * **yoko = YOKOGS200(address)**: Opens the instrument with `address` and creates an object `yoko`
   * **yoko.SetVoltge(voltage)**: Sets the voltage
   * **voltage = yoko.GetVoltage()**: Gets the voltage
+  * **yoko.SetCurrent(current)**: Sets the current
+  * **current = yoko.GetCurrent()**: Gets the current
   * **yoko.PowerOn()**: Turns on output
   * **yoko.PowerOff()**: Turns off output
