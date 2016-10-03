@@ -9,7 +9,7 @@ pnax = PNAXAnalyzer(address);
 ### Create measurements
 To set up a transmission scan, first create a [**paramlib.pnax.trans**](#transparams) *object* that contains the parameters:
 ```matlab
-transCh1 = paramlib.pnax.trans();
+transCh1 = paramlib.pnax.trans();  % Use paramlib.pnax.spec() for spectroscopy measurement
 transCh1.start = 5e9;
 transCh1.stop = 6e9;
 transCh1.points = 1001;
@@ -55,7 +55,7 @@ pnax.params.stop = 10e9;
 ```
 Of course you can also use 
 ```matlab
-transCh2.stop =  10e9;
+transCh2.stop = 10e9;
 transCh2.power = -40;
 pnax.SetParams(transCh2);
 ```
@@ -187,7 +187,7 @@ A class to store parameters for power sweep measurement
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
 ##### SetParams
-`pnax.SetParams(transparams)` sets up the [parameters](#transparams) for a measurement.
+`pnax.SetParams(params)` sets up the [parameters](#transparams) for a measurement.
 
 ##### SetActiveChannel
 `pnax.SetActiveChannel(channel)` sets the channel specified by *interger* `channel` as active.
@@ -199,7 +199,7 @@ A class to store parameters for power sweep measurement
 `pnax.SetActiveMeas(meas)` sets the measurement specified by *string* `meas` as active.
 
 ##### GetParams
-`params = pnax.GetParams()` returns a *object* `params` containing the [parameters](#transparams) of the active measurement.
+`params = pnax.GetParams()` returns an *object* `params` containing the [parameters](#transparams) of the active measurement.
 
 ##### GetChannelList
 `chlist = pnax.GetChannelList()` returns an *array* `chlist` containing the number for each channel.
