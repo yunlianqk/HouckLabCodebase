@@ -31,9 +31,7 @@ classdef T1 < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
-        end        
-        function SetUp(self)
-            self.UpdateParams();
+            
             self.gateseq = [];
             X180 = self.pulseCal.X180();
             for delay = self.delayList
@@ -43,6 +41,9 @@ classdef T1 < measlib.SmartSweep
             end
             self.measpulse = self.pulseCal.measurement();
             self.IQdata.rowAxis = self.delayList;
+        end        
+        function SetUp(self)
+            self.UpdateParams();
             SetUp@measlib.SmartSweep(self);
         end
         function T1 = FitResult(self)

@@ -31,9 +31,6 @@ classdef X180Rabi < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
-        end
-        function SetUp(self)
-            self.UpdateParams();
             self.gateseq = [];
             dragRatio = self.pulseCal.X180DragAmplitude/self.pulseCal.X180Amplitude;
             for amp = self.ampVector
@@ -45,6 +42,9 @@ classdef X180Rabi < measlib.SmartSweep
             end
             self.measpulse = self.pulseCal.measurement();
             self.IQdata.rowAxis = self.ampVector;
+        end
+        function SetUp(self)
+            self.UpdateParams();
             SetUp@measlib.SmartSweep(self);
         end
         function theta = FitResult(self)

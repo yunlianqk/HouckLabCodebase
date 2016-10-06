@@ -31,9 +31,7 @@ classdef Ramsey < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
-        end 
-        function SetUp(self)
-            self.UpdateParams();
+            
             self.gateseq = [];
             X90 = self.pulseCal.X90();
             for delay = self.delayList
@@ -44,6 +42,9 @@ classdef Ramsey < measlib.SmartSweep
             end
             self.measpulse = self.pulseCal.measurement();
             self.IQdata.rowAxis = self.delayList;
+        end 
+        function SetUp(self)
+            self.UpdateParams();
             SetUp@measlib.SmartSweep(self);
         end
         function T2 = FitResult(self)
