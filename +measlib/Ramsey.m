@@ -4,7 +4,7 @@ classdef Ramsey < measlib.SmartSweep
     
     properties
         delayList = linspace(0, 20e-6, 101);
-        pulseCal;
+        pulseCal =  paramlib.pulseCal();
     end
     
     methods
@@ -12,17 +12,18 @@ classdef Ramsey < measlib.SmartSweep
             self = self@measlib.SmartSweep();
             self.name = 'Ramsey';
             self.IQdata.meastype = 'Ramsey';
-        end
-        function SetUp(self)
-            if isempty(self.pulseCal)
-                self.pulseCal = paramlib.pulseCal();
+            self.speccw = 0;
+            self.rfcw = 0;
+            if nargin == 1
+                self.pulseCal = pulseCal;
             end
+            self.UpdateParams();            
+        end
+        function UpdateParams(self)
             self.specfreq = self.pulseCal.qubitFreq;
             self.specpower = self.pulseCal.specPower;
-            self.speccw = 0;
             self.rffreq = self.pulseCal.cavityFreq;
             self.rfpower = self.pulseCal.rfPower;
-            self.rfcw = 0;
             self.intfreq = self.pulseCal.intFreq;
             self.lopower = self.pulseCal.loPower;
             self.startBuffer = self.pulseCal.startBuffer;
@@ -30,6 +31,9 @@ classdef Ramsey < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
+        end 
+        function SetUp(self)
+            self.UpdateParams();
             X90 = self.pulseCal.X90();
             for delay = self.delayList
                 currentseq = paramlib.gateSequence(X90);
