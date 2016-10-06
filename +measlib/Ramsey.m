@@ -34,6 +34,7 @@ classdef Ramsey < measlib.SmartSweep
         end 
         function SetUp(self)
             self.UpdateParams();
+            self.gateseq = [];
             X90 = self.pulseCal.X90();
             for delay = self.delayList
                 currentseq = paramlib.gateSequence(X90);

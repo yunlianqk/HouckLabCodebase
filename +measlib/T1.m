@@ -34,6 +34,7 @@ classdef T1 < measlib.SmartSweep
         end        
         function SetUp(self)
             self.UpdateParams();
+            self.gateseq = [];
             X180 = self.pulseCal.X180();
             for delay = self.delayList
                 currentseq = paramlib.gateSequence(X180);

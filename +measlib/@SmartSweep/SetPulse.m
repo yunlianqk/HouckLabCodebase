@@ -37,5 +37,8 @@ function SetPulse(self)
     self.seqEndTime = self.startBuffer + seqDuration;
     self.measStartTime = self.seqEndTime + self.measBuffer;
     self.waveformEndTime = self.measStartTime + measDuration + self.endBuffer;
-    self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
+    if isempty(self.awgch1) || isempty(self.awgch2) ...
+       || isempty(self.awgch3) || isempty(self.awgch4)
+        self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
+    end
 end

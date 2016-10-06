@@ -34,6 +34,7 @@ classdef Echo < measlib.SmartSweep
         end        
         function SetUp(self)
             self.UpdateParams();
+            self.gateseq = [];
             X90 = self.pulseCal.X90();
 			X180 = self.pulseCal.X180();
 			Xm90 = self.pulseCal.Xm90();

@@ -85,13 +85,13 @@ function InitInstr(self)
         pulsegen1.waveform1 = self.awgch1(1, :);
     end
     if ~isempty(self.awgch2)
-        pulsegen1.waveform2 = self.awgch1(1, :);
+        pulsegen1.waveform2 = self.awgch2(1, :);
     end
     if ~isempty(self.awgch3)
-        pulsegen2.waveform1 = self.awgch1(1, :);
+        pulsegen2.waveform1 = self.awgch3(1, :);
     end
     if ~isempty(self.awgch4)
-        pulsegen2.waveform2 = self.awgch1(1, :);
+        pulsegen2.waveform2 = self.awgch4(1, :);
     end
     
     pulsegen1.mkr1offset = -64;

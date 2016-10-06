@@ -34,6 +34,7 @@ classdef X180Rabi < measlib.SmartSweep
         end
         function SetUp(self)
             self.UpdateParams();
+            self.gateseq = [];
             dragRatio = self.pulseCal.X180DragAmplitude/self.pulseCal.X180Amplitude;
             for amp = self.ampVector
                 X180 = self.pulseCal.X180();
