@@ -7,12 +7,15 @@ classdef SmartSweep < handle
         % Main parameters
         rffreq = [];  % rfgen frequency
         rfpower = [];  % rfgen power
+        rfphase = [];  % rfgen phase
         rfcw = 1;  % 1: rfgen in continuous mode; 0: rfgen in modulation mode
         specfreq = [];  % specgen frequency
         specpower = [];  % specgen power
+        specphase = [];  % specgen phase
         speccw = 1;  % 1: specgen in continuous mode; 0: specgen in modulation mode
         intfreq = 0;  % Intermediate frequency between logen and rfgen
         lopower = 11;  % logen power
+        lophase = [];  % logen phase
         yoko1volt = [];  % yoko1 voltage
         gateseq = [];  % gate sequences for pulsegen1 channel1 and channel 2
         measpulse = [];  % measurement pulse for pulsegen2 channel1

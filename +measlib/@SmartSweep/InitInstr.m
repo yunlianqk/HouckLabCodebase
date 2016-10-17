@@ -14,6 +14,10 @@ function InitInstr(self)
         rfgen.SetPower(self.rfpower(1));
     end
     
+    if ~isempty(self.rfphase)
+        rfgen.SetPhase(self.rfphase(1));
+    end
+      
     if self.rfcw
         rfgen.ModOff();
     else
@@ -30,6 +34,10 @@ function InitInstr(self)
     
     if ~isempty(self.specpower)
         specgen.SetPower(self.specpower(1));
+    end
+    
+    if ~isempty(self.specphase)
+        specgen.SetPhase(self.specphase(1));
     end
     
     if self.speccw
@@ -49,6 +57,10 @@ function InitInstr(self)
     
     if ~isempty(self.lopower)
         logen.SetPower(self.lopower(1));
+    end
+    
+    if ~isempty(self.lophase)
+        logen.SetPhase(self.lophase(1));
     end
     
     % Init yoko
