@@ -35,7 +35,7 @@ voltage = yoko.voltage;
   * **rampstep** (*float*): Voltage/current increment for each step, in volts/amperes
   * **rampinterval** (*float*): Time interval between 2 steps, in seconds
   * **voltage** (*float*): Output voltage, in volts
-  * **current**(*float*): Output current, in amperes
+  * **current** (*float*): Output current, in amperes
 * **Methods**:
   * **yoko = YOKOGS200(address)**: Opens the instrument with `address` and creates an object `yoko`
   * **yoko.SetVoltge(voltage)**: Sets the voltage

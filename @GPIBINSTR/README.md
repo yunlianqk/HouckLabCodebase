@@ -10,6 +10,8 @@ A superclass containing some basic properties and methods that any GPIB instrume
 * **Methods**:
   * **self = GPIBINSTR(address)**: Opens the instrument using the GPIB `address` and returns an object
   * **self.SendCommand(command)**: Sends *string* `command` to the instrument
-  * **self.Info()**: Displays general information about instrument.
+  * **self.GetReply()**: Reads data from the instrument's output buffer
+  * **self.Query(command)**: Sends *string* `command` to the instrument and reads its output
+  * **self.Info()**: Displays general information about instrument
   * **self.Reset()**: Resets instrument
   * **self.Finalize()**: Closes the instrument
