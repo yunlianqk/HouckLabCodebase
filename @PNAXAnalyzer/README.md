@@ -7,9 +7,9 @@ address = 16; % GPIB address
 pnax = PNAXAnalyzer(address);
 ```
 ### Create measurements
-To set up a transmission scan, first create a [**TRANSParams**](#transparams) *object* that contains the parameters:
+To set up a transmission scan, first create a [**paramlib.pnax.trans**](#transparams) *object* that contains the parameters:
 ```matlab
-transCh1 = TRANSParams();
+transCh1 = paramlib.pnax.trans();  % Use paramlib.pnax.spec() for spectroscopy measurement
 transCh1.start = 5e9;
 transCh1.stop = 6e9;
 transCh1.points = 1001;
@@ -55,7 +55,7 @@ pnax.params.stop = 10e9;
 ```
 Of course you can also use 
 ```matlab
-transCh2.stop =  10e9;
+transCh2.stop = 10e9;
 transCh2.power = -40;
 pnax.SetParams(transCh2);
 ```
@@ -84,7 +84,7 @@ To get the x-axis, call the `ReadAxis` method:
 freqvector = pnax.ReadAxis();
 ```
 
-## Things to remember
+## Discussion
 - A **channel** contains several **measurements** that are of the same type. For example, all transmission measurements can (but not necessarily) be in channel 1 and all spectroscopy measurements can be in channel 2, but a trans and a spec cannot be in the same channel.
 - A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
 - <a name="measname"></a>The **naming convention** for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.
@@ -94,7 +94,7 @@ freqvector = pnax.ReadAxis();
 * **Properties**: 
   * **address** (*integer*, Read-only): GPIB address of the instrument
   * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
-  * [**params**](#transparams) (*object*, Dependent): Contains parameters for a measurement
+  * [**params**](#transparams) (*object*): Contains parameters for a measurement
   * **timeout** (*float*, Private): Wait time when there is error in communication
 
 * **Methods**:
@@ -133,7 +133,7 @@ freqvector = pnax.ReadAxis();
   * [**Finalize**](#finalize)
 
 
-#### <a name="transparams"></a>*class* TRANSParams
+#### <a name="transparams"></a>*class* paramlib.pnax.trans
 A class to store parameters for transmission measurement
 * **Properties**: 
   * **start** (*float*): start frequency
@@ -145,9 +145,11 @@ A class to store parameters for transmission measurement
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
 
-#### <a name="specparams"></a>*class* SPECParams
+#### *class* paramlib.pnax.spec
 A class to store parameters for spectroscopy measurement
 * **Properties**: 
   * **start** (*float*): start frequency
@@ -161,9 +163,11 @@ A class to store parameters for spectroscopy measurement
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
-#### <a name="psweepparams"></a>*class* PSWEEPParams
+#### *class* paramlib.pnax.psweep
 A class to store parameters for power sweep measurement
 * **Properties**:
   * **start** (*float*): start power
@@ -174,14 +178,16 @@ A class to store parameters for power sweep measurement
   * **cwfreq** (*float*): CW frequency
   * **trace** (*integer*): trace number
   * **meastype** (*string*): measurement type, e.g., 'S21', 'S13', etc.
-  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDE', 'KELV', 'FAHR', 'CELS'
+  * **format** (*string*): measurement format, possible values are 'MLOG', 'MLIN', 'PHAS', 'UPH', 'REAL', 'IMAG', 'SMIT', 'SADM', 'SWR', 'GDEL', 'KELV', 'FAHR', 'CELS'
+* **Methods**:
+  * **s = self.toStruct()**: Converts the object to a struct
   
 ## API Specifications
 ##### PNAXAnalyzer
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
 ##### SetParams
-`pnax.SetParams(transparams)` sets up the [parameters](#transparams) for a measurement.
+`pnax.SetParams(params)` sets up the [parameters](#transparams) for a measurement.
 
 ##### SetActiveChannel
 `pnax.SetActiveChannel(channel)` sets the channel specified by *interger* `channel` as active.
@@ -193,7 +199,7 @@ A class to store parameters for power sweep measurement
 `pnax.SetActiveMeas(meas)` sets the measurement specified by *string* `meas` as active.
 
 ##### GetParams
-`params = pnax.GetParams()` returns a *object* `params` containing the [parameters](#transparams) of the active measurement.
+`params = pnax.GetParams()` returns an *object* `params` containing the [parameters](#transparams) of the active measurement.
 
 ##### GetChannelList
 `chlist = pnax.GetChannelList()` returns an *array* `chlist` containing the number for each channel.

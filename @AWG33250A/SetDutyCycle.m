@@ -15,5 +15,5 @@ function SetDutyCycle(triggen, dutycycle)
         return;
     end
     
-    fprintf(triggen.instrhandle, 'FUNCtion:SQUare:DCYCle %g', dutycycle);
+    fprintf(triggen.instrhandle, 'FUNCtion:SQUare:DCYCle %f', dutycycle);
 end

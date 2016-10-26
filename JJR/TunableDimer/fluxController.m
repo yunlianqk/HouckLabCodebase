@@ -28,17 +28,25 @@ classdef fluxController < handle
             global yoko1
             global yoko2
             global yoko3
-            yoko1.SetVoltage(value(1));
-            yoko2.SetVoltage(value(2));
-            yoko3.SetVoltage(value(3));
+            % move yokos together to prevent unwanted flux excursions
+            startVoltage=obj.currentVoltage;
+            stopVoltage=value;
+            steps = round(abs(stopVoltage - startVoltage)./[yoko1.rampstep; yoko2.rampstep; yoko3.rampstep]);
+            maxSteps = max(steps);
+            vtraj=obj.generateTrajectory(startVoltage,stopVoltage, maxSteps);
+            for index=1:maxSteps
+                yoko1.SetVoltage(vtraj(1,index));
+                yoko2.SetVoltage(vtraj(2,index));
+                yoko3.SetVoltage(vtraj(3,index));
+            end
         end
         function currentVoltage=get.currentVoltage(obj) % queries the yokos and returns the voltages
             global yoko1
             global yoko2
             global yoko3
-            yoko1.GetVoltage()
-            yoko2.GetVoltage()
-            yoko3.GetVoltage()
+            yoko1.GetVoltage();
+            yoko2.GetVoltage();
+            yoko3.GetVoltage();
             currentVoltage = [yoko1.voltage; yoko2.voltage; yoko3.voltage];
         end
         function set.currentFlux(obj,value) % take flux point as input and set currentVoltage
@@ -106,13 +114,18 @@ classdef fluxController < handle
         end
         function visualizeTrajectories(obj,voltageTrajectory,fluxTrajectory) % pass both trajectories and get a nice visualization
             % use scatter plot to visualize
+%             x=1:size(voltageTrajectory,2);
             figure();
             subplot(1,2,1)
-            scatter3(voltageTrajectory(1,:),voltageTrajectory(2,:),voltageTrajectory(3,:))
-            title('Voltage Trajectory'),xlabel('yoko1'),ylabel('yoko2'),zlabel('yoko3')
+            plot(voltageTrajectory')
+%             scatter3(voltageTrajectory(1,:),voltageTrajectory(2,:),voltageTrajectory(3,:))
+            title('Voltage Trajectory'),xlabel('step'),ylabel('Yoko Voltage'),legend('yoko1','yoko2','yoko3')
             subplot(1,2,2)
-            scatter3(fluxTrajectory(1,:),fluxTrajectory(2,:),fluxTrajectory(3,:))
-            title('Flux Trajectory'),xlabel('Left Qubit'),ylabel('Right Qubit'),zlabel('Coupler')
+%             scatter3(fluxTrajectory(1,:),fluxTrajectory(2,:),fluxTrajectory(3,:))
+            plot(fluxTrajectory')
+            title('Flux Trajectory'),xlabel('Step'),ylabel('Flux'),legend('Left Qubit','Right Qubit','Coupler')
+            
+            
         end
     end
 end
