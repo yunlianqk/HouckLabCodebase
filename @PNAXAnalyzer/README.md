@@ -3,7 +3,7 @@
 See also the [example code](../ExampleCode/PNAX.m).
 ### Open instrument
 ```matlab
-address = 16; % GPIB address
+address = 'GPIB0::16::0::INSTR'; % GPIB address
 pnax = PNAXAnalyzer(address);
 ```
 ### Create measurements
@@ -92,8 +92,8 @@ freqvector = pnax.ReadAxis();
 ## Class definition
 #### *class* PNAXAnalyzer < GPIBINSTR
 * **Properties**: 
-  * **address** (*integer*, Read-only): GPIB address of the instrument
-  * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
+  * **address** (*string*): GPIB address of the instrument
+  * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
   * [**params**](#transparams) (*object*): Contains parameters for a measurement
   * **timeout** (*float*, Private): Wait time when there is error in communication
 

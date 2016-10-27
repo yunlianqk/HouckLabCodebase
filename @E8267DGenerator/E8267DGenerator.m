@@ -74,27 +74,27 @@ classdef E8267DGenerator < GPIBINSTR
         end
         function output = get.output(gen)
             fprintf(gen.instrhandle, 'OUTPut?');
-            output = fscanf(gen.instrhandle, '%f');
+            output = fscanf(gen.instrhandle, '%d');
         end
         function mod = get.modulation(gen)
             fprintf(gen.instrhandle, 'OUTPut:MODulation?');
-            mod = fscanf(gen.instrhandle, '%f');
+            mod = fscanf(gen.instrhandle, '%d');
         end
         function iq = get.iq(gen)
             iq = 0;
             if strfind(gen.Info(), 'E8267D')
             % Only E8267D has wideband I/Q modulation
                 fprintf(gen.instrhandle, 'WDM:STATe?');
-                iq = fscanf(gen.instrhandle, '%f');
+                iq = fscanf(gen.instrhandle, '%d');
             end
         end
         function pulse = get.pulse(gen)
             fprintf(gen.instrhandle, 'PULM:STATe?');
-            pulse = fscanf(gen.instrhandle, '%f');
+            pulse = fscanf(gen.instrhandle, '%d');
         end
         function alc = get.alc(gen)
             fprintf(gen.instrhandle, 'POWer:ALC?');
-            alc = fscanf(gen.instrhandle, '%f');
+            alc = fscanf(gen.instrhandle, '%d');
         end
         % Declaration of all other methods
         % Each method is defined in a separate file        

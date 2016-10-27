@@ -4,7 +4,7 @@ A superclass containing some basic properties and methods that any GPIB instrume
 ## Class definition
 #### *class* GPIBINSTR < handle
 * **Properties**: 
-  * **address** (*integer*): GPIB address of the instrument
+  * **address** (*string*): GPIB address of the instrument
   * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
   
 * **Methods**:

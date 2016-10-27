@@ -2,7 +2,7 @@
 ## Usage
 ### Open instrument
 ```matlab
-address = 10; % GPIB address
+address = 'GPIB0::10::0::INSTR'; % GPIB address
 triggen = AWG33250A(address);
 ```
 ### Set/get parameters
@@ -25,8 +25,8 @@ vpp = triggen.vpp;
 ## Class definition
 #### *class* AWG33250A < GPIBINSTR
 * **Properties**: 
-  * **address** (*integer*, Read-only): GPIB address of the instrument
-  * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
+  * **address** (*string*): GPIB address of the instrument
+  * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
   * **waveform** (*string*): Waveform
   
     Possible values are 'SIN', 'SQUARE', 'RAMP', 'PULSE', 'NOISE', 'DC', 'USER'. Only sine and square waveforms are fully implemented.

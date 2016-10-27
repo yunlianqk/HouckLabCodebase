@@ -56,7 +56,7 @@ classdef YOKOGS200 < GPIBINSTR
         SetCurrent(yoko, current); % Set current
         current = GetCurrent(yoko); % Get current
         SetMode(yoko, mode); % Set mode
-		mode = GetMode(yoko); % Get mode
+        mode = GetMode(yoko); % Get mode
         PowerOn(yoko); % Turn on output
         PowerOff(yoko); % Turn off output
         ShowError(yoko); % Display and clear error

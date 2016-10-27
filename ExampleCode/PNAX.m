@@ -3,7 +3,7 @@ repopath = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
 addpath(repopath);
 clear('repopath');
 %% Open PNAX 
-address = 16; % GPIB address for PNAX
+address = 'GPIB0::16::0::INSTR'; % GPIB address for PNAX
 pnax = PNAXAnalyzer(address);
 
 %% Delete everything

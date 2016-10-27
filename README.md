@@ -40,7 +40,7 @@ A typical usage of the code to communicate with an instrument involves **opening
 
 For example, to communicate with a YOKOGAWA GS200 voltage/current source, first create a **YOKOGS200** object using its GPIB address:
 ```matlab
-address = 2
+address = 'GPIB0::2::0::INSTR';
 yoko = YOKOGS200(address);
 ```
 Then set up the parameters:
@@ -72,7 +72,7 @@ yoko.Finalize();
 ```
 
 ## Remarks
-1.  All instrument classes are (inherit) **handle** classes. See [Comparison of Handle and Value Classes](http://www.mathworks.com/help/matlab/matlab_oop/comparing-handle-and-value-classes.html) for more details.
+1.  All instrument objects are **handle** objects. See [Comparison of Handle and Value Classes](http://www.mathworks.com/help/matlab/matlab_oop/comparing-handle-and-value-classes.html) for more details.
 2.  **Property set/get methods** are used for most instrument classes. For example, in [YOKOGS200.m](./@YOKOGS200/YOKOGS200.m) we define
     ```matlab
     function set.voltage(yoko, voltage)
@@ -91,7 +91,7 @@ The code can be used in various ways depending on your own preference.
 In [instruments_initialize.m](./instruments_initialize.m), all the instrument objects are declared as *global* variables:
 ```matlab
 global pnax;
-address = 16;
+address = 'GPIB0::16::0::INSTR';
 pnax = PNAXAnalyzer(address);
 ```
 The global property just makes it easy to access them inside other functions, but it is **not** mandatory. You can define them as normal variables as well.

@@ -2,10 +2,10 @@
 ## Usage
 ### Open instrument
 ```matlab
-address = 23; % GPIB address
+address = 'GPIB0::23::0::INSTR'; % GPIB address
 rfgen = E8267DGenerator(address);
 ```
-### Set/get frequency/power
+### Usage
 To set frequency,
 ```matlab
 rfgen.SetFreq(8e9);
@@ -22,11 +22,27 @@ or
 ```matlab
 power = rfgen.power;
 ```
+For continuous-wave generation, use
+```matlab
+rfgen.ModOff();
+```
+For I/Q modulation,
+```matlab
+rfgen.ModOn();
+```
+turns on modulation, wide-band I/Q modulation, pulse modulation and turns off ALC. These four configurations can also be set individually (E8257D model does not have wide-band I/Q modulation):
+```matlab
+rfgen.modulation = 1;
+rfgen.iq = 1;
+rfgen.pulsed = 1;
+rfgen.alc = 0;
+```
+
 ## Class definition
 #### *class* E8267DGenerator < GPIBINSTR
 * **Properties**: 
-  * **address** (*integer*, Read-only): GPIB address of the instrument
-  * **instrhandle** (*GPIB object*, Read-only):  Handle to communicate with instrument
+  * **address** (*string*): GPIB address of the instrument
+  * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
   * **frequency** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
   * **phase** (*float*): Phase (in deg) of the signal
