@@ -11,11 +11,12 @@ classdef GPIBINSTR < handle
     methods
         function self = GPIBINSTR(address)
             %  Open instrument
-            
+            success = 0;
+            self.address = address;
             % Extract integer primary GPIB address from full address string
             instrID = sscanf(address, 'GPIB0::%d::0::INSTR');
-            % If already open, attach handle to self
-            self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID)], ...
+            % Try finding the instrument using address
+            self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
                                          'Status', 'open');
             % If closed, open it and attach handle to self
             if isempty(self.instrhandle)
@@ -27,24 +28,26 @@ classdef GPIBINSTR < handle
                         % GPIB card and GPIB-USB adapter
                         self.instrhandle = visa(vendor{1}, address);
                         fopen(self.instrhandle);
-                        fprintf(self.instrhandle, '*IDN?');
-                        fscanf(self.instrhandle, '%s');
+                        success = 1;
                         break;
                     catch
                     end
-                    error([class(self), ' object initialization failed. ', ...
-                          'Address: ', num2str(address)]);
                 end
-
+            % If already open, do nothing
+            else
+                success = 1;
             end
-            self.address = address;
-            display([class(self), ' object created.']);
+            if ~success
+                error([class(self), ' object initialization failed. ', ...
+                      'Address: ', address]);
+            else
+                display([class(self), ' object created.']);
+            end
         end
         
         function Finalize(self)
             % Close instrhandle            
             if strcmp(self.instrhandle.Status, 'open')
-                clrdevice(self.instrhandle);  % Clear input and output buffer
                 fclose(self.instrhandle);
             end
             display([class(self), ' object finalized.']);
