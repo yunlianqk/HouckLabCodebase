@@ -25,7 +25,6 @@ pulsegen1.waveform2 = exp(-(taxis-ctr1).^2/(2*sigma^2)) ...
                      .*(taxis >= ctr2-4*sigma & taxis <= ctr2+4*sigma);
 
 %% Generate pulses
-pulsegen1.AutoMarker(); % Use this or provide your own marker
 pulsegen1.Generate();
 
 % Plot waveforms and markers
