@@ -1,14 +1,62 @@
-classdef ArbSequence < handle
+classdef AllXY< handle
     % This experiment allows for doing arbitrary sequences of gates.  Pass
     % as input a cell array containing the desired sequences.
+    % primitives(1) = obj.pulseCal.Identity(); etc...
+    % 1 = I
+    % 2 = X180
+    % 3 = X90
+    % 4 = Xm90
+    % 5 = Y180
+    % 6 = Y90
+    % 7 = Ym90
     
     properties 
-        experimentName = 'ArbSequence';
+        experimentName = 'AllXY';
         % inputs
         pulseCal;
-        gateLists = {{'X90', 'Y90', 'Xm90'},...
-                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'},...
-                     {'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90', 'X90', 'Y90', 'Xm90'}};
+        % AllXY sequence from Reed thesis
+        gateLists = {[1 1],...
+                     [2 2],...
+                     [5 5],...
+                     [2 5],...
+                     [5 2],...
+                     [3 1],...
+                     [6 1],...
+                     [3 6],...
+                     [6 3],...
+                     [3 5],...
+                     [6 2],...
+                     [2 6],...
+                     [5 3],...
+                     [3 2],...
+                     [2 3],...
+                     [6 5],...
+                     [5 6],...
+                     [2 1],...
+                     [5 1],...
+                     [3 3],...
+                     [6 6]};
+        seqNames = {'IdId',...
+                    'XpXp',...
+                    'YpYp',...
+                    'XpYp',...
+                    'YpXp',...
+                    'X9Id',...
+                    'Y9Id',...
+                    'X9Y9',...
+                    'Y9X9',...
+                    'X9Yp',...
+                    'Y9Xp',...
+                    'XpY9',...
+                    'YpX9',...
+                    'X9Xp',...
+                    'XpX9',...
+                    'Y9Yp',...
+                    'YpY9',...
+                    'XpId',...
+                    'YpId',...
+                    'X9X9',...
+                    'Y9Y9'}
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
         primitives; % array of gate objects the gateLists index into 
@@ -23,7 +71,7 @@ classdef ArbSequence < handle
     end
     
     methods
-        function obj=T2Experiment_v2(pulseCal,varargin)
+        function obj=AllXY(pulseCal,varargin)
             % constructor. Overwrites delayList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -32,9 +80,9 @@ classdef ArbSequence < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.delayList = varargin{1};
+                    obj.gateLists = varargin{1};
                 case 2
-                    obj.delayList = varargin{1};
+                    obj.gateLists= varargin{1};
                     obj.softwareAverages = varargin{2};
             end
             obj.update();
@@ -43,6 +91,7 @@ classdef ArbSequence < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
+            obj.initPrimitives();
             obj.initSequences(); % init routine to build gate sequences
             
             % generate measurement pulse
@@ -60,18 +109,28 @@ classdef ArbSequence < handle
             obj.sequenceEndTime = obj.measStartTime-obj.pulseCal.measBuffer;
         end
         
+        function obj=initPrimitives(obj)
+            primitives(1) = obj.pulseCal.Identity();
+            primitives(2) = obj.pulseCal.X180();
+            primitives(3) = obj.pulseCal.X90();
+            primitives(4) = obj.pulseCal.Xm90();
+            primitives(5) = obj.pulseCal.Y180();
+            primitives(6) = obj.pulseCal.Y90();
+            primitives(7) = obj.pulseCal.Ym90();
+            obj.primitives=primitives;
+        end
+        
         function obj=initSequences(obj)
-            % generate qubit objects
-            obj.X90 = obj.pulseCal.X90();
-            obj.X180 = obj.pulseCal.X180();
             obj.zeroGate = obj.pulseCal.Identity();
             obj.oneGate = obj.pulseCal.X180(); 
                         
-            sequences(1,length(obj.delayList)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.delayList)
-                delayGateTime = obj.delayList(ind) - obj.X90.totalDuration; % so that pulse delays match the delayList
-                delayGate = obj.pulseCal.Delay(delayGateTime);
-                gateArray = [obj.X90 delayGate obj.X180 delayGate obj.X90];
+            sequences(1,length(obj.gateLists)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
+            for ind = 1:length(obj.gateLists)
+                gateList = obj.gateLists{ind};
+                gateArray = [];
+                for ind2 = 1:length(gateList)
+                    gateArray = [gateArray obj.primitives(gateList(ind2))];
+                end
                 sequences(ind)=pulselib.gateSequence(gateArray);
             end
             % create 0 and 1 normalization sequences at end
@@ -189,23 +248,32 @@ classdef ArbSequence < handle
                 % phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 % normalize amplitude
-                xaxisNorm=obj.delayList; % 
+                xaxisNorm=1:length(obj.gateLists); % 
                 amp=sqrt(Pint);
                 norm0=amp(end-1);
                 norm1=amp(end);
                 normRange=norm1-norm0;
+%                 AmpNorm=(amp(1:end-2)-norm0)/normRange;
                 AmpNorm=(amp(1:end-2)-norm0)/normRange;
+                AmpNorm = -1*(AmpNorm*2)+1;
                 
                 timeString = datestr(datetime);
                 if ~mod(ind,10)
                     figure(187);
                     subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm,AmpNorm);
+                    plot(xaxisNorm,AmpNorm,'-o');
+                    set(gca,'xtick',(1:length(obj.seqNames)));
+                    set(gca,'xticklabel',obj.seqNames);
+                    ax = gca;
+                    ax.XTickLabelRotation=45;
+                    plotlib.hline(1);
+                    plotlib.hline(-1);
+                    plotlib.hline(0);
 %                     fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %                     updateFactor = fitResults.updateFactor;
 %                     newAmp = obj.mainGate.amplitude*updateFactor;
                     title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Delay');
+                    ylabel('Z Projection'); xlabel('Sequence #');
                     subplot(2,3,4);
                     imagesc(taxis,[],Idata/ind);
                     title('I'); ylabel('segments'); xlabel('Time (\mus)');
@@ -218,14 +286,20 @@ classdef ArbSequence < handle
                     drawnow
                 end
             end
-            figure(187);
-            subplot(2,3,[1 2 3]);
-            plot(xaxisNorm,AmpNorm);
+%             figure(187);
+%             subplot(2,3,[1 2 3]);
+%             plot(xaxisNorm,AmpNorm,'-o');
+%             xticks(1:length(obj.seqNames))
+%             xticklabels(obj.seqNames)
+%             plotlib.hline(1);
+%             plotlib.hline(-1);
+%             plotlib.hline(0);
 %             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %             updateFactor = fitResults.updateFactor;
 %             newAmp = obj.mainGate.amplitude*updateFactor;
-            title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Delay');
+%             title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+%             ylabel('Normalized Amplitude'); xlabel('Sequence #');            
+
             
             result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;

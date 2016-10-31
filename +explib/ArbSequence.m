@@ -1,21 +1,39 @@
 classdef ArbSequence < handle
     % This experiment allows for doing arbitrary sequences of gates.  Pass
     % as input a cell array containing the desired sequences.
-    % primitives(1) = obj.pulseCal.Identity();
-    % primitives(2) = obj.pulseCal.X180();
-    % primitives(3) = obj.pulseCal.X90();
-    % primitives(4) = obj.pulseCal.Xm90();
-    % primitives(5) = obj.pulseCal.Y180();
-    % primitives(6) = obj.pulseCal.Y90();
-    % primitives(7) = obj.pulseCal.Ym90();
+    % primitives(1) = obj.pulseCal.Identity(); etc...
+    % 1 = I
+    % 2 = X180
+    % 3 = X90
+    % 4 = Xm90
+    % 5 = Y180
+    % 6 = Y90
+    % 7 = Ym90
     
     properties 
         experimentName = 'ArbSequence';
         % inputs
         pulseCal;
-        gateLists = {[3 6 4],...
-                     [3 6 4 3 6 4],...
-                     [3 6 4 3 6 4 3 6 4]};
+        % AllXY sequence from Reed thesis
+        gateLists = {[1 1],...
+                     [2 2],...
+                     [5 5],...
+                     [2 5],...
+                     [5 2],...
+                     [3 1],...
+                     [6 1],...
+                     [3 6],...
+                     [6 3],...
+                     [2 6],...
+                     [5 3],...
+                     [3 2],...
+                     [2 3],...
+                     [6 5],...
+                     [5 6],...
+                     [2 1],...
+                     [5 1],...
+                     [3 3],...
+                     [6 6]};
         softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
         primitives; % array of gate objects the gateLists index into 
@@ -30,7 +48,7 @@ classdef ArbSequence < handle
     end
     
     methods
-        function obj=T2Experiment_v2(pulseCal,varargin)
+        function obj=ArbSequence(pulseCal,varargin)
             % constructor. Overwrites delayList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -39,9 +57,9 @@ classdef ArbSequence < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.delayList = varargin{1};
+                    obj.gateLists = varargin{1};
                 case 2
-                    obj.delayList = varargin{1};
+                    obj.gateLists= varargin{1};
                     obj.softwareAverages = varargin{2};
             end
             obj.update();
@@ -85,10 +103,10 @@ classdef ArbSequence < handle
                         
             sequences(1,length(obj.gateLists)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
             for ind = 1:length(obj.gateLists)
-                gateList = gateLists{ind};
+                gateList = obj.gateLists{ind};
                 gateArray = [];
                 for ind2 = 1:length(gateList)
-                    gateArray = [gateArray primitives(gateList(ind2))];
+                    gateArray = [gateArray obj.primitives(gateList(ind2))];
                 end
                 sequences(ind)=pulselib.gateSequence(gateArray);
             end
@@ -218,7 +236,10 @@ classdef ArbSequence < handle
                 if ~mod(ind,10)
                     figure(187);
                     subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm,AmpNorm);
+                    plot(xaxisNorm,AmpNorm,'-o');
+                    plotlib.hline(1);
+                    plotlib.hline(.5);
+                    plotlib.hline(0);
 %                     fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %                     updateFactor = fitResults.updateFactor;
 %                     newAmp = obj.mainGate.amplitude*updateFactor;
@@ -238,7 +259,11 @@ classdef ArbSequence < handle
             end
             figure(187);
             subplot(2,3,[1 2 3]);
-            plot(xaxisNorm,AmpNorm);
+            plot(xaxisNorm,AmpNorm,'-o');
+            plotlib.hline(1);
+            plotlib.hline(.5);
+            plotlib.hline(0);
+
 %             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %             updateFactor = fitResults.updateFactor;
 %             newAmp = obj.mainGate.amplitude*updateFactor;

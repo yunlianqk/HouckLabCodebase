@@ -5,10 +5,10 @@ classdef RabiDecay_v2 < handle
         experimentName = 'RabiDecay_v2';
         % inputs
         pulseCal;
-%         durationList = 50e-9:.30e-6:100.05e-6;
-        durationList = 50e-9:1e-9:100e-9;
+        durationList = 50e-9:1e-6:300.05e-6;
+%         durationList = 50e-9:1e-9:100e-9;
         rabiDrive = .1; % amplitude for drive
-        softwareAverages = 10; 
+        softwareAverages = 100; 
         % Dependent properties auto calculated in the update method
         qubit; % main pulse
         zeroGate; % qubit pulse (identity) for normalization
@@ -114,8 +114,8 @@ classdef RabiDecay_v2 < handle
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
             qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
-            ialtqc = cos(2*pi*6e9*t);
-            qaltqc= sin(2*pi*6e9*t);
+            ialtqc = cos(2*pi*obj.pulseCal.qubitFreq*t);
+            qaltqc= sin(2*pi*obj.pulseCal.qubitFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             % since measurement pulse never changes
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
