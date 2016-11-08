@@ -9,3 +9,6 @@ rmpath(genpath(pwd));
 
 % Add ONLY the top folder
 addpath(pwd);
+
+% Add U10xx digitizer driver
+addpath(genpath([pwd, filesep(), 'drivers', filesep(), 'U10xx_driver']));

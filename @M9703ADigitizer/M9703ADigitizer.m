@@ -25,7 +25,7 @@ classdef M9703ADigitizer < handle
             try
                 self.address=address;
                 % Path to IVI drivers
-                addpath('C:\IVI\MATLAB');
+                 addpath('C:\IVI\MATLAB');
                 % Create driver instance
                 self.instrID = instrument.driver.AgMD1();
             
