@@ -6,13 +6,19 @@ function  newDragAmplitude = DragFit(axis, data, varargin)
     % Construct initial guess for parameters 
     [dataMax, maxInd] = max(data);
     [dataMin, minInd] = min(data);
-    offset_guess = dataMin;
+%     offset_guess = dataMin;
+    offset_guess = 0;
     amp_guess = dataMax-dataMin;
     freq_guess = 2*abs(axis(maxInd)-axis(minInd));
     phase_guess = 0;
     beta0 = [offset_guess amp_guess freq_guess phase_guess];
     % Fit data
-    coeff = nlinfit(axis, data, @drag, beta0);
+%     coeff = nlinfit(axis, data, @drag, beta0);
+    Lbound=[0, 0, -2,-1];   % lower bounds on coeff
+    Ubound=[1, 2*amp_guess, 2, 1];    % upper bounds on coeff
+    opts = optimset('Display','off'); % suppress fit message 
+    coeff = lsqcurvefit(@drag, beta0, axis, data, Lbound, Ubound,opts);
+    
     freqFit=coeff(3);
     phaseFit=coeff(4);
     newDragAmplitude = -1*phaseFit/(2*pi*freqFit);

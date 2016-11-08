@@ -23,5 +23,5 @@ if (~isempty(instrfind))
     delete(instrfind);
 end
 
-run('.\unsetpath.m');
+run(['.', filesep(), 'unsetpath.m']);
 clear('index', 'varlist', 'instrlist');

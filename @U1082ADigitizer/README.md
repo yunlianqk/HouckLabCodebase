@@ -17,7 +17,7 @@ cardparams.averages = 30000;
 cardparams.segments = 1;
 cardparams.delaytime = 10e-6;
 cardparams.couplemode = 'DC';
-cardparams.timeout = 10;
+cardparams.trigPeriod = 50e-6;
 ```
 Then either use the `SetParams` method
 ```matlab
@@ -53,10 +53,34 @@ The on-card averaging is set by the parameter `NbrRoundRobins` in the low-level 
 **Software averaging** is automatic used for **single segment** mode if `card.params.averages` is greater than 65536. For example, if card.params.averages = 150000, it will be split into software averages = 3 and on-card averages = 50000. For multi segment mode, software averaging cannot be easily implemented, because the start of the first segment usually needs to be synchronized with pulse generation.
 
 ### Multi segment mode
-Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191.
+Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191. If `card.params.averages` is non-zero, the on-card averaging will be in "round of robin" mode. Auto software averaging is not implemented for multi segment mode, so maximum average is 65536.
+
+- **Known issue**: Because of memory limit of the digitizer, **samples × segments** needs to be less than 2^21. When running the following code to switch from single segment to multi segment mode,
+
+  ```matlab
+  % Single segment mode
+  card.params.segments = 1;
+  card.params.samples = 10000;
+
+  % Mulit segement mode
+  card.params.segment = 1000;
+  card.params.samples = 100;
+  ```
+  
+  **an error will occur** although `samples × segments` < 2^21 in both cases. The reason is that when executing `card.params.segments`, `card.params.samples` is still set to 10000, so `samples × segments` exceeds 2^21 temporarily. To avoid this, either run the last two lines again, or change their order:
+
+  ```matlab
+  % Single segment mode
+  card.params.segments = 1;
+  card.params.samples = 10000;
+
+  % Mulit segement mode
+  card.params.samples = 100;  % reduce samples first
+  card.params.segment = 1000;
+  ```
 
 ### Timeout
-The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. In the code, timeout is set to be **trigger period × on-card averages × segments**. To ensure a normal completion of acquisition, make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives.
+The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. To ensure a normal completion of acquisition, make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives.
 
 ## Class definition
 #### *class* U1082ADigitizer < handle
@@ -92,7 +116,7 @@ A class to store parameters for Acqiris digitizer
 ## Hardware specifications
 The following specs are only for reference. Check the [datasheet](./Specs.pdf) for details.
 
-- **fullscale**  can be selectable from 0.05 V to 5 V in 1, 2, 5 sequence
+- **fullscale** is selectable from 0.05 V to 5 V in 1, 2, 5 sequence
 - **offset** can be within ± 2 V for 0.05/0.5 V fullscale, and ± 5 V for 1 to 5 V fullscale
 - **sampleinterval** is selectable from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
 - **samples** can be 16 to 2 Mega (2^21) in steps of 16

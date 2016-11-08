@@ -20,11 +20,18 @@ classdef singleGate < handle
     end
     
     methods
-        function self = singleGate(name)   
+        function self = singleGate(name, params)   
             % Constructor takes the name of the gate to create an object
-            % Default values
+            % params can also be passed to specify properties of the gate
+            % params can be either a struct or a pulseCal object
+            
+            % If name or params is missing, use default values
             if nargin == 0
                 name = 'Identity';
+                params = [];
+            end
+            if nargin == 1
+                params = [];
             end
             self.name = name;
             self.sigma = 10e-9;
@@ -55,7 +62,7 @@ classdef singleGate < handle
                         self.azimuth = -pi/2;
                     otherwise
                         error(['Undefined gate: Gate names should be ', ...
-                               '''Identity'', ''Custom'', ''X180'', ''Ym90'', etc.']);
+                               '"Identity", "Custom", "X180", "Ym90", etc.']);
                 end
             % Set amplitude and rotation
                 if ~isnan(degree)
@@ -65,7 +72,7 @@ classdef singleGate < handle
                     error('Rotation angle should be a number');
                 end
             end
-          
+            
             % calculate gate unitary
             sm =[0 1; 0 0];
             sp = sm';
@@ -73,6 +80,27 @@ classdef singleGate < handle
             sy = full(1i*sp-1i*sm);
             self.unitary = expm(-1i*self.rotation/2 ...
                                 *(cos(self.azimuth)*sx + sin(self.azimuth)*sy));
+                            
+            if ~isempty(params)
+            % Update properties if they are specified in params
+            % params can be either a struct or a pulseCal object
+            
+                % List relevant fields/properties of params here 
+                paramlist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
+                             [self.name, 'Amplitude'], ...
+                             [self.name, 'DragAmplitude']};
+                % List corresponding properites of self here
+                % The two list must have the same length
+                proplist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
+                            'amplitude', 'dragAmplitude'};
+                for idx = 1:length(paramlist)
+                    param = paramlist{idx};
+                    prop = proplist{idx};
+                    if isfield(params, param) || isprop(params, param)
+                        self.(prop) = params.(param);
+                    end
+                end
+            end
         end
         
         function value = get.totalDuration(self)
@@ -120,6 +148,38 @@ classdef singleGate < handle
             iBaseband = cos(self.azimuth).*g + sin(self.azimuth).*d;
             qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
+
+        function [iBaseband, qBaseband] = iqSegment(self, tSegment, tStart)
+            % Returns baseband signals for a given time segment
+            iBaseband = zeros(1, length(tSegment));
+            qBaseband = iBaseband;
+            if ~strcmp(self.name, 'Identity')
+                tCenter = tStart + self.totalDuration/2;
+                g = self.gaussian(tSegment, tCenter);
+                d = self.drag(tSegment, tCenter);
+                gc = self.applyGaussianCutoff(tSegment, tCenter, g);
+                dc = self.applyDragCutoff(tSegment, tCenter, d);
+                [iBaseband, qBaseband] = project(self, gc, dc);
+            end
+        end
+        
+        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
+            % given just a time axis and pulse time, returns final baseband
+            % signals. can be added to similar outputs from other gates to
+            % form a composite waveform
+            % NOTE: provides speedup over slow version by passing a small 
+            % segment of tAxis to "iqSegment" method
+
+            iBaseband = zeros(1, length(tAxis));
+            qBaseband = iBaseband;
+            if ~strcmp(self.name, 'Identity')
+                tGate = self.totalDuration;
+                start = find(tAxis>=(tCenter-tGate/2), 1);
+                stop = find(tAxis<=(tCenter+tGate/2), 1, 'last');
+                [iBaseband(start:stop), qBaseband(start:stop)] ...
+                    = self.iqSegment(tAxis(start:stop), tAxis(start));
+            end
+        end 
         
         function [iBaseband, qBaseband] = uwWaveformsSlow(self, tAxis, tCenter)
             % given just a time axis and pulse time, returns final baseband
@@ -127,39 +187,17 @@ classdef singleGate < handle
             % form a composite waveform
             % NOTE: this method will be slow if used directly with a very
             % long waveform with high sampling rate.
+            if strcmp(self.name,'Identity')
+                iBaseband = zeros(1,length(tAxis));
+                qBaseband = iBaseband;
+                return
+            end
             g = self.gaussian(tAxis, tCenter);
             d = self.drag(tAxis, tCenter);
             gc = self.applyGaussianCutoff(tAxis, tCenter, g);
             dc = self.applyDragCutoff(tAxis, tCenter, d);
             [iBaseband, qBaseband] = project(self, gc, dc);
         end
-        
-        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tCenter)
-            % given just a time axis and pulse time, returns final baseband
-            % signals. can be added to similar outputs from other gates to
-            % form a composite waveform
-            % NOTE: provides speedup over slow version by using small
-            % waveforms during intermediate calculations
-            samplingRate = 1/(tAxis(2)-tAxis(1));
-            tStart = tCenter - self.totalDuration/2;
-            tStop = tCenter + self.totalDuration/2;
-            % calculate start and stop indices for nonzero elements.  includes boundary if it falls on a sample
-            startInd = ceil(tStart*samplingRate);
-            stopInd = floor(tStop*samplingRate);
-            % vector of nonzero indices
-            nonZeroInd = startInd:stopInd;
-            % vector of nonzero times
-            nonZeroTimeAxis = (nonZeroInd-1)/samplingRate;
-            % use short time axis to calculate the pulse waveform
-            [iBasebandShort, qBasebandShort] = uwWaveformsSlow(self, nonZeroTimeAxis, tCenter);
-            % place short pulse vector into large vector of zeros
-            iBaseband = zeros(1,length(tAxis));
-            iBaseband(startInd:stopInd)=iBasebandShort;
-            qBaseband = zeros(1,length(tAxis));
-            qBaseband(startInd:stopInd)=qBasebandShort;
-        end
-        
-%         function [iBaseband, qBaseband, indStart, indStop] = uwWaveformsFastest(self, samplingRate, tCenter)
         
         function [stateOut, stateTilt, stateAzimuth] = actOnState(self, stateIn)
             % given an input state vector act with unitary and return final state 

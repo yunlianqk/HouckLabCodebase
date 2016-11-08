@@ -3,19 +3,11 @@ classdef T1Experiment < handle
     
     
     properties
-        % change these to tweak the experiment
-        qubitFreq=4.772869998748302e9;
-        qubitAmp = .74;
-        qubitSigma = 25e-9;
-        gateType = 'X180';
-%         delayList = 200e-9:1e-6:100.2e-6; % delay btw qubit pulses and measurement pulse
-        delayList = 200e-9:1e-6:10.2e-6; % delay btw qubit pulses and measurement pulse
-        cavityFreq=10.16578e9; % cavity frequency
-        cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
-        startBuffer = 5e-6; % buffer at beginning of waveform
-        endBuffer = 5e-6; % buffer after measurement pulse
-        samplingRate=32e9; % sampling rate
+        pulseCal;
+        experimentName='T1Experiment';
+        delayList = 200e-9:.8e-6:80.2e-6; % delay btw qubit pulses and measurement pulse
+%         delayList = logspace(-7,-4,101); % delay btw qubit pulses and measurement pulse
+        softwareAverages = 5;
         % these are auto calculated
         qubit; % qubit pulse object
         measurement; % measurement pulse object
@@ -26,20 +18,19 @@ classdef T1Experiment < handle
     end
     
     methods
-        function obj=T1Experiment()
+        function obj=T1Experiment(pulseCal)
+            obj.pulseCal = pulseCal;
             % constructor generates the necessary objects and calculates the dependent parameters
             % generate qubit object
-            obj.qubit = pulselib.singleGate(obj.gateType);
-            obj.qubit.amplitude = obj.qubitAmp;
-            obj.qubit.sigma = obj.qubitSigma;
-            obj.qubit.cutoff = 4*obj.qubitSigma;
+            obj.qubit = obj.pulseCal.X180();
+            
             % generate measurement pulse
-            obj.measurement=pulselib.measPulse(obj.measDuration,obj.cavityAmp);
+            obj.measurement=pulselib.measPulse(obj.pulseCal.measDuration,obj.pulseCal.cavityAmplitude);
             % calculate measurement pulse times - based on the max
             % delay btw qubit and measurement
-            obj.measStartTime = obj.startBuffer + max(obj.delayList);
+            obj.measStartTime = obj.pulseCal.startBuffer + max(obj.delayList);
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
-            obj.waveformEndTime = obj.measEndTime+obj.endBuffer;
+            obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
             % calculate qubit pulse times based on the measurement time and
             % the desired delays
             for ind = 1:length(obj.delayList)
@@ -49,18 +40,18 @@ classdef T1Experiment < handle
         
         function w = genWaveset_M8195A(obj)
             w = paramlib.M8195A.waveset();
-            tStep = 1/obj.samplingRate;
+            tStep = 1/obj.pulseCal.samplingRate;
             t = 0:tStep:(obj.waveformEndTime);
-            loWaveform = sin(2*pi*obj.cavityFreq*t);
+            loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             for ind=1:length(obj.delayList)
                 q=obj.qubit;
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTimes(ind));
-                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
-                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 % background is measurement pulse to get contrast
                 backgroundWaveform = iMeasMod+qMeasMod;
@@ -91,7 +82,7 @@ classdef T1Experiment < handle
             end
 
             % set up time axis and make sure it's correct length for awg
-            tStep = 1/obj.samplingRate;
+            tStep = 1/obj.pulseCal.samplingRate;
             waveformLength = floor(obj.waveformEndTime/tStep)+1;
             paddedLength = ceil(waveformLength/awg.granularity)*awg.granularity;
             paddedWaveformEndTime = (paddedLength-1)*tStep;
@@ -107,21 +98,21 @@ classdef T1Experiment < handle
             t = 0:tStep:paddedWaveformEndTime;            
             
             % generate LO and marker waveforms
-            loWaveform = sin(2*pi*obj.cavityFreq*t);
+            loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             
             for ind=1:length(obj.delayList)
                 display(['loading delayList index: ' num2str(ind)])
                 q=obj.qubit;
                 [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTimes(ind));
-                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
+                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband
-                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
+                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
                 clear qQubitBaseband;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
+                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
                 clear iMeasBaseband 
-                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
+                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
                 clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
@@ -158,12 +149,13 @@ classdef T1Experiment < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
-            % some hardware specific settings
-            intStart=4000; intStop=8000; % integration times
-            softavg=50; % software averages
+             % integration and averaging settings from pulseCal
+            intStart = obj.pulseCal.integrationStartIndex;
+            intStop = obj.pulseCal.integrationStopIndex;
+            softavg = obj.softwareAverages;
             % auto update some card settings
-            cardparams.segments=length(playlist);
-            cardparams.delaytime=obj.measStartTime-1e-6;
+            cardparams.segments = length(playlist);
+            cardparams.delaytime = obj.measStartTime + obj.pulseCal.cardDelayOffset;
             card.SetParams(cardparams);
             tstep=1/card.params.samplerate;
             taxis=(tstep:tstep:card.params.samples/card.params.samplerate)'./1e-6;%mus units
@@ -187,18 +179,19 @@ classdef T1Experiment < handle
                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 figure(101);
-                subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/i);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/i);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
-                subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,1); imagesc(taxis,obj.delayList,Idata/i);title(['In phase. N=' num2str(i)]);ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,2); imagesc(taxis,obj.delayList,Qdata/i);title('Quad phase');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,4); imagesc(taxis,obj.delayList,Pdata/i);title('Power I^2+Q^2');ylabel('Delay');xlabel('Time (\mus)');
+%                 subplot(2,3,5); imagesc(taxis,obj.delayList./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('Delay');xlabel('Time (\mus)');
 %                 subplot(2,3,3); plot(obj.delayList,sqrt(Pint));ylabel('Power I^2+Q^2');xlabel('Delay');
-                subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
-                                ax=subplot(2,3,3);
+%                 subplot(2,3,6); plot(obj.delayList./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Delay');
+                ax = gca;
+%                 ax=subplot(2,3,3);
 %                 try doing the T1 fit during softaveraging
 %                 fitResult = funclib.ExpFit2(obj.delayList,sqrt(Pint)/i,ax);
                 fitResult.lambda = funclib.ExpFit(obj.delayList,sqrt(Pint)/i,ax);
                 fitResult.amp=0;
-                title(ax,['amp: ' num2str(fitResult.amp) ' T1: ' num2str(fitResult.lambda)])
+                title(ax,[' T1: ' num2str(fitResult.lambda) '; N=' num2str(i)])
                 pause(0.01);
             end
             result.taxis = taxis;

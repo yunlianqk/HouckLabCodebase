@@ -41,7 +41,8 @@ function [Idata,Isqdata,Qdata,Qsqdata]=ReadIandQcomplicated(self,awg,PlayList)
     % Buffer array
     arraySize = self.instrID.DeviceSpecific.Acquisition.QueryMinWaveformMemory(64,...
         params.averages*params.segments, 0, params.samples);
-    inArray = double(zeros(arraySize,1));
+%     inArray = double(zeros(arraySize,1));
+    inArray = zeros(arraySize,1,'double');
     
     % Fetch Idata
     [IdataArrayReal64, IactualRecords, IactualPoints, IfirstValidPoint, IinitialXOffset, IinitialXTimeSeconds, IinitialXTimeFraction, IxIncrement] ...

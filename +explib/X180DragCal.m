@@ -6,7 +6,7 @@ classdef X180DragCal < handle
         % inputs
         pulseCal;
         ampVector = linspace(-.5,.5,101);
-        softwareAverages = 400; 
+        softwareAverages = 200; 
         % Dependent properties auto calculated in the update method
         upPulse; % 1st qubit pulse
         downPulse; % 2nd qubit pulse
@@ -50,6 +50,7 @@ classdef X180DragCal < handle
         end
         
         function playlist = directDownloadM8195A(obj,awg)
+            display(['Generating waveforms for ' obj.experimentName])
             % avoid building full wavesets and WaveLib to save memory 
 
             % clear awg of segments
@@ -78,28 +79,29 @@ classdef X180DragCal < handle
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+            % since measurement pulse never changes
+            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+            clear iMeasBaseband
+            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+            clear qMeasBaseband;
+            % background is measurement pulse to get contrast
+            backgroundWaveform = iMeasMod+qMeasMod;
             
             for ind=1:length(obj.ampVector)
-                display(['loading sequence ' num2str(ind)])
+%                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequence;
                 s.gateArray(1).dragAmplitude=obj.ampVector(ind);
                 s.gateArray(2).dragAmplitude=obj.ampVector(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+%                 [iQubitMod, qQubitMod] = s.modWaveforms(t, tStart, obj.pulseCal.qubitFreq);
                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
                 clear qQubitBaseband;
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-                clear iMeasBaseband 
-                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
-                clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
-                % background is measurement pulse to get contrast
-                backgroundWaveform = iMeasMod+qMeasMod;
-                clear iMeasMod qMeasMod
                 
                 % now directly loading into awg
                 dataId = ind*2-1;
@@ -116,7 +118,6 @@ classdef X180DragCal < handle
                 playlist(dataId).segmentAdvance = 'Stepped';
                 % load background segment
                 iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                clear backgroundWaveform;
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create background playlist entry
@@ -130,6 +131,7 @@ classdef X180DragCal < handle
         end
         
         function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
+            display(['Running ' obj.experimentName])
             % integration and averaging settings from pulseCal
             intStart = obj.pulseCal.integrationStartIndex;
             intStop = obj.pulseCal.integrationStopIndex;
@@ -161,7 +163,7 @@ classdef X180DragCal < handle
 
                 timeString = datestr(datetime);
                 if ~mod(ind,10)
-                    figure(187);
+                    figure(103);
                     subplot(2,3,[1 2 3]); 
                     newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
 %                     plot(obj.ampVector,sqrt(Pint));
@@ -179,7 +181,7 @@ classdef X180DragCal < handle
                     drawnow
                 end
             end
-            figure(187);
+            figure(103);
             subplot(2,3,[1 2 3]);
             newDragAmp=funclib.DragFit(obj.ampVector,sqrt(Pint));
             title([obj.experimentName ' ' timeString ' newDragAmp = ' num2str(newDragAmp) '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);

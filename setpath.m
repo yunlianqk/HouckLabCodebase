@@ -2,13 +2,12 @@
 % This is important for defining a uniform namespace
 
 % Remove all subfolders from search path
-% The addpath line is a little awkward, but without it a lot of warnings
-% will show up
-addpath(genpath(pwd));
+warning('off', 'MATLAB:rmpath:DirNotFound');
 rmpath(genpath(pwd));
-
+warning('on', 'MATLAB:rmpath:DirNotFound');
 % Add ONLY the top folder
 addpath(pwd);
-
 % Add U10xx digitizer driver
 addpath(genpath([pwd, filesep(), 'drivers', filesep(), 'U10xx_driver']));
+% Add iqtools
+addpath([pwd, filesep(), 'drivers', filesep(), 'iqtools']);

@@ -3,18 +3,20 @@ classdef SweepQubitSigma < handle
 
     properties 
         % change these to tweak the experiment. 
-        startSigma = 5e-9;
-        stopSigma = 40e-9;
-        points = 101;
-        qubitFreq=4.772869998748302e9;
-        qubitAmp=.75;
+        startSigma = .1e-9;
+        stopSigma = 7e-9;
+        points = 51;
+%         qubitFreq=4.772869998748302e9;
+        qubitFreq=4.781e9;
+        qubitAmp=1;
         gateType = 'X180';
-        interPulseBuffer = 1000e-9; % time between qubit pulse and measurement pulse
+        interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
 %         cavityFreq=10.1653e9; % cavity frequency
-        cavityFreq=10.16578e9; % cavity frequency
+%         cavityFreq=10.16578e9; % cavity frequency
+        cavityFreq=10.165880e9; % cavity frequency
 %         cavityAmp=0.63;       % cavity pulse amplitude
-        cavityAmp=1;       % cavity pulse amplitude
-        measDuration = 5e-6;
+        cavityAmp=.4;       % cavity pulse amplitude
+        measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -78,7 +80,7 @@ classdef SweepQubitSigma < handle
             % integration times
             intStart=4000; intStop=8000;
             % software averages
-            softavg=100;
+            softavg=20;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);
@@ -119,7 +121,7 @@ classdef SweepQubitSigma < handle
                 subplot(2,3,5); imagesc(taxis,obj.sigmaVector./1e9,phaseData/i);title('Phase atan(Q/I)');ylabel('SigmaVector');xlabel('Time (\mus)');
                 subplot(2,3,3); plot(obj.sigmaVector,sqrt(Pint));ylabel('Homodyne Amplitude (V)');xlabel('Qubit pulse software amplitude');
                 subplot(2,3,6); plot(obj.sigmaVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('sigmaVector');
-                pause(0.01);
+                drawnow
             end
             result.taxis = taxis;
             result.Idata=Idata./softavg;

@@ -9,12 +9,16 @@ classdef pulseCal
     properties
         % generic qubit pulse properties
         qubitFreq = 4e9;
+        specPower = -50;
         sigma = 25e-9; % gaussian width in seconds
         cutoff = 100e-9; % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
         buffer = 4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
         % measurement pulse properties
         cavityFreq = 10e9;
         cavityAmplitude = 1;
+        rfPower = -60;
+        intFreq = 0;
+        loPower = 11;
         measDuration = 10e-6; % length of measurement pulse
         % waveform properties
         startBuffer = 5e-6; % delay after start before qubit pulses can occur
@@ -26,7 +30,7 @@ classdef pulseCal
         integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
         cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
         % USAGE: cardparams.delaytime = experimentObject.measStartTime + pulseCal.cardDelayOffset;
-
+        cardAvg = 30000;
         % gate specific properties
         X90Amplitude = .5;
         X90DragAmplitude = 0;
@@ -48,6 +52,12 @@ classdef pulseCal
 
     methods
         % methods to generate each type of pulse
+        function pulseObj = Delay(obj,delay)
+            pulseObj = pulselib.singleGate('Identity');
+            pulseObj.sigma = obj.sigma;
+            pulseObj.cutoff = delay;
+            pulseObj.buffer = 0;
+        end
         function pulseObj = Identity(obj)
             pulseObj = pulselib.singleGate('Identity');
             pulseObj.sigma = obj.sigma;
