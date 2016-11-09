@@ -29,9 +29,6 @@ function specparams = GetSpecParams(pnax)
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts?', specparams.channel);
     specparams.points = fscanf(pnax.instrhandle, '%d');
 
-    fprintf(pnax.instrhandle, 'SOURce%d:POWer1?', specparams.channel);
-    specparams.power = fscanf(pnax.instrhandle, '%f');
-
     fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth?', specparams.channel);
     specparams.ifbandwidth = fscanf(pnax.instrhandle, '%f');
 

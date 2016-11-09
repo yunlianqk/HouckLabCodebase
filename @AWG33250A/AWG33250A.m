@@ -4,6 +4,7 @@ classdef AWG33250A < GPIBINSTR
     properties
         waveform;
         frequency;
+		period;
         vpp;
         offset;
         dutycycle;
@@ -19,6 +20,9 @@ classdef AWG33250A < GPIBINSTR
         function set.frequency(triggen, frequency)
             SetFreq(triggen, frequency);
         end
+		function set.period(triggen, period)
+			SetPeriod(triggen, period);
+		end
         function set.vpp(triggen, vpp)
             SetVpp(triggen, vpp);
         end
@@ -35,6 +39,9 @@ classdef AWG33250A < GPIBINSTR
         function frequency = get.frequency(triggen)
             frequency = GetFreq(triggen);
         end
+        function period = get.period(triggen)
+			period = GetPeriod(triggen);
+		end
         function vpp = get.vpp(triggen)
             vpp = GetVpp(triggen);
         end

@@ -1,4 +1,4 @@
-# M9703A AXIe High-Speed Digitizer/
+# M9703A AXIe High-Speed Digitizer
 ## Usage
 See also the [example code](../ExampleCode/ExampleCode_M9703A.m).
 ### Open instrument

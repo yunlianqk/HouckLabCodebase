@@ -12,6 +12,7 @@ classdef M9330AWG < handle
         timeaxis = (0:255)*0.8e-9;
         marker1 = zeros(1, 256); % Marker 1
         marker2 = zeros(1, 256);% Marker 2
+        mkrauto = 1;
         mkr1offset = 0;
         mkr2offset = 0;
         mkraddwidth = 32;

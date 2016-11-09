@@ -54,13 +54,16 @@ A class to store parameters for power sweep measurement
 A class to store parameters for Acqiris digitizer
 * **Properties**:
   * **fullscale** (*float*): Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
+  * **offset** (*float*): Offset in volts, within ± 2 V for 0.05/0.5 V full scale, and ± 5 V for 1 to 5 V fullscale
   * **sampleinterval** (*float*): Sampling interval in seconds, from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
   * **samples** (*integer*): Number of samples for each segment, from 16 to 2 Mega (2^21) in steps of 16
   * **averages** (*integer*): Number of averages, from 1 to 65536
   * **segments** (*integer*): Number of segments, from 1 to 8191
   * **delaytime** (*float*): Delay time in seconds before starting acquistion
   * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
-  * **timeout** (*float*): Timeout for acquisition in seconds, default value = 10 seconds
+  * **trigSource** (*string*): Trigger source, can be 'External1' (default) or 'Channel1', 'Channel2'
+  * **trigLevel** (*float*): Trigger level, in volts within ± 2.5 (default = 0.5) for external trigger, and in fraction of fullscale within ± 0.5 for internal trigger
+  * **trigPeriod** (*float*): Trigger period in seconds (default = 100e-6), used to calculate timeout
 * **Methods**:
   * **s = self.toStruct()**: Converts the object to a struct
   

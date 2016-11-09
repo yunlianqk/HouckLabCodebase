@@ -1,10 +1,12 @@
 classdef measPulse < handle
     % Simple rectangular measurement pulse object.  
     properties
+        name = 'Meas';
         duration = 4e-6; % pulse length in seconds
         amplitude = 1.0; % amplitude of main gaussian pulse
         azimuth = 0.0; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
         sigma = 5e-9; % sigma for Gaussian ramp-up
+        unitary = eye(2);
     end
 
     properties (Dependent, SetAccess = private)
@@ -50,11 +52,33 @@ classdef measPulse < handle
             iBaseband = cos(self.azimuth).*r;
             qBaseband = sin(self.azimuth).*r;
         end
-   
+        
+        function [iBaseband, qBaseband] = iqSegment(self, tSegment, tStart)
+            % Returns baseband signals for a given time segment
+            r = self.rect(tSegment, tStart);
+            [iBaseband, qBaseband] = project(self, r);
+        end
+        
         function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tStart)
-            % returns final baseband signals. 
-            r = self.rect(tAxis, tStart);
-            [iBaseband, qBaseband] = project(self,r);
+            % given just a time axis and pulse time, returns final baseband
+            % signals. can be added to similar outputs from other gates to
+            % form a composite waveform
+            % NOTE: provides speedup over slow version by passing a small 
+            % segment of tAxis to "iqSegment" method
+
+            iBaseband = zeros(1, length(tAxis));
+            qBaseband = iBaseband;
+            tGate = self.totalDuration;
+            start = find(tAxis>=tStart, 1);
+            stop = find(tAxis<=tStart+tGate, 1, 'last');
+            [iBaseband(start:stop), qBaseband(start:stop)] ...
+                = self.iqSegment(tAxis(start:stop), tAxis(start));
+        end
+        
+        function [stateOut, stateTilt, stateAzimuth] = actOnState(~, stateIn)
+            stateOut = stateIn;
+            stateTilt = 2*acos(abs(stateOut(1)));
+            stateAzimuth = angle(stateOut(2))-angle(stateOut(1));
         end
         
         function s = toStruct(self)

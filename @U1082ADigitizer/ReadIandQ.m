@@ -2,7 +2,6 @@ function [IData, QData] = ReadIandQ(self)
 % Acquire data from two channels
     MaxTimeout = 10;  % Maximum single timeout is 10 seconds, hardware coded
     params = self.params;
-    display(self.AqReadParameters.timeOut);
     if params.trigPeriod < params.delaytime+params.samples*params.sampleinterval+4e-6
         display('Warning: trigger period is shorter than delay + acquisition time');
         display(['Set trigge period to more than ', ...

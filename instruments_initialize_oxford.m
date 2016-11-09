@@ -1,29 +1,17 @@
 % Initialize instruments
-path = pwd;
-addpath(genpath(path));
+run(['.', filesep(), 'setpath.m']);
 
-address = struct('rfgen', 20, ...
-                 'specgen', 24, ...
-                 'logen', 23, ...
-                 'pnax', 16, ...
-                 'yoko1', 2, ...
-                 'yoko2', 3, ...
-                 'yoko3', 4)
-%                  'triggen', 9)
-%                  'card', 'PXI7::4::0::INSTR', 
-%                  'pulsegen', 'PXI50::15::0::INSTR')
-
-global rfgen;
-rfgen = E8267DGenerator(address.rfgen);
-
-global specgen;
-specgen = E8267DGenerator(address.specgen);
-
-global logen;
-logen = E8267DGenerator(address.logen);
-
+addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer');
+             
+address = struct('pnax',    'GPIB0::16::0::INSTR', ...
+                 'yoko1',   'GPIB0::2::0::INSTR', ...
+                 'yoko2',   'GPIB0::3::0::INSTR', ...
+                 'yoko3',   'GPIB0::4::0::INSTR');
 global pnax;
 pnax = PNAXAnalyzer(address.pnax);
+
+% global pxa;
+% pxa = PXAAnalyzer(address.pxa);
 
 global yoko1;
 yoko1 = YOKO7651(address.yoko1);
@@ -33,14 +21,5 @@ yoko2 = YOKO7651(address.yoko2);
 
 global yoko3;
 yoko3 = YOKOGS200(address.yoko3);
-
-% global triggen;
-% triggen = AWG33250A(address.triggen);
-
-% global card;
-% card = U1082ADigitizer(address.card);
-
-% global pulsegen;
-% pulsegen = M9330AWG(address.pulsegen);
 
 clear('address');
