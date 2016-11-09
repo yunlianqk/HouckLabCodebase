@@ -1,25 +1,31 @@
-classdef SingleShot2DHistograms < handle
+classdef SingleShot2DHistogramsRabiPulse < handle
     % alternate between trials in the ground state and trials in the
     % excited. Keep single shot data and histogram them.
     
     properties 
-        experimentName = 'SingleShot2DHistograms';
+        experimentName = 'SingleShot2DHistogramsRabiPulse';
         % inputs
         pulseCal;
         trials = 20000; % total number of single shots to collect
         bins = 100; % histogram bins
         doPlot = 1;
+        rabiDrive=1;
+        rabiDuration=200e-6;
+        rabiFreq = 4e9;
+        measDelay = 0;
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
+        rabi; % rabi pulse object
         qubitPulseTime;
+        rabiPulseTime;
         measStartTime; 
         measEndTime;
         waveformEndTime;
     end
     
     methods
-        function obj=SingleShot2DHistograms(pulseCal,varargin)
+        function obj=SingleShot2DHistogramsRabiPulse(pulseCal,varargin)
             % constructor. Overwrites ampVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -43,11 +49,14 @@ classdef SingleShot2DHistograms < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-            obj.qubit = obj.pulseCal.X180();
+%             obj.qubit = obj.pulseCal.X180();
+            obj.qubit = obj.pulseCal.X90();
+            obj.rabi = pulselib.measPulse(obj.rabiDuration,obj.rabiDrive);
 %             obj.qubit = obj.pulseCal.Identity();
             obj.measurement = obj.pulseCal.measurement();
-            obj.qubitPulseTime = obj.pulseCal.startBuffer+obj.qubit.totalDuration/2;
-            obj.measStartTime = obj.qubitPulseTime + obj.qubit.totalDuration/2 + obj.pulseCal.measBuffer;
+            obj.measStartTime = obj.pulseCal.startBuffer+obj.rabi.totalDuration+obj.qubit.totalDuration+obj.measDelay;
+            obj.qubitPulseTime = obj.measStartTime-obj.pulseCal.measBuffer-obj.qubit.totalDuration/2;
+            obj.rabiPulseTime = obj.measStartTime-obj.pulseCal.measBuffer-obj.qubit.totalDuration-obj.rabi.totalDuration;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
             obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
         end
@@ -87,24 +96,36 @@ classdef SingleShot2DHistograms < handle
             q = obj.qubit;
             [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
             iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
-            clear iQubitBaseband;
+%             clear iQubitBaseband;
             qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
-            clear qQubitBaseband;
+%             clear qQubitBaseband;
             [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-            clear iMeasBaseband
+%             clear iMeasBaseband
             qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
-            clear qMeasBaseband;
+%             clear qMeasBaseband;
             ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-            clear iQubitMod qQubitMod
+%             clear iQubitMod qQubitMod
             % background is measurement pulse to get contrast
             backgroundWaveform = iMeasMod+qMeasMod;
             %                 backgroundWaveform = real(iqcorrection(backgroundWaveform,awg.samplerate));
+%             clear iMeasMod qMeasMod
+            %generate Rabi segment
+            r = obj.rabi;
+            [iRabiBaseband qRabiBaseband] = r.uwWaveforms(t, obj.rabiPulseTime);
+            iRabiMod=cos(2*pi*obj.rabiFreq*t).*iRabiBaseband;
+%             clear rQubitBaseband;
+            qRabiMod=sin(2*pi*obj.rabiFreq*t).*qRabiBaseband;
+%             clear rQubitBaseband;
+%             rabiWaveform = iRabiMod+qRabiMod+iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+            rabiWaveform = iRabiMod+qRabiMod+iMeasMod+qMeasMod;
             clear iMeasMod qMeasMod
+            
             
             % now directly loading into awg
             dataId = 1;
             backId = 2;
+            rabiId = 3;
             % load data segment
             iqdownload(ch1waveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
             clear ch1waveform;
@@ -125,8 +146,18 @@ classdef SingleShot2DHistograms < handle
             playlist(backId).segmentLoops = 1;
             playlist(backId).markerEnable = true;
             playlist(backId).segmentAdvance = 'Stepped';
+            % load Rabi segment
+            iqdownload(rabiWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',rabiId,'keepOpen',1,'run',0,'marker',markerWaveform);
+            clear rabiWaveform;
+            % load lo segment
+            iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',rabiId,'keepOpen',1,'run',0,'marker',markerWaveform);
+            % create Rabi playlist entry
+            playlist(rabiId).segmentNumber = rabiId;
+            playlist(rabiId).segmentLoops = 1;
+            playlist(rabiId).markerEnable = true;
+            playlist(rabiId).segmentAdvance = 'Stepped';
             % last playlist item must have advance set to 'auto'
-            playlist(backId).segmentAdvance = 'Auto';
+            playlist(rabiId).segmentAdvance = 'Auto';
         end
         
          function [result] = directRunM8195A(obj,awg,card,cardparams,playlist)
@@ -146,6 +177,7 @@ classdef SingleShot2DHistograms < handle
 %             thresholdStability = zeros(1,softAverages); % preallocate vector to track approach to stable fidelity
 %             windowStability = zeros(1,softAverages); % preallocate vector to track approach to stable fidelity
             timeString = datestr(datetime);
+            time=fix(clock);
             for ind = 1:softAverages
                 % READ
                 [Idata, Qdata] = card.ReadIandQsingleShot(awg,playlist);
@@ -153,16 +185,20 @@ classdef SingleShot2DHistograms < handle
                 Qdata=Qdata(1:cardparams.samples,:);
                 % separate and integrate I and Q for histograms                
                 Ivals = sum(Idata)./cardparams.samples;
-                exIvals = Ivals(1:2:end);
-                gndIvals = Ivals(2:2:end);
+                exIvals = Ivals(1:3:end);
+                gndIvals = Ivals(2:3:end);
+                rabiIvals = Ivals(3:3:end);
                 Qvals = sum(Qdata)./cardparams.samples;
-                exQvals = Qvals(1:2:end);
-                gndQvals = Qvals(2:2:end);
+                exQvals = Qvals(1:3:end);
+                gndQvals = Qvals(2:3:end);
+                rabiQvals = Qvals(3:3:end);
                 % calculate amp and phase
                 exAvals = sqrt(exIvals.^2 +exQvals.^2);
                 gndAvals = sqrt(gndIvals.^2 +gndQvals.^2);
+                rabiAvals = sqrt(rabiIvals.^2+rabiQvals.^2);
                 exPvals = atan(exQvals./exIvals);
                 gndPvals = atan(gndQvals./gndIvals);
+                rabiPvals = atan(rabiQvals./rabiIvals);
                 
                 
                 
@@ -170,14 +206,14 @@ classdef SingleShot2DHistograms < handle
                 %use first soft average determine bins and preallocate
                 if ind == 1
                     % make bins
-                    Imin = min(min([gndIvals exIvals]));
-                    Imax = max(max([gndIvals exIvals]));
-                    Qmin = min(min([gndQvals exQvals]));
-                    Qmax = max(max([gndQvals exQvals]));
-                    Amin = min(min([gndAvals exAvals]));
-                    Amax = max(max([gndAvals exAvals]));
-                    Pmin = min(min([gndPvals exPvals]));
-                    Pmax = max(max([gndPvals exPvals]));
+                    Imin = min(min([gndIvals exIvals rabiIvals]));
+                    Imax = max(max([gndIvals exIvals rabiIvals]));
+                    Qmin = min(min([gndQvals exQvals rabiQvals]));
+                    Qmax = max(max([gndQvals exQvals rabiQvals]));
+                    Amin = min(min([gndAvals exAvals rabiAvals]));
+                    Amax = max(max([gndAvals exAvals rabiAvals]));
+                    Pmin = min(min([gndPvals exPvals rabiPvals]));
+                    Pmax = max(max([gndPvals exPvals rabiPvals]));
                     Iedges = linspace(Imin,Imax,obj.bins+1);
                     Qedges = linspace(Qmin,Qmax,obj.bins+1);
                     Aedges = linspace(Amin,Amax,obj.bins+1);
@@ -193,8 +229,13 @@ classdef SingleShot2DHistograms < handle
                     exQHist = zeros(1,obj.bins);
                     exAHist = zeros(1,obj.bins);
                     exPHist = zeros(1,obj.bins);
+                    rabiIHist = zeros(1,obj.bins);
+                    rabiQHist = zeros(1,obj.bins);
+                    rabiAHist = zeros(1,obj.bins);
+                    rabiPHist = zeros(1,obj.bins);
                     gndBivHist = zeros(obj.bins+1,obj.bins+1);
                     exBivHist = zeros(obj.bins+1,obj.bins+1);
+                    rabiBivHist = zeros(obj.bins+1,obj.bins+1);
                 end
                 
                 [counts,~] = histcounts(gndIvals,Iedges);
@@ -213,20 +254,30 @@ classdef SingleShot2DHistograms < handle
                 exAHist=exAHist+counts;
                 [counts,~] = histcounts(exPvals,Pedges);
                 exPHist=exPHist+counts;
-                
+                [counts,~] = histcounts(rabiIvals,Iedges);
+                rabiIHist=rabiIHist+counts;
+                [counts,~] = histcounts(rabiQvals,Qedges);
+                rabiQHist=rabiQHist+counts;
+                [counts,~] = histcounts(rabiAvals,Aedges);
+                rabiAHist=rabiAHist+counts;
+                [counts,~] = histcounts(rabiPvals,Pedges);
+                rabiPHist=rabiPHist+counts;
                 
                 %% sweet bivariate histogram
                 gndBivData=[gndIvals' gndQvals'];
                 exBivData=[exIvals' exQvals'];
+                rabiBivData=[rabiIvals' rabiQvals'];
                 gndBivHistTemp = hist3(gndBivData,bivEdges);
                 exBivHistTemp = hist3(exBivData,bivEdges);
+                rabiBivHistTemp = hist3(rabiBivData,bivEdges);
                 gndBivHist = gndBivHist + gndBivHistTemp';
-                exBivHist = exBivHist + exBivHistTemp';                
+                exBivHist = exBivHist + exBivHistTemp';
+                rabiBivHist = rabiBivHist + rabiBivHistTemp';
                 
                 
                 %%
                 %if doPlot is 1, do all calculations and plots inside loop
-                if obj.doPlot == 1
+                if obj.doPlot == 1 && (mod(ind,10)==0)
                     
                     %%
                     
@@ -241,20 +292,56 @@ classdef SingleShot2DHistograms < handle
 %                     gndBivHist = hist3(gndBivData,bivEdges);
 %                     exBivHist = hist3(exBivData,bivEdges);
                     
-                    subplot(1,2,1)
+                    subplot(2,2,1)
                     imagesc([Iedges(1) Iedges(end)],[Qedges(1) Qedges(end)],gndBivHist);
                     axis square
-                    title('gnd')
-                    subplot(1,2,2)
+                    title(['gnd: N=' num2str(ind)])
+                    subplot(2,2,2)
                     imagesc([Iedges(1) Iedges(end)],[Qedges(1) Qedges(end)],exBivHist);
                     axis square
                     title('ex');
+                    subplot(2,2,3)
+                    imagesc([Iedges(1) Iedges(end)],[Qedges(1) Qedges(end)],rabiBivHist);
+                    axis square
+                    title(['Rabi drive with amplitude = ' num2str(obj.rabiDrive) ' and duration = ' num2str(obj.rabiDuration/1e-6) ' mus']);
+                    subplot(2,2,4)
+                    imagesc([Iedges(1) Iedges(end)],[Qedges(1) Qedges(end)],rabiBivHist-exBivHist);
+                    axis square
+                    title('Rabi exp - X180 exp');
                     drawnow
                     
+                    figure(117)
+                    plot(Aedges(1:end-1),gndAHist,'b',Aedges(1:end-1),exAHist,'r',Aedges(1:end-1),rabiAHist,'g');
+                    title('Amp histograms b=gnd, r=ex, g=rabi')
+                    
+                    result.IEdges = Iedges;
+                    result.QEdges = Qedges;
+                    result.AEdges = Aedges;
+                    result.PEdges = Pedges;
+                    result.bivEdges = bivEdges;
+                    result.gndIHist = gndIHist;
+                    result.gndQHist = gndQHist;
+                    result.gndAHist = gndAHist;
+                    result.gndPHist = gndPHist;
+                    result.gndBivHist = gndBivHist;
+                    result.exIHist = exIHist;
+                    result.exQHist = exQHist;
+                    result.exAHist = exAHist;
+                    result.exPHist = exPHist;
+                    result.exBivHist = exBivHist;
+                    result.rabiIHist = rabiIHist;
+                    result.rabiQHist = rabiQHist;
+                    result.rabiAHist = rabiAHist;
+                    result.rabiPHist = rabiPHist;
+                    result.rabiBivHist = rabiBivHist;
+                    
+                    save(['C:\Data\' obj.experimentName '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+                    'result');
 %                     
+
 %                     
 %                     gndCDF = cumsum(gndHistograms);
-%                     gndCDF = gndCDF/gndCDF(end,end);
+%                     gndCDF = gndCDF/gndCDF(eand,end);
 %                     exCDF = cumsum(exHistograms);
 %                     exCDF = exCDF/exCDF(end,end);
 %                     CDFdiff = gndCDF-exCDF;

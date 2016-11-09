@@ -1,20 +1,21 @@
-classdef RabiDecay_v2 < handle
-    % Rabi drive with varying length, following by measurement pulse
-    % Readout amplitude is normalized by Identity/X180 on qubit
-    % JJR 2016, Princeton
+classdef LongTimeDriftDecay < handle
+    % very long rabi drive, vary measure buffer.  gain saturation offset (or
+    % whatever it is) should decay to zero as the measure buffer gets
+    % large.
     
     properties 
-        experimentName = 'RabiDecay_v2';
+        experimentName = 'LongTimeDriftDecay';
         % inputs
         pulseCal;
-%         durationList = 50e-9:1e-6:300.05e-6;
-        durationList = 185.05e-6:1e-6:215.05e-6;
-%         durationList = linspace(0, 300e-6, 51);
+        measBufferList = 200e-9:8e-6:200e-6;
+%         measBufferList = 200e-9;
+        rabiDuration = 200e-6;
         rabiDrive = 1; % amplitude for drive
-%         rabiDrive = .1; % amplitude for drive
         rabiFreq = 4e9;
-        softwareAverages = 300;
+%         rabiFreq = 10.16528e9;
+        softwareAverages = 50; 
         % Dependent properties auto calculated in the update method
+        rabi; % main pulse
         zeroGate; % qubit pulse (identity) for normalization
         oneGate; % qubit pulse (X180) for normalization
         sequences; % gateSequence objects
@@ -23,10 +24,11 @@ classdef RabiDecay_v2 < handle
         measEndTime;
         sequenceEndTime;
         waveformEndTime;
+        intfreq = 0e6;
     end
     
     methods
-        function obj=RabiDecay_v2(pulseCal,varargin)
+        function obj=LongTimeDriftDecay(pulseCal,varargin)
             % constructor. Overwrites durationList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -35,9 +37,9 @@ classdef RabiDecay_v2 < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.durationList = varargin{1};
+                    obj.measBufferList = varargin{1};
                 case 2
-                    obj.durationList = varargin{1};
+                    obj.measBufferList = varargin{1};
                     obj.rabiDrive= varargin{2};
                 case 3
                     obj.durationList = varargin{1};
@@ -50,40 +52,37 @@ classdef RabiDecay_v2 < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-            obj.initSequences(); % init routine to build gate sequences
-            
-            % generate measurement pulse
-            obj.measurement = obj.pulseCal.measurement();
-            
-            % calculate measurement pulse time - based on the max number of
-            % gates
-            seqDurations = [obj.sequences.totalSequenceDuration];
-            maxSeqDuration = max(seqDurations);
-            obj.measStartTime = obj.pulseCal.startBuffer + maxSeqDuration + obj.pulseCal.measBuffer;
-            obj.measEndTime = obj.measStartTime+obj.measurement.totalDuration;
-            obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
-            % gate sequence end times are all the same. start times can be
-            % calculated on the fly
-            obj.sequenceEndTime = obj.measStartTime-obj.pulseCal.measBuffer;
-        end
-        
-        function obj=initSequences(obj)
-            % generate qubit objects
+            obj.rabi = pulselib.measPulse(obj.rabiDuration,obj.rabiDrive);
             obj.zeroGate = obj.pulseCal.Identity();
             obj.oneGate = obj.pulseCal.X180(); 
-                        
-            sequences(1,length(obj.durationList)+2) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.durationList)
-                % put a placeholder delay into the sequences - rabi drive
-                % added later
-                gateArray = pulselib.measPulse(obj.durationList(ind), obj.rabiDrive);
-                sequences(ind) = pulselib.gateSequence(gateArray);
-            end
-            % create 0 and 1 normalization sequences at end
-            sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
-            sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
-            obj.sequences=sequences;
+            obj.measurement = obj.pulseCal.measurement();
+            
+            maxBuffer = max(obj.measBufferList);
+            obj.measStartTime = obj.pulseCal.startBuffer + obj.rabiDuration + maxBuffer;
+            obj.measEndTime = obj.measStartTime+obj.measurement.totalDuration;
+            obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
         end
+        
+%         function obj=initSequences(obj)
+%             % generate qubit objects
+%             obj.rabi = pulselib.measPulse(obj.rabiDuration,obj.rabiDrive);
+%             obj.zeroGate = obj.pulseCal.Identity();
+%             obj.oneGate = obj.pulseCal.X180(); 
+%                         
+%             sequences(1,length(obj.measBufferList)+2) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
+%             for ind = 1:length(obj.measBufferList)
+%                 % put a placeholder delay into the sequences - rabi drive
+%                 % added later
+%                 delayGateTime = obj.rabiDuration;
+%                 delayGate = obj.pulseCal.Delay(delayGateTime);
+%                 gateArray = [delayGate];
+%                 sequences(ind)=pulselib.gateSequence(gateArray);
+%             end
+%             % create 0 and 1 normalization sequences at end
+%             sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
+%             sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
+%             obj.sequences=sequences;
+%         end
         
         function playlist = directDownloadM8195A(obj,awg)
             % avoid building full wavesets and WaveLib to save memory 
@@ -112,24 +111,30 @@ classdef RabiDecay_v2 < handle
             t = 0:tStep:paddedWaveformEndTime;            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % generate LO and marker waveforms
-            loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
-            iQubitCarrier = cos(2*pi*obj.rabiFreq*t);
-            qQubitCarrier = sin(2*pi*obj.rabiFreq*t);
+            loWaveform = sin(2*pi*(obj.pulseCal.cavityFreq+obj.intfreq)*t);
+            iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
+            qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
+            iRabiCarrier = cos(2*pi*obj.rabiFreq*t);
+            qRabiCarrier = sin(2*pi*obj.rabiFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             % since measurement pulse never changes
-            [iMeasBaseband, qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
             clear iMeasBaseband
             qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
             clear qMeasBaseband;
-            % background is measurement pulse to get contrast
-            backgroundWaveform = iMeasMod+qMeasMod;
-            
-            for ind=1:length(obj.sequences)-2
+                        
+            for ind=1:length(obj.measBufferList)
                 display(['loading sequence ' num2str(ind)])
-                s = obj.sequences(ind);
-                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
-                [iQubitBaseband, qQubitBaseband] = s.uwWaveforms(t, tStart);
+                r=obj.rabi;
+                newMeasBuffer = obj.measBufferList(ind);
+                rabiEndTime = obj.measStartTime - newMeasBuffer;
+                rabiStartTime = rabiEndTime - obj.rabi.totalDuration;
+                [iRabi, qRabi] = r.uwWaveforms(t, rabiStartTime);
+%                 
+%                 %                 s = obj.sequences(ind);
+%                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+%                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
 %                 % goofy hack to add in rabi drive because it's not a
 %                 % singlepulse object...
 %                 if ind <= length(obj.durationList)
@@ -139,58 +144,23 @@ classdef RabiDecay_v2 < handle
 % %                     iQubitBaseband = iQubitBaseband + iRabi;
 % %                     qQubitBaseband = qQubitBaseband + qRabi;
 %                 end
-                    
-                iQubitMod=iQubitCarrier.*iQubitBaseband;
-                clear iQubitBaseband;
-                qQubitMod=qQubitCarrier.*qQubitBaseband;
-                clear qQubitBaseband;
-                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-                clear iQubitMod qQubitMod;
-                
-                % now directly loading into awg
-                dataId = ind*2-1;
-                backId = ind*2;
-                % load data segment
-                iqdownload(ch1waveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                clear ch1waveform;
-                % load lo segment
-                iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                % create data playlist entry
-                playlist(dataId).segmentNumber = dataId;
-                playlist(dataId).segmentLoops = 1;
-                playlist(dataId).markerEnable = true;
-                playlist(dataId).segmentAdvance = 'Stepped';
-                % load background segment
-                iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                % load lo segment
-                iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                % create background playlist entry
-                playlist(backId).segmentNumber = backId;
-                playlist(backId).segmentLoops = 1;
-                playlist(backId).markerEnable = true;
-                playlist(backId).segmentAdvance = 'Stepped';
-            end
+%                     
+%                 iQubitMod=iQubitCarrier.*iQubitBaseband;
+%                 clear iQubitBaseband;
+%                 qQubitMod=qQubitCarrier.*qQubitBaseband;
+%                 clear qQubitBaseband;
+                iRabiMod=iRabiCarrier.*iRabi;
+                qRabiMod=qRabiCarrier.*qRabi;
 
-            iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
-            qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
-            for ind =( length(obj.sequences)-1):length(obj.sequences)
-                display(['loading sequence ' num2str(ind)])
-                s = obj.sequences(ind);
-                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
-                [iQubitBaseband, qQubitBaseband] = s.uwWaveforms(t, tStart);
-                iQubitMod=iQubitCarrier.*iQubitBaseband;
-                clear iQubitBaseband;
-                qQubitMod=qQubitCarrier.*qQubitBaseband;
-                clear qQubitBaseband;
-                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-                clear iQubitMod qQubitMod;
+                ch1waveform = iMeasMod+qMeasMod+iRabiMod+qRabiMod;
+                clear iRabiMod qRabiMod
                 
                 % now directly loading into awg
                 dataId = ind*2-1;
                 backId = ind*2;
                 % load data segment
                 iqdownload(ch1waveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                clear ch1waveform;
+%                 clear ch1waveform;
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create data playlist entry
@@ -199,7 +169,7 @@ classdef RabiDecay_v2 < handle
                 playlist(dataId).markerEnable = true;
                 playlist(dataId).segmentAdvance = 'Stepped';
                 % load background segment
-                iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
+                iqdownload(iMeasMod+qMeasMod,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create background playlist entry
@@ -240,23 +210,25 @@ classdef RabiDecay_v2 < handle
                 % Pdata=Pdata+tempI2+tempQ2; % correlation function version
                 Pdata=Idata.^2+Qdata.^2;
                 Pint=mean(Pdata(:,intStart:intStop)');
-                
+                Amp = sqrt(Pint)/ind;
                 % normalize amplitude
-                xaxisNorm=obj.durationList; % 
-                amp=sqrt(Pint);
-                norm0=amp(end-1);
-                norm1=amp(end);
-                normRange=norm1-norm0;
-                AmpNorm=(amp(1:end-2)-norm0)/normRange;
+%                 xaxisNorm=obj.durationList; % 
+%                 amp=sqrt(Pint);
+%                 norm0=amp(end-1);
+%                 norm1=amp(end);
+%                 normRange=norm1-norm0;
+%                 AmpNorm=(amp(1:end-2)-norm0)/normRange;
                 
-                if ~mod(ind,1)
+                if ~mod(ind,10)
                     figure(801);
+                    plot(obj.measBufferList,Amp);
 %                     subplot(2,3,[1 2 3]); 
-                    plot(obj.durationList,AmpNorm);
-                    
+            
+
+%                     plot(obj.durationList,AmpNorm);
                     title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('<Z>'); xlabel('Rabi Duration');
-                    plotlib.hline(0);plotlib.hline(1);
+                    ylabel('Amp (background subtracted)'); xlabel('measBufferDuration');
+%                     plotlib.hline(0);plotlib.hline(1);
 %                     subplot(2,3,4);
 %                     imagesc(taxis,[],Idata/ind);
 %                     title('I'); ylabel('Rabi Duration'); xlabel('Time (\mus)');
@@ -269,9 +241,14 @@ classdef RabiDecay_v2 < handle
                     drawnow
                 end
             end
-            result.xaxisNorm = xaxisNorm;
-            result.AmpNorm=AmpNorm;
-            result.amp = amp;
+            result.Pint = Pint;
+            result.Amp = Amp;
+            result.Pdata = Pdata;
+            result.Idata = Idata;
+            result.Qdata = Qdata;
+%             result.xaxisNorm = xaxisNorm;
+%             result.AmpNorm=AmpNorm;
+%             result.amp = amp;
             display('experiment finished')
         end
     end

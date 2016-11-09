@@ -105,7 +105,7 @@ clear x
 % x = explib.RBExperimentV2(pulseCal);
 % x=explib.CliffordCheck(pulseCal);
 x=explib.LongTimeDriftDecay(pulseCal);
-
+x.rabiFreq 
 % cardparams.averages=10;  % software averages PER SEGMENT
 % cardparams.averages=1000;  % software averages PER SEGMENT
 cardparams.averages=10;  % software averages PER SEGMENT

@@ -1,19 +1,17 @@
-classdef RabiDecay_v2 < handle
-    % Rabi drive with varying length, following by measurement pulse
+classdef RabiDecay_v3 < handle
+    % Rabi drive with varying amplitude, following by measurement pulse
     % Readout amplitude is normalized by Identity/X180 on qubit
     % JJR 2016, Princeton
     
     properties 
-        experimentName = 'RabiDecay_v2';
+        experimentName;
         % inputs
         pulseCal;
-%         durationList = 50e-9:1e-6:300.05e-6;
-        durationList = 185.05e-6:1e-6:215.05e-6;
-%         durationList = linspace(0, 300e-6, 51);
-        rabiDrive = 1; % amplitude for drive
+        duration = 50e-6;
+        rabiDrive = linspace(0, 1, 2); % amplitude for drive
 %         rabiDrive = .1; % amplitude for drive
         rabiFreq = 4e9;
-        softwareAverages = 300;
+        softwareAverages = 500;
         % Dependent properties auto calculated in the update method
         zeroGate; % qubit pulse (identity) for normalization
         oneGate; % qubit pulse (X180) for normalization
@@ -26,7 +24,7 @@ classdef RabiDecay_v2 < handle
     end
     
     methods
-        function obj=RabiDecay_v2(pulseCal,varargin)
+        function obj=RabiDecay_v3(pulseCal,varargin)
             % constructor. Overwrites durationList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -35,15 +33,17 @@ classdef RabiDecay_v2 < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.durationList = varargin{1};
+                    obj.duration = varargin{1};
                 case 2
-                    obj.durationList = varargin{1};
+                    obj.duration = varargin{1};
                     obj.rabiDrive= varargin{2};
                 case 3
-                    obj.durationList = varargin{1};
+                    obj.duration = varargin{1};
                     obj.rabiDrive= varargin{2};
                     obj.softwareAverages = varargin{3};
             end
+            name = strsplit(class(obj), '.');
+            obj.experimentName = name{end};
             obj.update();
         end
         
@@ -72,17 +72,16 @@ classdef RabiDecay_v2 < handle
             obj.zeroGate = obj.pulseCal.Identity();
             obj.oneGate = obj.pulseCal.X180(); 
                         
-            sequences(1,length(obj.durationList)+2) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.durationList)
+            obj.sequences = pulselib.gateSequence();
+            for ind = 1:length(obj.rabiDrive)
                 % put a placeholder delay into the sequences - rabi drive
                 % added later
-                gateArray = pulselib.measPulse(obj.durationList(ind), obj.rabiDrive);
-                sequences(ind) = pulselib.gateSequence(gateArray);
+                gateArray = pulselib.measPulse(obj.duration, obj.rabiDrive(ind));
+                obj.sequences(ind) = pulselib.gateSequence(gateArray);
             end
             % create 0 and 1 normalization sequences at end
-            sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
-            sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
-            obj.sequences=sequences;
+            obj.sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
+            obj.sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
         end
         
         function playlist = directDownloadM8195A(obj,awg)
@@ -113,33 +112,23 @@ classdef RabiDecay_v2 < handle
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
-            iQubitCarrier = cos(2*pi*obj.rabiFreq*t);
-            qQubitCarrier = sin(2*pi*obj.rabiFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             % since measurement pulse never changes
             [iMeasBaseband, qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
             iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-            clear iMeasBaseband
+            clear iMeasBaseband;
             qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
             clear qMeasBaseband;
             % background is measurement pulse to get contrast
             backgroundWaveform = iMeasMod+qMeasMod;
-            
+            % Rabi drives use carrier at obj.rabiFreq
+            iQubitCarrier = cos(2*pi*obj.rabiFreq*t);
+            qQubitCarrier = sin(2*pi*obj.rabiFreq*t);
             for ind=1:length(obj.sequences)-2
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
                 [iQubitBaseband, qQubitBaseband] = s.uwWaveforms(t, tStart);
-%                 % goofy hack to add in rabi drive because it's not a
-%                 % singlepulse object...
-%                 if ind <= length(obj.durationList)
-%                     q = obj.qubit;
-%                     q.duration = obj.durationList(ind);
-%                     [iRabi qRabi] = q.uwWaveforms(t, tStart);
-% %                     iQubitBaseband = iQubitBaseband + iRabi;
-% %                     qQubitBaseband = qQubitBaseband + qRabi;
-%                 end
-                    
                 iQubitMod=iQubitCarrier.*iQubitBaseband;
                 clear iQubitBaseband;
                 qQubitMod=qQubitCarrier.*qQubitBaseband;
@@ -170,10 +159,11 @@ classdef RabiDecay_v2 < handle
                 playlist(backId).markerEnable = true;
                 playlist(backId).segmentAdvance = 'Stepped';
             end
-
+            
+            % Last two sequences use carrier at pulseCal.qubitFreq
             iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
             qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
-            for ind =( length(obj.sequences)-1):length(obj.sequences)
+            for ind = (length(obj.sequences)-1):length(obj.sequences)
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
@@ -228,21 +218,19 @@ classdef RabiDecay_v2 < handle
             samples=uint64(cardparams.samples);
             Idata=zeros(cardparams.segments/2,samples);
             Qdata=zeros(cardparams.segments/2,samples);
-            Pdata=zeros(cardparams.segments/2,samples);
             timeString = datestr(datetime);
             for ind=1:softavg
                 % "hardware" averaged I,I^2 data
-                [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,playlist);
-                clear tempI2 tempQ2 % these aren't being used right now...
+                [tempI,~,tempQ,~] = card.ReadIandQcomplicated(awg,playlist);
                 % software acumulation
                 Idata=Idata+tempI;
                 Qdata=Qdata+tempQ;
                 % Pdata=Pdata+tempI2+tempQ2; % correlation function version
                 Pdata=Idata.^2+Qdata.^2;
-                Pint=mean(Pdata(:,intStart:intStop)');
+                Pint=mean(Pdata(:,intStart:intStop), 2);
                 
                 % normalize amplitude
-                xaxisNorm=obj.durationList; % 
+                xaxisNorm=obj.rabiDrive; % 
                 amp=sqrt(Pint);
                 norm0=amp(end-1);
                 norm1=amp(end);
@@ -252,10 +240,10 @@ classdef RabiDecay_v2 < handle
                 if ~mod(ind,1)
                     figure(801);
 %                     subplot(2,3,[1 2 3]); 
-                    plot(obj.durationList,AmpNorm);
+                    plot(obj.rabiDrive,AmpNorm);
                     
                     title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('<Z>'); xlabel('Rabi Duration');
+                    ylabel('<Z>'); xlabel('Rabi Amplitude');
                     plotlib.hline(0);plotlib.hline(1);
 %                     subplot(2,3,4);
 %                     imagesc(taxis,[],Idata/ind);

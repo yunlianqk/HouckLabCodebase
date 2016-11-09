@@ -60,25 +60,6 @@ pulseCal.Y90Amplitude = result.newAmp/2;
 pulseCal.Ym90Amplitude = result.newAmp/2;
 display(['New X180 Amplitude: ' num2str(pulseCal.X180Amplitude)])
 
-%% course X90 amp cal using error amplification
-display(' ')
-display(' ')
-display('fine X90 amp cal using error amplification')
-cardparams.averages=50; 
-card.SetParams(cardparams);
-numGateVector = 0:2:40; % list of # of pi/2 gates to be done. MUST BE EVEN
-softwareAverages = 10; 
-x = explib.X90AmpCal(pulseCal, numGateVector, softwareAverages);
-playlist = x.directDownloadM8195A(awg);
-result = x.directRunM8195A(awg,card,cardparams,playlist);
-display(['Old X90, Xm90 Amplitude: ' num2str(pulseCal.X90Amplitude)])
-pulseCal.X90Amplitude = result.newAmp;
-pulseCal.Xm90Amplitude = result.newAmp;
-pulseCal.Y90Amplitude = result.newAmp;
-pulseCal.Ym90Amplitude = result.newAmp;
-display(['New X90, Xm90 Amplitude: ' num2str(pulseCal.X90Amplitude)])
-
-
 %% fine X90 amp cal using error amplification
 display(' ')
 display(' ')
@@ -105,7 +86,7 @@ display('X90 Drag cal')
 cardparams.averages=50; 
 card.SetParams(cardparams);
 ampVector = linspace(-.2,.2,51);
-softwareAverages = 40; 
+softwareAverages = 20; 
 x = explib.X90DragCal(pulseCal, ampVector, softwareAverages);
 playlist = x.directDownloadM8195A(awg);
 result = x.directRunM8195A(awg,card,cardparams,playlist);
@@ -115,25 +96,6 @@ pulseCal.Xm90DragAmplitude = result.newDragAmp;
 pulseCal.Y90DragAmplitude = -1*result.newDragAmp;
 pulseCal.Ym90DragAmplitude = -1*result.newDragAmp;
 display(['New X90, Xm90 Drag Amplitude: ' num2str(pulseCal.X90DragAmplitude)])
-
-%% course X180 amp cal using error amplification
-display(' ')
-display(' ')
-display('course X180 amp cal using error amplification')
-tic; 
-cardparams.averages=20; 
-card.SetParams(cardparams);
-numGateVector = 0:1:40; % list of # of pi/2 gates to be done. MUST BE EVEN
-softwareAverages = 10; 
-x = explib.X180AmpCal(pulseCal, numGateVector, softwareAverages);
-playlist = x.directDownloadM8195A(awg);
-result = x.directRunM8195A(awg,card,cardparams,playlist);
-display(['Old X180, Xm180 Amplitude: ' num2str(pulseCal.X180Amplitude)])
-pulseCal.X180Amplitude = result.newAmp;
-pulseCal.Xm180Amplitude = result.newAmp;
-pulseCal.Y180Amplitude = result.newAmp;
-pulseCal.Ym180Amplitude = result.newAmp;
-display(['New X180, Xm180 Amplitude: ' num2str(pulseCal.X180Amplitude)])
 
 %% very fine X180 amp cal using error amplification
 display(' ')
@@ -161,7 +123,7 @@ display('X180 Drag cal')
 cardparams.averages=50; 
 card.SetParams(cardparams);
 ampVector = linspace(-.2,.3,51);
-softwareAverages = 40; 
+softwareAverages = 20; 
 x = explib.X180DragCal(pulseCal, ampVector, softwareAverages);
 playlist = x.directDownloadM8195A(awg);
 result = x.directRunM8195A(awg,card,cardparams,playlist);
