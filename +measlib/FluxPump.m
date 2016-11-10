@@ -1,19 +1,23 @@
-classdef Echo < measlib.SmartSweep
+classdef FluxPump < measlib.SmartSweep
     %X180RABI Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        delayList = linspace(0, 20e-6, 101);
+        durationList = linspace(0, 5e-6, 101);
+        pumpAmp = 1.0;
         pulseCal = paramlib.pulseCal();
+        fluxBuffer = 200e-9;
+        sigma = 10e-9;
     end
     
     methods
-        function self = Echo(pulseCal)
+        function self = FluxPump(pulseCal)
             self = self@measlib.SmartSweep();
-            self.name = 'Echo';
-            self.IQdata.meastype = 'Echo';
+            self.name = 'FluxPump';
+            self.IQdata.meastype = 'FluxPump';
             self.speccw = 0;
             self.rfcw = 0;
+            self.fluxcw = 0;
             if nargin == 1
                 self.pulseCal = pulseCal;
             end
@@ -33,27 +37,29 @@ classdef Echo < measlib.SmartSweep
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
             
             self.gateseq = [];
-            X90 = self.pulseCal.X90();
-			X180 = self.pulseCal.X180();
-			Xm90 = self.pulseCal.Xm90();
-            for delay = self.delayList
-                currentseq = paramlib.gateSequence(X90);
-                currentseq.append(pulselib.delay(delay/2));
-                currentseq.append(X180);
-				currentseq.append(pulselib.delay(delay/2));
-				currentseq.append(Xm90);
-                self.gateseq = [self.gateseq, currentseq];
+            self.fluxseq = [];
+            X180 = self.pulseCal.X180();
+            for duration = self.durationList
+                % Define rectangular pulse as flux drive
+                fluxseq = paramlib.gateSequence();
+                fluxpulse = pulselib.measPulse(duration, self.pumpAmp, ...
+                                               0, self.sigma);
+                fluxseq.append(fluxpulse);
+                self.fluxseq = [self.fluxseq, fluxseq];
+                % Define pi pulse + delay as qubit drive
+                gateseq = paramlib.gateSequence();
+                gateseq.append(X180);
+                gateseq.append(pulselib.delay(fluxpulse.totalDuration ...
+                                              + self.fluxBuffer));
+                self.gateseq = [self.gateseq, gateseq];
+
             end
             self.measpulse = self.pulseCal.measurement();
-            self.IQdata.rowAxis = self.delayList;
+            self.IQdata.rowAxis = self.durationList;
         end        
         function SetUp(self)
             self.UpdateParams();
             SetUp@measlib.SmartSweep(self);
-        end
-        function T2 = FitResult(self)
-            self.IQdata.intRange = self.intrange;
-            T2 = self.IQdata.fit();
         end
     end
 end

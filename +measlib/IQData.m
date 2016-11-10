@@ -33,7 +33,8 @@ classdef IQData
                 data.intRange = [data.colAxis(1), data.colAxis(end)];
             end
             sub = find(data.colAxis >= data.intRange(1), 1) ...
-                  :find(data.colAxis >= data.intRange(2), 1);
+                  :find(data.colAxis <= data.intRange(2), 1, 'last');
+            data.intRange = [data.colAxis(sub(1)), data.colAxis(sub(end))];
             if isempty(data.sampleinterval)
                 data.sampleinterval = data.colAxis(2) - data.colAxis(1);
             end

@@ -47,6 +47,7 @@ classdef T1 < measlib.SmartSweep
             SetUp@measlib.SmartSweep(self);
         end
         function T1 = FitResult(self)
+            self.IQdata.intRange = self.intrange;
             T1 = self.IQdata.fit();
         end
     end
