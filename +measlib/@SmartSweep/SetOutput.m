@@ -1,6 +1,6 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 specgen card;
+    global pulsegen1 pulsegen2 rfgen specgen card;
 
     % Set up signal and background acquisition function handles
     self.acqsigfunc = @card.ReadIandQ;
@@ -10,6 +10,8 @@ function SetOutput(self)
         switch self.bgsubtraction
             case 'speconoff'
                 self.acqbgfunc = @SpecOnOff;
+            case 'rfonoff'
+                self.acqbgfunc = @RFOnOff;
             case 'pulseonoff'
                 self.acqbgfunc = @PulseOnOff;
             otherwise
@@ -118,6 +120,12 @@ function SetOutput(self)
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
         specgen.PowerOn();
+    end
+    function [Ibg, Qbg] = RFOnOff()
+        rfgen.PowerOff();
+        pause(self.waittime);
+        [Ibg, Qbg] = card.ReadIandQ();
+        rfgen.PowerOn();
     end
     function [Ibg, Qbg] = PulseOnOff()
         ch1 = pulsegen1.waveform1;
