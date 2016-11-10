@@ -4,7 +4,7 @@
 
 % delayList = .2e-6:1.50e-6:150.2e-6; % total delay from 1st to last pulse
 delayList = 1e-9*logspace(2,5.4,50); % total delay from 1st to last pulse
-softwareAverages = 5;
+softwareAverages = 20;
 pauseTime = 20;
 cardparams.averages=25;  % software averages PER SEGMENT
 card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
@@ -41,7 +41,7 @@ while 1
     
     figure(612)
     subplot(1,2,1)
-    plot(abs(loopResults.T1(1:testNum)))
+    plot(abs(loopResults.T1(1:testNum)),'--or')
     title(['T1Repeat_v2 ' x.experimentName ' ' timeString]);
     xlabel('Delay')
     ylabel('T1')

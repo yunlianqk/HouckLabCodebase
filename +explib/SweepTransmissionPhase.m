@@ -1,13 +1,14 @@
-classdef SweepTransmissionFrequency < handle
+classdef SweepTransmissionPhase < handle
     % Simple sweep of a measurement pulse frequency
     
     properties
-        experimentName='SweepTransmissionFrequency';
+        experimentName='SweepTransmissionPhase';
         % change these to tweak the experiment
-        startFreq=6.8e9;
-        stopFreq=7e9;
-%         startFreq=7e9;
-%         stopFreq=10e9;
+%         startFreq=6.8e9;
+%         stopFreq=7e9;
+        Freq = 10e9;
+        startPhase = 0;
+        stopPhase = 2*pi;
         points = 101;
         measDuration = 10e-6;
 %         measAmplitude = 0.63; % measurement pulse amp.
@@ -16,7 +17,7 @@ classdef SweepTransmissionFrequency < handle
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
         % these are auto calculated
-        freqVector;
+        phaseVector;
         measurement; % measurement pulse object
         measStartTime; 
         measEndTime;
@@ -24,11 +25,12 @@ classdef SweepTransmissionFrequency < handle
     end
     
     methods
-        function obj=SweepTransmissionFrequency()
+        function obj=SweepTransmissionPhase()
             % constructor generates the necessary objects and calculates the dependent parameters
             obj.measurement = pulselib.measPulse(obj.measDuration);
             obj.measurement.amplitude = obj.measAmplitude;
-            obj.freqVector = linspace(obj.startFreq,obj.stopFreq,obj.points);
+%             obj.freqVector = linspace(obj.startFreq,obj.stopFreq,obj.points);
+            obj.phaseVector = linspace(obj.startPhase,obj.stopPhase,obj.points);
             obj.measStartTime = obj.startBuffer;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
             obj.waveformEndTime = obj.measEndTime+obj.endBuffer;
@@ -44,7 +46,8 @@ classdef SweepTransmissionFrequency < handle
             % makes a movie stepping through the different waveforms
             figure(145)
             for ind=1:obj.points
-                freq = obj.freqVector(ind);
+                phase = obj.phaseVector(ind);
+                freq = obj.Freq;
                 iMeasMod=cos(2*pi*freq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*freq*t).*qMeasBaseband;
                 plot(t,iMeasMod,'b',t,qMeasMod,'r')
@@ -60,7 +63,8 @@ classdef SweepTransmissionFrequency < handle
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
             backgroundWaveform = zeros(1,length(t));
             for ind=1:obj.points
-                freq=obj.freqVector(ind);
+                phase = obj.phaseVector(ind);
+                freq=obj.Freq;
                 [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
                 iMeasMod=cos(2*pi*freq*t).*iMeasBaseband;
                 qMeasMod=sin(2*pi*freq*t).*qMeasBaseband;
@@ -68,7 +72,7 @@ classdef SweepTransmissionFrequency < handle
                 s1=w.newSegment(ch1waveform,markerWaveform,[1 0; 0 0; 0 0; 0 0]);
                 p1=w.newPlaylistItem(s1);
                 % generate LO
-                loWaveform = sin(2*pi*freq*t);
+                loWaveform = sin(2*pi*freq*t+phase);
                 s2=w.newSegment(loWaveform,markerWaveform,[0 0; 1 0; 0 0; 0 0]);
                 % set lo to play simultaneously
                 s2.id = s1.id;
@@ -123,13 +127,13 @@ classdef SweepTransmissionFrequency < handle
                 phaseInt = mean(phaseData(:,intStart:intStop)');
                 
                 
-                figure(101);
-                subplot(2,3,1); imagesc(taxis,obj.freqVector./1e9,Idata);title(['In phase. N=' num2str(i)]);ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,3,2); imagesc(taxis,obj.freqVector./1e9,Qdata);title('Quad phase');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,3,4); imagesc(taxis,obj.freqVector./1e9,Pdata);title('Power I^2+Q^2');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,3,5); imagesc(taxis,obj.freqVector./1e9,phaseData);title('Phase atan(Q/I)');ylabel('Frequency (GHz)');xlabel('Time (\mus)');
-                subplot(2,3,3); plot(obj.freqVector./1e9,sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Frequency (GHz)');
-                subplot(2,3,6); plot(obj.freqVector./1e9,phaseInt);ylabel('Integrated Phase');xlabel('Frequency (GHz)');
+                figure(123);
+                subplot(2,3,1); imagesc(taxis,obj.phaseVector./(2*pi),Idata);title(['In phase. N=' num2str(i)]);ylabel('Phase (2pi)');xlabel('Time (\mus)');
+                subplot(2,3,2); imagesc(taxis,obj.phaseVector./(2*pi),Qdata);title('Quad phase');ylabel('Phase (2pi)');xlabel('Time (\mus)');
+                subplot(2,3,4); imagesc(taxis,obj.phaseVector./(2*pi),Pdata);title('Power I^2+Q^2');ylabel('Phase (2pi)');xlabel('Time (\mus)');
+                subplot(2,3,5); imagesc(taxis,obj.phaseVector./(2*pi),phaseData);title('Phase atan(Q/I)');ylabel('Phase (2pi)');xlabel('Time (\mus)');
+                subplot(2,3,3); plot(obj.phaseVector./(2*pi),sqrt(Pint));ylabel('Homodyne Amplitude');xlabel('Phase (2pi)');
+                subplot(2,3,6); plot(obj.phaseVector./(2*pi),phaseInt);ylabel('Integrated Phase');xlabel('Phase (2pi)');
                 drawnow
             end
             result.taxis = taxis;

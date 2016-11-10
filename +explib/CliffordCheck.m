@@ -1,16 +1,14 @@
-classdef RBExperimentV2 < handle
-    % Randomized Benchmarking Experiment object for generating waveforms to
-    % be sent to the awg. JJR 2016, Princeton
+classdef CliffordCheck < handle
+    % Each experiment does a fixed number of cliffords followed by it's undo gate.
+    % for sanity checking the calibration
     
     properties
-        experimentName = 'RandomizedBenchmarkV2';
+        experimentName = 'CliffordCheck';
         % inputs
         pulseCal;
-%         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
-%         sequenceLengths = floor(2*(linspace(1,21,32)).^2);
-%         sequenceLengths = round(logspace(log10(1),log10(2000),32));
-        sequenceLengths = round(logspace(log10(1),log10(3500),32));
         softwareAverages = 50;
+        sequenceLengths = 1:24;
+        numCliffs = 1;
         % these are auto calculated
         primitives; % object array of primitive gates.
         iPrimitiveWaveforms; % baseband waveforms never change, so only calculate them once.
@@ -25,23 +23,22 @@ classdef RBExperimentV2 < handle
     end
     
     methods
-        function obj=RBExperimentV2(pulseCal, varargin)% constructor
-            % constructor. Overwrites sequenceLengths if it is passed as an input
-            % then calls the update function to calculate dependent
+        function obj=CliffordCheck(pulseCal, varargin)% constructor
+            % constructor. calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
             % update method.
             obj.pulseCal = pulseCal;
             nVarargs = length(varargin);
-            switch nVarargs
-                case 1
-                    obj.sequenceLengths = varargin{1};
-                case 2
-                    obj.sequenceLengths = varargin{1};
-                    obj.softwareAverages = varargin{2};
-            end
+%             switch nVarargs
+%                 case 1
+%                     obj.sequenceLengths = varargin{1};
+%                 case 2
+%                     obj.sequenceLengths = varargin{1};
+%                     obj.softwareAverages = varargin{2};
+%             end
             obj.update();
         end
-            
+        
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
@@ -50,12 +47,7 @@ classdef RBExperimentV2 < handle
             obj.measurement = obj.pulseCal.measurement();
             obj.initSequences();
         end
-        
-        function obj=set.sequenceLengths(obj,s)
-            obj.sequenceLengths=s;
-            obj.update();
-        end
-        
+
         function obj=initPrimitives(obj)
             primitives(1) = obj.pulseCal.Identity();
             primitives(2) = obj.pulseCal.X180();
@@ -119,56 +111,20 @@ classdef RBExperimentV2 < handle
         end
         
         function obj=initSequences(obj)
-            % using sequenceLengths, generate the sequence objects
-            s = obj.sequenceLengths;
-            [m, mInd]=max(s);
-            numCliffords=length(obj.cliffords);
-            
-            % generate random sequence of cliffords with max sequenceLength
-            rng('default');
-            rng('shuffle');
-            maxSequence = randi(numCliffords, [1,m]);
-            
-            % for each sequence length create a sequence object
-            for ind=1:length(s)
-                seqList=maxSequence(1:s(ind));
-                % generate sequence object.  It will find and append the
-                % proper undo gate.
+            for ind=1:length(obj.cliffords)
+                seqList=ind*ones(1,obj.numCliffs);
                 sequences(ind)=explib.RB.rbSequence(seqList,obj.cliffords);
+                seqDurations(ind) = sequences(ind).sequenceDuration;
             end
-            
-            
-            obj.sequences=sequences;
+            obj.sequences = sequences;
             % find max duration of all sequences
-            d=sequences(mInd).sequenceDuration;
+            d=max(seqDurations);
             obj.rbEndTime=obj.pulseCal.startBuffer+d;
             obj.measStartTime=obj.rbEndTime+obj.pulseCal.measBuffer;
             obj.measEndTime=obj.measStartTime+obj.measurement.totalDuration;
             obj.waveformEndTime = obj.measEndTime + obj.pulseCal.endBuffer;
         end
-        
-        function draw(obj)
-            t = 0:1/obj.samplingRate:(obj.waveformEndTime);
-            figure(125);
-            h1=subplot(2,1,1);
-            hold(h1,'on');
-            h2=subplot(2,1,2);
-            hold(h2,'on');
-            for ind=1:length(obj.sequences)
-                seq=obj.sequences(ind);
-                [iQubitBaseband qQubitBaseband] = seq.uwWaveforms(t, obj.rbEndTime);
-                iQubitMod=cos(2*pi*obj.qubitFreq*t).*iQubitBaseband;
-                qQubitMod=sin(2*pi*obj.qubitFreq*t).*qQubitBaseband;
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.cavityFreq*t).*iMeasBaseband;
-                qMeasMod=sin(2*pi*obj.cavityFreq*t).*qMeasBaseband;
-                
-                plot(h1,t,iQubitMod+ind*2.5,'b',t,qQubitMod+ind*2.5,'r')
-                plot(h2,t,iMeasMod+ind*2.5,'b',t,qMeasMod+ind*2.5,'r')
-            end
             
-        end
-        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %M8195A Direct Download Specific Code
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -419,11 +375,12 @@ classdef RBExperimentV2 < handle
                 if ~mod(ind,10)
                     figure(753);
                     subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm, AmpNorm);
+%                     plot(xaxisNorm, AmpNorm);
+                    bar(xaxisNorm, AmpNorm,'r')
                     plotlib.hline(0);
                     plotlib.hline(1);
-                    title([obj.experimentName ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Clifford Sequence Length');
+                    title([obj.experimentName ' number of Cliffords:' num2str(obj.numCliffs) ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+                    ylabel('Normalized Amplitude'); xlabel('Clifford Gate');
                     subplot(2,3,4);
                     imagesc(taxis,[],Idata/ind);
                     title('I'); ylabel('segments'); xlabel('Time (\mus)');
@@ -438,11 +395,12 @@ classdef RBExperimentV2 < handle
             end
             figure(753);
             subplot(2,3,[1 2 3]);
-            plot(xaxisNorm, AmpNorm);
+%             plot(xaxisNorm, AmpNorm);
+            bar(xaxisNorm, AmpNorm,'r')
             plotlib.hline(0);
             plotlib.hline(1);
-            title([obj.experimentName ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Clifford Sequence Length');
+            title([obj.experimentName ' number of Cliffords:' num2str(obj.numCliffs) ' ' timeString '  SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+            ylabel('Normalized Amplitude'); xlabel('Clifford Gate');
             
             result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;
@@ -458,3 +416,9 @@ classdef RBExperimentV2 < handle
     end
 end
        
+        
+        
+        
+        
+        
+        

@@ -1,16 +1,18 @@
-classdef T2Experiment_v2 < handle
-    % Simple T2 Experiment. Two pi/2 X pulses with varying delay. JJR 2016, Princeton
-    % uses pulsecal object to generate gates
+classdef RabiDecay_v3 < handle
+    % Rabi drive with varying amplitude, following by measurement pulse
+    % Readout amplitude is normalized by Identity/X180 on qubit
+    % JJR 2016, Princeton
     
     properties 
-        experimentName = 'T2Experiment_v2';
+        experimentName;
         % inputs
         pulseCal;
-        delayList = 200e-9:.005e-6:1.2e-6; % delay btw qubit pulses
-        softwareAverages = 10;
-        detuning = -2e6;
+        duration = 50e-6;
+        rabiDrive = linspace(0, 1, 2); % amplitude for drive
+%         rabiDrive = .1; % amplitude for drive
+        rabiFreq = 4e9;
+        softwareAverages = 500;
         % Dependent properties auto calculated in the update method
-        X90; % qubit pulse object
         zeroGate; % qubit pulse (identity) for normalization
         oneGate; % qubit pulse (X180) for normalization
         sequences; % gateSequence objects
@@ -22,8 +24,8 @@ classdef T2Experiment_v2 < handle
     end
     
     methods
-        function obj=T2Experiment_v2(pulseCal,varargin)
-            % constructor. Overwrites delayList if it is passed as an input
+        function obj=RabiDecay_v3(pulseCal,varargin)
+            % constructor. Overwrites durationList if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
             % update method.
@@ -31,18 +33,20 @@ classdef T2Experiment_v2 < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.delayList = varargin{1};
+                    obj.duration = varargin{1};
                 case 2
-                    obj.delayList = varargin{1};
-                    obj.detuning = varargin{2};
+                    obj.duration = varargin{1};
+                    obj.rabiDrive= varargin{2};
                 case 3
-                    obj.delayList = varargin{1};
-                    obj.detuning = varargin{2};
+                    obj.duration = varargin{1};
+                    obj.rabiDrive= varargin{2};
                     obj.softwareAverages = varargin{3};
             end
+            name = strsplit(class(obj), '.');
+            obj.experimentName = name{end};
             obj.update();
         end
-
+        
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
@@ -65,21 +69,19 @@ classdef T2Experiment_v2 < handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.X90 = obj.pulseCal.X90();
             obj.zeroGate = obj.pulseCal.Identity();
             obj.oneGate = obj.pulseCal.X180(); 
                         
-            sequences(1,length(obj.delayList)) = pulselib.gateSequence(); % initialize empty array of gateSequence objects
-            for ind = 1:length(obj.delayList)
-                delayGateTime = obj.delayList(ind) - obj.X90.totalDuration; % so that pulse delays match the delayList
-                delayGate = obj.pulseCal.Delay(delayGateTime);
-                gateArray = [obj.X90 delayGate obj.X90];
-                sequences(ind)=pulselib.gateSequence(gateArray);
+            obj.sequences = pulselib.gateSequence();
+            for ind = 1:length(obj.rabiDrive)
+                % put a placeholder delay into the sequences - rabi drive
+                % added later
+                gateArray = pulselib.measPulse(obj.duration, obj.rabiDrive(ind));
+                obj.sequences(ind) = pulselib.gateSequence(gateArray);
             end
             % create 0 and 1 normalization sequences at end
-            sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
-            sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
-            obj.sequences=sequences;
+            obj.sequences(ind+1)=pulselib.gateSequence(obj.zeroGate);
+            obj.sequences(ind+2)=pulselib.gateSequence(obj.oneGate);
         end
         
         function playlist = directDownloadM8195A(obj,awg)
@@ -111,36 +113,28 @@ classdef T2Experiment_v2 < handle
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
-            % shift frequency of qubit pulses by detuning, but not for the
-            
-            % normalization
-            obj.pulseCal.qubitFreq = obj.pulseCal.qubitFreq + obj.detuning;
-            
-            for ind=1:length(obj.sequences)
-                
-                % for normalization return qubit frequency to normal
-                if ind == (length(obj.sequences)-1)
-                    obj.pulseCal.qubitFreq = obj.pulseCal.qubitFreq - obj.detuning;
-                end
-                
+            % since measurement pulse never changes
+            [iMeasBaseband, qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
+            iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
+            clear iMeasBaseband;
+            qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
+            clear qMeasBaseband;
+            % background is measurement pulse to get contrast
+            backgroundWaveform = iMeasMod+qMeasMod;
+            % Rabi drives use carrier at obj.rabiFreq
+            iQubitCarrier = cos(2*pi*obj.rabiFreq*t);
+            qQubitCarrier = sin(2*pi*obj.rabiFreq*t);
+            for ind=1:length(obj.sequences)-2
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
-                [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, tStart);
-                iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
+                [iQubitBaseband, qQubitBaseband] = s.uwWaveforms(t, tStart);
+                iQubitMod=iQubitCarrier.*iQubitBaseband;
                 clear iQubitBaseband;
-                qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
+                qQubitMod=qQubitCarrier.*qQubitBaseband;
                 clear qQubitBaseband;
-                [iMeasBaseband qMeasBaseband] = obj.measurement.uwWaveforms(t,obj.measStartTime);
-                iMeasMod=cos(2*pi*obj.pulseCal.cavityFreq*t).*iMeasBaseband;
-                clear iMeasBaseband 
-                qMeasMod=sin(2*pi*obj.pulseCal.cavityFreq*t).*qMeasBaseband;
-                clear qMeasBaseband;
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
-                clear iQubitMod qQubitMod
-                % background is measurement pulse to get contrast
-                backgroundWaveform = iMeasMod+qMeasMod;
-                clear iMeasMod qMeasMod
+                clear iQubitMod qQubitMod;
                 
                 % now directly loading into awg
                 dataId = ind*2-1;
@@ -157,7 +151,45 @@ classdef T2Experiment_v2 < handle
                 playlist(dataId).segmentAdvance = 'Stepped';
                 % load background segment
                 iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
-                clear backgroundWaveform;
+                % load lo segment
+                iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
+                % create background playlist entry
+                playlist(backId).segmentNumber = backId;
+                playlist(backId).segmentLoops = 1;
+                playlist(backId).markerEnable = true;
+                playlist(backId).segmentAdvance = 'Stepped';
+            end
+            
+            % Last two sequences use carrier at pulseCal.qubitFreq
+            iQubitCarrier = cos(2*pi*obj.pulseCal.qubitFreq*t);
+            qQubitCarrier = sin(2*pi*obj.pulseCal.qubitFreq*t);
+            for ind = (length(obj.sequences)-1):length(obj.sequences)
+                display(['loading sequence ' num2str(ind)])
+                s = obj.sequences(ind);
+                tStart = obj.sequenceEndTime - s.totalSequenceDuration;
+                [iQubitBaseband, qQubitBaseband] = s.uwWaveforms(t, tStart);
+                iQubitMod=iQubitCarrier.*iQubitBaseband;
+                clear iQubitBaseband;
+                qQubitMod=qQubitCarrier.*qQubitBaseband;
+                clear qQubitBaseband;
+                ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
+                clear iQubitMod qQubitMod;
+                
+                % now directly loading into awg
+                dataId = ind*2-1;
+                backId = ind*2;
+                % load data segment
+                iqdownload(ch1waveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
+                clear ch1waveform;
+                % load lo segment
+                iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
+                % create data playlist entry
+                playlist(dataId).segmentNumber = dataId;
+                playlist(dataId).segmentLoops = 1;
+                playlist(dataId).markerEnable = true;
+                playlist(dataId).segmentAdvance = 'Stepped';
+                % load background segment
+                iqdownload(backgroundWaveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % load lo segment
                 iqdownload(loWaveform,awg.samplerate,'channelMapping',[0 0; 1 0; 0 0; 0 0],'segmentNumber',backId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 % create background playlist entry
@@ -186,87 +218,51 @@ classdef T2Experiment_v2 < handle
             samples=uint64(cardparams.samples);
             Idata=zeros(cardparams.segments/2,samples);
             Qdata=zeros(cardparams.segments/2,samples);
-            Pdata=zeros(cardparams.segments/2,samples);
+            timeString = datestr(datetime);
             for ind=1:softavg
                 % "hardware" averaged I,I^2 data
-                [tempI,tempI2,tempQ,tempQ2] = card.ReadIandQcomplicated(awg,playlist);
-                clear tempI2 tempQ2 % these aren't being used right now...
+                [tempI,~,tempQ,~] = card.ReadIandQcomplicated(awg,playlist);
                 % software acumulation
                 Idata=Idata+tempI;
                 Qdata=Qdata+tempQ;
                 % Pdata=Pdata+tempI2+tempQ2; % correlation function version
                 Pdata=Idata.^2+Qdata.^2;
-                Pint=mean(Pdata(:,intStart:intStop)');
-                % phaseData = phaseData + atan(tempQ./tempI);
-                % phaseInt = mean(phaseData(:,intStart:intStop)');
+                Pint=mean(Pdata(:,intStart:intStop), 2);
                 
                 % normalize amplitude
-                xaxisNorm=obj.delayList; % 
+                xaxisNorm=obj.rabiDrive; % 
                 amp=sqrt(Pint);
                 norm0=amp(end-1);
                 norm1=amp(end);
                 normRange=norm1-norm0;
                 AmpNorm=(amp(1:end-2)-norm0)/normRange;
                 
-                timeString = datestr(datetime);
-                if ~mod(ind,10)
-                    figure(187);
-                    subplot(2,3,[1 2 3]); 
-                    plot(xaxisNorm,AmpNorm);
-%                     fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
-%                     updateFactor = fitResults.updateFactor;
-%                     newAmp = obj.mainGate.amplitude*updateFactor;
+                if ~mod(ind,1)
+                    figure(801);
+%                     subplot(2,3,[1 2 3]); 
+                    plot(obj.rabiDrive,AmpNorm);
+                    
                     title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-                    ylabel('Normalized Amplitude'); xlabel('Delay');
-                    subplot(2,3,4);
-                    imagesc(taxis,[],Idata/ind);
-                    title('I'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,5); 
-                    imagesc(taxis,[],Qdata/ind);
-                    title('Q'); ylabel('segments'); xlabel('Time (\mus)');
-                    subplot(2,3,6);
-                    imagesc(taxis,[],Pdata/ind);
-                    title('I^2+Q^2'); ylabel('segments'); xlabel('Time (\mus)');
+                    ylabel('<Z>'); xlabel('Rabi Amplitude');
+                    plotlib.hline(0);plotlib.hline(1);
+%                     subplot(2,3,4);
+%                     imagesc(taxis,[],Idata/ind);
+%                     title('I'); ylabel('Rabi Duration'); xlabel('Time (\mus)');
+%                     subplot(2,3,5); 
+%                     imagesc(taxis,[],Qdata/ind);
+%                     title('Q'); ylabel('Rabi Duration'); xlabel('Time (\mus)');
+%                     subplot(2,3,6);
+%                     imagesc(taxis,[],Pdata/ind);
+%                     title('I^2+Q^2'); ylabel('Rabi Duration'); xlabel('Time (\mus)');
                     drawnow
-                    
-%                     figure(512)
-%                     ax1= axes;
-%                     [lambda, freq] = funclib.ExpCosFit(xaxisNorm, AmpNorm, ax1);
-                    
                 end
             end
-            figure(187);
-            subplot(2,3,[1 2 3]);
-            plot(xaxisNorm,AmpNorm);
-            
-%             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
-%             updateFactor = fitResults.updateFactor;
-%             newAmp = obj.mainGate.amplitude*updateFactor;
-            title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
-            ylabel('Normalized Amplitude'); xlabel('Delay');
-            
-%             figure()
-%             ax1= axes;
-%             [lambda, freq] = funclib.ExpCosFit(xaxisNorm, AmpNorm, ax1)
-            
-            
-            result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;
-            result.Idata=Idata./softavg;
-            result.Qdata=Qdata./softavg;
-            result.Pdata=Pdata./softavg;
-            result.Pint=Pint./softavg;
             result.AmpNorm=AmpNorm;
-%             result.lambda = lambda;
-%             result.freq = freq;
-%             result.fitResults = fitResults;
-%             result.newAmp = newAmp;
-%             result.newDragAmp=newDragAmp;
-            display('Experiment Finished')
+            result.amp = amp;
+            display('experiment finished')
         end
     end
 end
-       
-        
-        
+     
         

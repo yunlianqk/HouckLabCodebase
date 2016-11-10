@@ -1,8 +1,8 @@
-classdef X180RabiExperiment < handle
+classdef X90RabiExperiment < handle
     % Simple Rabi Experiment. X pulse with varying power. JJR 2016, Princeton
 
     properties 
-        experimentName = 'X180RabiExperiment';
+        experimentName = 'X90RabiExperiment';
         % inputs
         pulseCal;
         ampVector = linspace(0,1,51);
@@ -10,14 +10,15 @@ classdef X180RabiExperiment < handle
         % Dependent properties auto calculated in the update method
         qubit; % qubit pulse object
         measurement; % measurement pulse object
-        qubitPulseTime;
+        qubit1PulseTime;
+        qubit2PulseTime;
         measStartTime; 
         measEndTime;
         waveformEndTime;
     end
     
     methods
-        function obj=X180RabiExperiment(pulseCal,varargin)
+        function obj=X90RabiExperiment(pulseCal,varargin)
             % constructor. Overwrites ampVector if it is passed as an input
             % then calls the update function to calculate dependent
             % properties. If these are changed after construction, rerun
@@ -37,10 +38,11 @@ classdef X180RabiExperiment < handle
         function obj=update(obj)
             % run this to update dependent parameters after changing
             % experiment details
-            obj.qubit = obj.pulseCal.X180();
+            obj.qubit = obj.pulseCal.X90();
             obj.measurement = obj.pulseCal.measurement();
-            obj.qubitPulseTime = obj.pulseCal.startBuffer+obj.qubit.totalDuration/2;
-            obj.measStartTime = obj.qubitPulseTime + obj.qubit.totalDuration/2 + obj.pulseCal.measBuffer;
+            obj.qubit1PulseTime = obj.pulseCal.startBuffer+obj.qubit.totalDuration/2;
+            obj.qubit2PulseTime = obj.qubit1PulseTime+obj.qubit.totalDuration;
+            obj.measStartTime = obj.qubit2PulseTime + obj.qubit.totalDuration/2 + obj.pulseCal.measBuffer;
             obj.measEndTime = obj.measStartTime+obj.measurement.duration;
             obj.waveformEndTime = obj.measEndTime+obj.pulseCal.endBuffer;
         end
@@ -83,7 +85,10 @@ classdef X180RabiExperiment < handle
                 q = obj.qubit;
                 q.amplitude=obj.ampVector(ind);
                 q.dragAmplitude=initialDrag*obj.ampVector(ind);
-                [iQubitBaseband qQubitBaseband] = q.uwWaveforms(t, obj.qubitPulseTime);
+                [iQubit1Baseband qQubit1Baseband] = q.uwWaveforms(t, obj.qubit1PulseTime);
+                [iQubit2Baseband qQubit2Baseband] = q.uwWaveforms(t, obj.qubit2PulseTime);
+                iQubitBaseband = iQubit1Baseband + iQubit2Baseband;
+                qQubitBaseband = qQubit1Baseband + qQubit2Baseband;
                 iQubitMod=cos(2*pi*obj.pulseCal.qubitFreq*t).*iQubitBaseband;
                 clear iQubitBaseband;
                 qQubitMod=sin(2*pi*obj.pulseCal.qubitFreq*t).*qQubitBaseband;
@@ -108,6 +113,10 @@ classdef X180RabiExperiment < handle
                 dataId = ind*2-1;
                 backId = ind*2;
                 % load data segment
+                if ind == 50
+                    display('break!')
+                end
+                
                 iqdownload(ch1waveform,awg.samplerate,'channelMapping',[1 0; 0 0; 0 0; 0 0],'segmentNumber',dataId,'keepOpen',1,'run',0,'marker',markerWaveform);
                 clear ch1waveform;
                 % load lo segment

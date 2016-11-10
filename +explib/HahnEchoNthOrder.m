@@ -216,8 +216,8 @@ classdef HahnEchoNthOrder < handle
                 if ~mod(ind,10)
                     figure(187);
                     subplot(2,3,[1 2 3]); 
-                    fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
-                    title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+%                     fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
+%                     title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
                     ylabel('Normalized Amplitude'); xlabel('Delay');
                     subplot(2,3,4);
                     imagesc(taxis,[],Idata/ind);
@@ -234,8 +234,8 @@ classdef HahnEchoNthOrder < handle
             figure(187);
             subplot(2,3,[1 2 3]);
             plot(xaxisNorm,AmpNorm);
-            fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
-            title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
+%             fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm);
+%             title([obj.experimentName ' ' timeString '; ' num2str(obj.echoOrder) ' Pi pulses; T2Echo = ' num2str(fitResults.lambda) ' SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
             ylabel('Normalized Amplitude'); xlabel('Delay');
             result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;
@@ -244,7 +244,7 @@ classdef HahnEchoNthOrder < handle
             result.Pdata=Pdata./softavg;
             result.Pint=Pint./softavg;
             result.AmpNorm=AmpNorm;
-            result.fitResults = fitResults;
+%             result.fitResults = fitResults;
             display('Experiment Finished')
         end
     end
