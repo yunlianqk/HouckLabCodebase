@@ -5,8 +5,12 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
         experimentName = 'SweepTransmissionFrequencyWithQubitPulse_v2';
         % inputs
         pulseCal;
-        freqVector = linspace(10.164e9,10.167e9,101);
-        softwareAverages = 50; 
+        freqVector = linspace(10.163e9,10.168e9,101);
+%         freqVector = linspace(6.8e9,7e9,101);
+%         freqVector = 7e9.*ones(1,101);
+        
+%         freqVector = 10.16535e9;
+        softwareAverages = 200; 
         % Dependent properties auto calculated in the update method
         qubit; % main pulse
         sequences; % gateSequence objects
@@ -57,7 +61,8 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.qubit = obj.pulseCal.X180();
+%             obj.qubit = obj.pulseCal.X180();
+            obj.qubit = obj.pulseCal.Identity();
 %             obj.zeroGate = obj.pulseCal.Identity();
 %             obj.oneGate = obj.pulseCal.X180(); 
                         
@@ -119,6 +124,7 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
                 ch1waveform = iQubitMod+qQubitMod+iMeasMod+qMeasMod;
 %                 ch1waveform = iMeasMod+qMeasMod;
                 clear iQubitMod qQubitMod
+                
                 loWaveform = sin(2*pi*obj.freqVector(ind)*t);
                 backgroundWaveform = zeros(size(ch1waveform));
 

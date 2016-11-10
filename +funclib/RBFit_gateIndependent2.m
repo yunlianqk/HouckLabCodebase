@@ -40,8 +40,8 @@ function  result = RBFit_gateIndependent2(xaxis, data, varargin)
         ax = gca;
     end
     
-%     plot(xaxis,ydata,'.','color',[.8 .8 .8],'markersize',10)
-    plot(xaxis,ydata,'linewidth',.25)
+    plot(xaxis,ydata,'-.','color',[.8 .8 .8],'markersize',10)
+%     plot(xaxis,ydata,'linewidth',.25)
     hold(ax,'on')
     plot(xaxis,ymean,'r.','markersize',20)
     plot(xaxis_dense,Y,'k')

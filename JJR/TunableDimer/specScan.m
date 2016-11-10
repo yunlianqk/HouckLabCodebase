@@ -6,14 +6,18 @@ yoko3.rampstep=.0001;yoko3.rampinterval=.01;
 % CM = [1 0 0;  0 1 0; 0 0 1;]
 % f0 = [0; 0; 0;];
 
-CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .5659 -.4699 2.3068;]
-f0 = [.2748; -.1975; .0735;]; % after power surge 7/18
+% CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .5659 -.4699 2.3068;]
+% CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .5659 -.4699 2.3188;] % update on 09/09
+% CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .5659 -.4699 2.3447;] % update on 09/10
+CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .54 -.51 2.3447;] % update on 09/11
+% f0 = [.2748; -.1975; 0.2319;]; % after power surge 7/18
+f0 = [.2748; -.1975; 0.1429;]; % after power surge 9/10
 % f0 = [0; -.1975; -.348;]; % from reboot before power surge
 % f0 = [0; -.1975; -.1655;];   from before reboot
 fc=fluxController(CM,f0);
 %% Generate flux trajectory (start flux, stop flux, steps)
 clear vtraj ftraj
-fstart=[0 -.35 0];fstop=[0 -.65 0];fsteps=101;
+fstart=[-0.4 0 0];fstop=[0.1 0 0];fsteps=51;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -27,7 +31,7 @@ fc.visualizeTrajectories(vtraj,ftraj);
 
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
-transWaitTime=20;
+transWaitTime=10;
 pnax.params.start = 5.9e9;
 pnax.params.stop = 5.95e9;
 pnax.params.points = 1001;
@@ -57,7 +61,7 @@ transparams.start=pnax.params.start;
 transparams.stop=pnax.params.stop;
 %% Switch to spec channels and update settings
 pnax.SetActiveTrace(3);
-specWaitTime = 300;
+specWaitTime = 20;
 pnax.params.cwpower = -45;
 pnax.params.start = 2e9;
 pnax.params.stop = 5.8e9;
@@ -143,7 +147,7 @@ for ind=1:steps
     title(['specScan phase data ' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat']);
     ind
     if ~mod(ind,20)
-        save([dataDirectory 'JJR_specAutoScan' ...
+        save([dataDirectory 'MF_specAutoScan' ...
             num2str(time(1)) num2str(time(2)) num2str(time(3))...
             num2str(time(4)) num2str(time(5)) '.mat'],...
             'yoko1','yoko2','yoko3','CM','f0','fc','ftraj','vtraj',...
@@ -157,7 +161,7 @@ end
 
 toc
 beep
-save([dataDirectory 'JJR_specAutoScan' ...
+save([dataDirectory 'MF_specAutoScan' ...
             num2str(time(1)) num2str(time(2)) num2str(time(3))...
             num2str(time(4)) num2str(time(5)) '.mat'],...
             'yoko1','yoko2','yoko3','CM','f0','fc','ftraj','vtraj',...

@@ -7,8 +7,10 @@ classdef RBExperimentV2 < handle
         % inputs
         pulseCal;
 %         sequenceLengths = [2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 80 96]; % This is from Jerry's thesis pg 155
-        sequenceLengths = floor(2*(linspace(1,21,32)).^2);
-        softwareAverages = 5;
+%         sequenceLengths = floor(2*(linspace(1,21,32)).^2);
+%         sequenceLengths = round(logspace(log10(1),log10(2000),32));
+        sequenceLengths = round(logspace(log10(1),log10(3500),32));
+        softwareAverages = 50;
         % these are auto calculated
         primitives; % object array of primitive gates.
         iPrimitiveWaveforms; % baseband waveforms never change, so only calculate them once.
@@ -32,9 +34,9 @@ classdef RBExperimentV2 < handle
             nVarargs = length(varargin);
             switch nVarargs
                 case 1
-                    obj.numGateVector = varargin{1};
+                    obj.sequenceLengths = varargin{1};
                 case 2
-                    obj.numGateVector = varargin{1};
+                    obj.sequenceLengths = varargin{1};
                     obj.softwareAverages = varargin{2};
             end
             obj.update();
@@ -242,7 +244,7 @@ classdef RBExperimentV2 < handle
                 
                 % RB Sequence object takes END time as an input!
 %                 [iQubitBaseband qQubitBaseband] = s.uwWaveforms(t, obj.rbEndTime);
-                iQubitMod=iQubitCarrier*iQubitBaseband;
+                iQubitMod=iQubitCarrier.*iQubitBaseband;
 %                 clear iQubitBaseband;
                 qQubitMod=qQubitCarrier.*qQubitBaseband;
 %                 clear qQubitBaseband;

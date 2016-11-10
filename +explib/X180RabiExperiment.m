@@ -166,7 +166,7 @@ classdef X180RabiExperiment < handle
 
                 timeString = datestr(datetime);
 %                 if ~mod(ind,10)
-                if ~mod(ind,1)
+                if ~mod(ind,10)
                     figure(188);
                     subplot(2,3,[1 2 3]); 
                     newAmp=funclib.RabiFit2(obj.ampVector,sqrt(Pint));

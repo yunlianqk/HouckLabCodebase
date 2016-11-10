@@ -2,7 +2,8 @@
 % finds single shot readout fidelity as a function of measurement pulse
 % power.
 
-amplitudeVector = linspace(.52,.58,20);
+% amplitudeVector = linspace(.52,.58,20);
+amplitudeVector = linspace(.5,1,20);
 
 % Parameters for singleshotre
 trials = 25000;

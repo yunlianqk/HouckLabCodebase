@@ -6,8 +6,9 @@ classdef T2Experiment_v2 < handle
         experimentName = 'T2Experiment_v2';
         % inputs
         pulseCal;
-        delayList = 200e-9:.5e-6:20.2e-6; % delay btw qubit pulses
-        softwareAverages = 50; 
+        delayList = 200e-9:.005e-6:1.2e-6; % delay btw qubit pulses
+        softwareAverages = 10;
+        detuning = -2e6;
         % Dependent properties auto calculated in the update method
         X90; % qubit pulse object
         zeroGate; % qubit pulse (identity) for normalization
@@ -33,7 +34,11 @@ classdef T2Experiment_v2 < handle
                     obj.delayList = varargin{1};
                 case 2
                     obj.delayList = varargin{1};
-                    obj.softwareAverages = varargin{2};
+                    obj.detuning = varargin{2};
+                case 3
+                    obj.delayList = varargin{1};
+                    obj.detuning = varargin{2};
+                    obj.softwareAverages = varargin{3};
             end
             obj.update();
         end
@@ -106,8 +111,18 @@ classdef T2Experiment_v2 < handle
             % generate LO and marker waveforms
             loWaveform = sin(2*pi*obj.pulseCal.cavityFreq*t);
             markerWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+            % shift frequency of qubit pulses by detuning, but not for the
+            
+            % normalization
+            obj.pulseCal.qubitFreq = obj.pulseCal.qubitFreq + obj.detuning;
             
             for ind=1:length(obj.sequences)
+                
+                % for normalization return qubit frequency to normal
+                if ind == (length(obj.sequences)-1)
+                    obj.pulseCal.qubitFreq = obj.pulseCal.qubitFreq - obj.detuning;
+                end
+                
                 display(['loading sequence ' num2str(ind)])
                 s = obj.sequences(ind);
                 tStart = obj.sequenceEndTime - s.totalSequenceDuration;
@@ -213,16 +228,27 @@ classdef T2Experiment_v2 < handle
                     imagesc(taxis,[],Pdata/ind);
                     title('I^2+Q^2'); ylabel('segments'); xlabel('Time (\mus)');
                     drawnow
+                    
+%                     figure(512)
+%                     ax1= axes;
+%                     [lambda, freq] = funclib.ExpCosFit(xaxisNorm, AmpNorm, ax1);
+                    
                 end
             end
             figure(187);
             subplot(2,3,[1 2 3]);
             plot(xaxisNorm,AmpNorm);
+            
 %             fitResults = funclib.AmplitudeZigZagFit(xaxisNorm,AmpNorm);
 %             updateFactor = fitResults.updateFactor;
 %             newAmp = obj.mainGate.amplitude*updateFactor;
             title([obj.experimentName ' ' timeString '; SoftAvg = ' num2str(ind) '/ ' num2str(softavg)]);
             ylabel('Normalized Amplitude'); xlabel('Delay');
+            
+%             figure()
+%             ax1= axes;
+%             [lambda, freq] = funclib.ExpCosFit(xaxisNorm, AmpNorm, ax1)
+            
             
             result.taxis = taxis;
             result.xaxisNorm = xaxisNorm;
@@ -231,6 +257,8 @@ classdef T2Experiment_v2 < handle
             result.Pdata=Pdata./softavg;
             result.Pint=Pint./softavg;
             result.AmpNorm=AmpNorm;
+%             result.lambda = lambda;
+%             result.freq = freq;
 %             result.fitResults = fitResults;
 %             result.newAmp = newAmp;
 %             result.newDragAmp=newDragAmp;

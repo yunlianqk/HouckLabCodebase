@@ -62,7 +62,7 @@ function [Idata,Qdata]=ReadIandQ(self,awg,PlayList)
         tempSeqSigI = IdataArrayReal64;
     end
     % remove zero entries
-    Idata = tempSeqSigI(:, IfirstValidPoint(1)+1:IactualPoints(1));
+    Idata = tempSeqSigI(:, IfirstValidPoint(1)+1:IactualPoints(1))/params.averages;
     clear tempSeqSigI;
 
     if QactualRecords ~= 1
@@ -78,7 +78,7 @@ function [Idata,Qdata]=ReadIandQ(self,awg,PlayList)
         tempSeqSigQ = QdataArrayReal64;
     end
     % remove zero entries
-    Qdata = tempSeqSigQ(:, QfirstValidPoint(1)+1:QactualPoints(1));
+    Qdata = tempSeqSigQ(:, QfirstValidPoint(1)+1:QactualPoints(1))/params.averages;
     clear tempSeqSigQ;
     
     warning('on', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
