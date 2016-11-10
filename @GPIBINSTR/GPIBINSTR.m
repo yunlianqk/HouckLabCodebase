@@ -15,28 +15,41 @@ classdef GPIBINSTR < handle
             self.address = address;
             % Extract integer primary GPIB address from full address string
             instrID = sscanf(address, 'GPIB0::%d::0::INSTR');
-            % Try finding the instrument using address
+            % If instrument is already open
             self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
                                          'Status', 'open');
-            % If closed, open it and attach handle to self
-            if isempty(self.instrhandle)
-                % Try different vendors
-                vendorlist = {'ni', 'agilent'};
-                for vendor = vendorlist
-                    try
-                        % Use 'visa' instead of 'gpib' to support both
-                        % GPIB card and GPIB-USB adapter
-                        self.instrhandle = visa(vendor{1}, address);
-                        fopen(self.instrhandle);
-                        success = 1;
-                        break;
-                    catch
-                    end
-                end
-            % If already open, do nothing
-            else
+            self.instrhandle = instrfind('Name', ['GPIB0-', num2str(instrID)], 'Status', 'open');
+            if ~isempty(self.instrhandle)
                 success = 1;
             end
+            % Try gpib with ni
+            if ~success
+                try
+                    self.instrhandle = gpib('ni', 0, instrID);
+                    fopen(self.instrhandle);
+                    success = 1;
+                catch
+                end
+            end
+            % Try visa with ni
+            if ~success
+                try
+                    self.instrhandle = visa('ni', address);
+                    fopen(self.instrhandle);
+                    success = 1;
+                catch
+                end
+            end
+            % Try visa with agilent
+            if ~success
+                try
+                    self.instrhandle = visa('agilent', address);
+                    fopen(self.instrhandle);
+                    success = 1;
+                catch
+                end
+            end
+            % Display some info
             if ~success
                 error([class(self), ' object initialization failed. ', ...
                       'Address: ', address]);
