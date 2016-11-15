@@ -112,7 +112,6 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Y90Amplitude;
             pulseObj.dragAmplitude = obj.Y90DragAmplitude;
-%             pulseObj.azimuth = obj.YAzimuth;
             pulseObj.azimuth = obj.Y90Azimuth;
         end
         function pulseObj = Ym90(obj)
@@ -122,7 +121,6 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym90Amplitude;
             pulseObj.dragAmplitude = obj.Ym90DragAmplitude;
-%             pulseObj.azimuth = obj.YAzimuth+pi;
             pulseObj.azimuth = obj.Y90Azimuth+pi;
         end
         function pulseObj = Y180(obj)
@@ -132,7 +130,6 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Y180Amplitude;
             pulseObj.dragAmplitude = obj.Y180DragAmplitude;
-%             pulseObj.azimuth = obj.YAzimuth;
             pulseObj.azimuth = obj.Y180Azimuth;
         end
         function pulseObj = Ym180(obj)
@@ -142,7 +139,6 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym180Amplitude;
             pulseObj.dragAmplitude = obj.Ym180DragAmplitude;
-%             pulseObj.azimuth = obj.YAzimuth+pi;
             pulseObj.azimuth = obj.Y180Azimuth+pi;
         end
         function pulseObj = measurement(obj)

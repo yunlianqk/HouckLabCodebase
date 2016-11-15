@@ -84,21 +84,35 @@ classdef singleGate < handle
             if ~isempty(params)
             % Update properties if they are specified in params
             % params can be either a struct or a pulseCal object
-            
                 % List relevant fields/properties of params here 
                 paramlist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
                              [self.name, 'Amplitude'], ...
-                             [self.name, 'DragAmplitude']};
+                             [self.name, 'DragAmplitude'], ...
+                             [self.name, 'Azimuth']};
                 % List corresponding properites of self here
                 % The two list must have the same length
                 proplist = {'sigma', 'cutoff', 'buffer', 'amplitude', 'dragAmplitude', ...
-                            'amplitude', 'dragAmplitude'};
+                            'amplitude', 'dragAmplitude', 'azimuth'};
                 for idx = 1:length(paramlist)
                     param = paramlist{idx};
                     prop = proplist{idx};
                     if isfield(params, param) || isprop(params, param)
                         self.(prop) = params.(param);
                     end
+                end
+                % Update 'azimuth' for negative X/Y rotation gates
+                % if 'azimuth' for positive X/Y rotations gates are specified
+                if strcmp(self.name, 'Xm90') && (isfield(params, 'X90Azimuth') || isprop(params, 'X90Azimuth'))
+                    self.azimuth = params.X90Azimuth + pi;
+                end
+                if strcmp(self.name, 'Xm180') && (isfield(params, 'X180Azimuth') || isprop(params, 'X180Azimuth'))
+                    self.azimuth = params.X180Azimuth + pi;
+                end
+                if strcmp(self.name, 'Ym90') && (isfield(params, 'Y90Azimuth') || isprop(params, 'Y90Azimuth'))
+                    self.azimuth = params.Y90Azimuth + pi;
+                end
+                if strcmp(self.name, 'Ym180') && (isfield(params, 'Y180Azimuth') || isprop(params, 'Y180Azimuth'))
+                    self.azimuth = params.Y180Azimuth + pi;
                 end
             end
         end
