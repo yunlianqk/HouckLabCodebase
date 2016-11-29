@@ -22,7 +22,7 @@ classdef spec
     
     methods
         function s = toStruct(self)
-            s = paramlib.obj2struct(self);
+            s = funclib.obj2struct(self);
         end
     end
 end

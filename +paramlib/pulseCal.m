@@ -144,24 +144,8 @@ classdef pulseCal
         function pulseObj = measurement(obj)
             pulseObj=pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
         end
+        function s = toStruct(obj)
+            s = funclib.obj2struct(obj);
+        end
     end
 end
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-        
