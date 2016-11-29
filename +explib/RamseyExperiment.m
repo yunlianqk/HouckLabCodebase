@@ -1,17 +1,17 @@
-classdef T1Experiment < explib.SweepM8195
-    % T1 Experiment. Qubit gates with varying delay.
-
-    properties
-        qubitGates = {'X180'};
-        delayVector = linspace(0, 100e-6, 101); % delay btw qubit gates and measurement pulse
+classdef RamseyExperiment < explib.SweepM8195
+    % Ramsey experiment. Two qubit gates with varying delay in between.
+    
+    properties 
+        qubitGates = {'X90'};
+        delayVector = linspace(0, 1.2e-6, 101); % delay btw qubit gates
     end
     
     methods
-        function self = T1Experiment(pulseCal)
+        function self = RamseyExperiment(pulseCal)
             self = self@explib.SweepM8195(pulseCal);
             self.histogram = 0;
         end
-        
+
         function SetUp(self)
             gates = pulselib.singleGate();
             self.sequences = pulselib.gateSequence();
@@ -28,20 +28,14 @@ classdef T1Experiment < explib.SweepM8195
                 self.sequences(row) = pulselib.gateSequence(gates);
                 % Append varying delay
                 self.sequences(row).append(pulselib.delay(self.delayVector(row)));
+                % Append qubit gates again
+                self.sequences(row).extend(gates);
             end
             SetUp@explib.SweepM8195(self);
-        end
-        
-        function Run(self)
-            Run@explib.SweepM8195(self);
-            figure(101);
-            fitResults = funclib.ExpFit3(self.delayVector/1e-6, self.result.AmpInt);
-            self.result.T1 = fitResults.lambda;
-            xlabel('Delay (\mus)');
-            ylabel('Readout amplitude');
-            title(['T_1 = ', num2str(self.result.T1), ' \mus']);
-            save('D:\Gengyan\test.mat', 'self');
         end
     end
 end
        
+        
+        
+        

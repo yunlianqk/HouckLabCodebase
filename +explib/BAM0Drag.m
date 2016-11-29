@@ -1,10 +1,10 @@
-classdef X90AmpCal < explib.RepeatGates
-
+classdef BAM0Drag < explib.RepeatGates
+    
     methods
-        function self = X90AmpCal(pulseCal)
+        function self = BAM0Drag(pulseCal)
             self = self@explib.RepeatGates(pulseCal);
             self.initGates = {'X90'};
-            self.repeatGates = {'X90', 'X90'};
+            self.repeatGates = {'Y180', 'X180', 'Ym180', 'X180'};
             self.endGates = {};
             self.repeatVector = 0:1:20;
             self.histogram = 0;
@@ -14,12 +14,11 @@ classdef X90AmpCal < explib.RepeatGates
         
         function Run(self)
             Run@explib.RepeatGates(self);
-            figure(102);
-            fitResults = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.AmpInt);
-            self.result.newAmp = self.gatedict.X90.amplitude*fitResults.updateFactor;
+            figure(10);
+            plot(self.repeatVector, self.result.AmpInt);
             xlabel('Number of gates');
             ylabel('Readout amplitude');
-            title([self.experimentName, ': errorInRad = ', num2str(fitResults.errorInRadians)]);
+            title(self.experimentName);
         end
     end
 end

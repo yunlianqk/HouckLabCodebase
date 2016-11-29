@@ -1,0 +1,24 @@
+classdef BAM0Phase < explib.RepeatGates
+    
+    methods
+        function self = BAM0Phase(pulseCal)
+            self = self@explib.RepeatGates(pulseCal);
+            self.initGates = {'X90'};
+            self.repeatGates = {'Y180', 'X180', 'Ym180', 'X180'};
+            self.endGates = {'Y90'};
+            self.repeatVector = 0:1:20;
+            self.histogram = 0;
+            self.bgsubtraction = 1;
+            self.normalization = 1;
+        end
+        
+        function Run(self)
+            Run@explib.RepeatGates(self);
+            figure(10);
+            plot(self.repeatVector, self.result.AmpInt);
+            xlabel('Number of gates');
+            ylabel('Readout amplitude');
+            title(self.experimentName);
+        end
+    end
+end
