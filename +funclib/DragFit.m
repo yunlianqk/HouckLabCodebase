@@ -14,8 +14,8 @@ function  newDragAmplitude = DragFit(axis, data, varargin)
     beta0 = [offset_guess amp_guess freq_guess phase_guess];
     % Fit data
 %     coeff = nlinfit(axis, data, @drag, beta0);
-    Lbound=[0, 0, -2,-1];   % lower bounds on coeff
-    Ubound=[1, 2*amp_guess, 2, 1];    % upper bounds on coeff
+    Lbound=[0, 0, 0, -pi];   % lower bounds on coeff
+    Ubound=[1, 2*amp_guess, 2, pi];    % upper bounds on coeff
     opts = optimset('Display','off'); % suppress fit message 
     coeff = lsqcurvefit(@drag, beta0, axis, data, Lbound, Ubound,opts);
     
@@ -43,7 +43,7 @@ function y = drag(beta, x)
     amp = beta(2);
     freq = beta(3);
     phase = beta(4);
-    y = amp*((1-cos(2*pi*freq*x + phase))/2)+offset;
+    y = amp*(1-cos(2*pi*freq*x + phase))+offset;
 end
 
 

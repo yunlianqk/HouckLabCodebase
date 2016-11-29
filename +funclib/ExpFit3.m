@@ -4,8 +4,8 @@ function  result = ExpFit3(axis, data, varargin)
     % Construct initial guess for parameters
     offset_guess = data(end);
     amp_guess = data(1)-data(end);
-%     lambda_guess = -axis(20)/log(1-(data(1)-data(20))/amp_guess);
-    lambda_guess = 20e-6; % should make it easier for nonuniform fits
+    [~, index] = min(abs(data - data(1) - amp_guess*(exp(-1)-1)));
+    lambda_guess = axis(index); % should make it easier for nonuniform fits
     beta0 = [amp_guess, lambda_guess,offset_guess];
     
     % Fit data
