@@ -16,6 +16,7 @@ classdef M9703ADigitizer < handle
         ChQ;
         segments;
         trigPeriod;
+        waittrig = 0;
     end
     
     methods
@@ -71,8 +72,9 @@ classdef M9703ADigitizer < handle
         iscorrect = CheckParams(~, params);  % Check card parameters
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
-        [IData, QData] = ReadIandQ(self,awg,PlayList);	% Acquire data from two channels
-        [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self,awg,PlayList);	% includes background subtraction
+        WaitTrigger(self);  % Wait for trigger to synchronize multisegment acquisition
+        [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
+        [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self);	% includes background subtraction
         [Idata,Qdata] = ReadIandQsingleShot(self, awg, PlayList);
         dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
     end
