@@ -14,15 +14,15 @@ classdef rbSequence < handle
     end
     
     methods
-        function obj=rbSequence(seqList, cliffords)
+        function obj = rbSequence(seqList, cliffords)
             % generate the rbSequence object.
             % inputs - seqList: a vector of #s corresponding the which cliffords to do (i.e. the 'sequence') 
             % cliffords is an array of clifford gate objects 
-            obj.seqList=seqList;
+            obj.seqList = seqList;
             for ind=1:length(seqList)
-                pulses(ind)=cliffords(seqList(ind));
+                pulses(ind) = cliffords(seqList(ind));
             end
-            obj.pulses=pulses;
+            obj.pulses = pulses;
             % find unitary for sequence (before adding undo gate)
             unitary=[1 0; 0 1];
             for ind=1:length(seqList)
@@ -33,19 +33,13 @@ classdef rbSequence < handle
         end
         
         function value = get.sequenceDuration(obj)
-            % find total time required for all the cliffords in this
-            % sequence
-            value=0;
-            for ind=1:length(obj.pulses)
-                value=value+obj.pulses(ind).totalGateDuration;
-            end
+            value = sum([obj.pulses.totalGateDuration]);
         end
         
         function obj=undoGate(obj, cliffords)
             % finds undo gate and appends it to the sequence
             pulses = obj.pulses;
             G=obj.unitary;
-            U=G';
             % compare undo gate to list of cliffords to find index
             for ind=1:length(cliffords)                
                 c=cliffords(ind).unitary;
@@ -59,7 +53,7 @@ classdef rbSequence < handle
             obj.pulses=pulses;
         end
         
-        function [iBaseband qBaseband] = uwWaveforms(obj,tAxis, tStop)
+        function [iBaseband, qBaseband] = uwWaveforms(obj,tAxis, tStop)
             % given time axis and end time returns final baseband
             % signals. can be added to similar outputs from other gates to
             % form a composite waveform
@@ -68,7 +62,7 @@ classdef rbSequence < handle
             tStart = tStop-obj.sequenceDuration;
             for ind=1:length(obj.pulses)
                 gate=obj.pulses(ind);
-                [iTemp qTemp] = gate.uwWaveforms(tAxis,tStart);
+                [iTemp, qTemp] = gate.uwWaveforms(tAxis,tStart);
                 iBaseband=iBaseband+iTemp;
                 qBaseband=qBaseband+qTemp;
                 tStart=tStart+gate.totalGateDuration;
@@ -79,11 +73,11 @@ classdef rbSequence < handle
             % print some text
             fprintf(['Sequence length: ' num2str(length(obj.seqList)) '\n'])
             fprintf('Sequence unitary without undo gate:')
-            obj.unitary
+            disp(obj.unitary);
             fprintf('Undo gate unitary')
-            undo=obj.pulses(end).unitary
-            fprintf('After undo')
-            final=undo*obj.unitary
+            disp(obj.pulses(end).unitary);
+            fprintf('After undo');
+            disp(obj.pulses(end).unitary*obj.unitary);
             
             % add some text to a subplot
             figure(612)
@@ -118,7 +112,7 @@ classdef rbSequence < handle
             % draw basebands
             pulseStopTime = 0; % set to 0 for draw function purposes. 
             t = linspace(-obj.sequenceDuration,0,10001);
-            [iBaseband qBaseband] = obj.uwWaveforms(t, pulseStopTime);
+            [iBaseband, qBaseband] = obj.uwWaveforms(t, pulseStopTime);
             subplot(2,3,[4,5,6])
             plot(t,iBaseband,'b',t,qBaseband,'r')
             title('I and Q baseband waveforms')
@@ -135,12 +129,6 @@ classdef rbSequence < handle
             
             % add some text to a subplot
 
-        end    
-            
-        
-        
-        
-        
-        
+        end     
     end
 end
