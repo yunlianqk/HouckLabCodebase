@@ -3,6 +3,7 @@ classdef RBExperiment < explib.SweepM8195
     
     properties
         sequenceLengths = unique(round(logspace(log10(1), log10(3500), 32)));
+        sequenceIndices = [];
         rbsequences; % object array of randomized benchmarking sequences
     end
     
@@ -43,21 +44,28 @@ classdef RBExperiment < explib.SweepM8195
             end
             % Generate RB sequence objects and gateSequence objects
             s = self.sequenceLengths;
-            rng('default');
-            rng('shuffle');
-            randSequence = randi(length(self.clfdict), [1, max(s)]);
+            if isempty(self.sequenceIndices)
+                rng('default');
+                rng('shuffle');
+                self.sequenceIndices = randi(length(self.clfdict), [1, max(s)]);
+            end
             self.rbsequences = pulselib.RB.rbSequence(1, self.clfdict);
             self.sequences = pulselib.gateSequence();
             for row = 1:length(s)
-                seqList = randSequence(1:s(row));
-                self.rbsequences(row) = pulselib.RB.rbSequence(seqList, self.clfdict);
+                self.rbsequences(row) ...
+                    = pulselib.RB.rbSequence(self.sequenceIndices(1:s(row)), self.clfdict);
                 self.sequences(row) = pulselib.gateSequence();
                 for col = 1:length(self.rbsequences(row).pulses)
-                    self.sequences(row).extend(self.rbsequences(row).pulses(col).primDecomp);
+                    self.sequences(row).append(self.rbsequences(row).pulses(col).primDecomp);
                 end
             end
             SetUp@explib.SweepM8195(self);
         end
+        
+        function Plot(self)
+            figure(143);
+            rbFit = funclib.RBFit(self.sequenceLengths, self.result.AmpInt);
+            self.result.Fidelity = rbFit.avgGateFidelity;
+        end
     end
 end
-       

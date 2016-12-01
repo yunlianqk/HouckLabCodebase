@@ -49,7 +49,7 @@ classdef CliffordCheck < explib.SweepM8195
                 self.clfsequences(row) = pulselib.RB.rbSequence(row*ones(1, self.repeat), self.clfdict);
                 self.sequences(row) = pulselib.gateSequence();
                 for col = 1:length(self.clfsequences(row).pulses)
-                    self.sequences(row).extend(self.clfsequences(row).pulses(col).primDecomp);
+                    self.sequences(row).append(self.clfsequences(row).pulses(col).primDecomp);
                 end
             end
             SetUp@explib.SweepM8195(self);

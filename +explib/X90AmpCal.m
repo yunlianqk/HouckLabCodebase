@@ -14,6 +14,10 @@ classdef X90AmpCal < explib.RepeatGates
         
         function Run(self)
             Run@explib.RepeatGates(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(102);
             fitResults = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.AmpInt);
             self.result.newAmp = self.gatedict.X90.amplitude*fitResults.updateFactor;

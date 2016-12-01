@@ -14,6 +14,10 @@ classdef X180AmpCal < explib.RepeatGates
         
         function Run(self)
             Run@explib.RepeatGates(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(104);
             fitResults = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.AmpInt);
             self.result.newAmp = self.gatedict.X180.amplitude*fitResults.updateFactor;

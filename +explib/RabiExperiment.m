@@ -37,6 +37,10 @@ classdef RabiExperiment < explib.SweepM8195
         
         function Run(self)
             Run@explib.SweepM8195(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(188);
             self.result.newAmp = funclib.RabiFit2(self.ampVector, self.result.AmpInt);
             xlabel('Drag amplitude');

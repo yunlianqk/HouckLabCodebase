@@ -34,11 +34,15 @@ classdef T1Experiment < explib.SweepM8195
         
         function Run(self)
             Run@explib.SweepM8195(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(101);
             fitResults = funclib.ExpFit3(self.delayVector/1e-6, self.result.AmpInt);
             self.result.T1 = fitResults.lambda;
             xlabel('Delay (\mus)');
-            ylabel('Readout amplitude');
+            ylabel('Amplitude');
             title(['T_1 = ', num2str(self.result.T1), ' \mus']);
             save('D:\Gengyan\test.mat', 'self');
         end

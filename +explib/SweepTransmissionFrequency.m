@@ -28,7 +28,11 @@ classdef SweepTransmissionFrequency < explib.SweepM8195
         
         function Run(self)
             Run@explib.SweepM8195(self);
-            figure(101);
+            self.Plot();
+        end
+        
+        function Plot(self)
+            figure(100);
             plot(self.freqVector/1e9, self.result.AmpInt);
             xlabel('Frequency (GHz)');
             ylabel('Amplitude');

@@ -25,7 +25,10 @@ classdef AllXY < explib.ArbSequence
         
         function Run(self)
             Run@explib.ArbSequence(self);
-            % The plot is formatted the same way as Matt Reed's thesis page 128
+            self.Plot();
+        end
+        
+        function Plot(self)
             numseq = length(self.qubitGates);
             ticklabels = cell(1, numseq);
             for row = 1:numseq
@@ -48,21 +51,21 @@ classdef AllXY < explib.ArbSequence
                 end
             end
             figure(187);
-            plot(1:numseq, 1-2*self.result.AmpInt, '-o');
+            plot(1:numseq, self.result.AmpInt, '-o');
             set(gca, 'xtick', 1:numseq);
             set(gca, 'xticklabel', ticklabels);
             set(gca, 'xticklabelrotation', 45);
-            axis([0, numseq+1, -1.5, 1.5]);
+            axis([0, numseq+1, -0.2, 1.2]);
             plotlib.hline(1);
-            plotlib.hline(-1);
             plotlib.hline(0);
+            plotlib.hline(0.5);
             hold on;
             for ind = 1:numseq
-                plot([ind, ind], [-1.5, 1-2*self.result.AmpInt(ind)], 'r:');
+                plot([ind, ind], [-0.2, self.result.AmpInt(ind)], 'r:');
             end
             hold off;
             title(self.experimentName);
-            ylabel('Z projection');
+            ylabel('P(|0>)');
         end
     end
 end     

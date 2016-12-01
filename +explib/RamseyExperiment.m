@@ -29,7 +29,7 @@ classdef RamseyExperiment < explib.SweepM8195
                 % Append varying delay
                 self.sequences(row).append(pulselib.delay(self.delayVector(row)));
                 % Append qubit gates again
-                self.sequences(row).extend(gates);
+                self.sequences(row).append(gates);
             end
             SetUp@explib.SweepM8195(self);
         end

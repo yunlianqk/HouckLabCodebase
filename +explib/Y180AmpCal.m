@@ -14,9 +14,13 @@ classdef Y180AmpCal < explib.RepeatGates
         
         function Run(self)
             Run@explib.RepeatGates(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(104);
             fitResults = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.AmpInt);
-            self.result.newAmp = self.gatedict.Y180.amplitude*fitResults.updateFactor;
+            self.result.newAmp = self.gatedict.X180.amplitude*fitResults.updateFactor;
             xlabel('Number of gates');
             ylabel('Readout amplitude');
             title([self.experimentName, ': errorInRad = ', num2str(fitResults.errorInRadians)]);

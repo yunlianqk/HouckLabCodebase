@@ -17,7 +17,10 @@ classdef SingleShotReadoutFidelity < explib.SweepM8195
         
         function Run(self)
             Run@explib.SweepM8195(self);
-
+            self.Plot();
+        end
+        
+        function Plot(self)
             gndCDF = cumsum(self.result.AmpCounts(1, :))/sum(self.result.AmpCounts(1, :));
             exCDF = cumsum(self.result.AmpCounts(2, :))/sum(self.result.AmpCounts(2, :));
             [self.result.AmpFidelity, threshInd] = max(abs(gndCDF-exCDF));

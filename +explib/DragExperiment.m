@@ -35,6 +35,10 @@ classdef DragExperiment < explib.SweepM8195
 
         function Run(self)
             Run@explib.SweepM8195(self);
+            self.Plot();
+        end
+        
+        function Plot(self)
             figure(103);
             self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.AmpInt);
             xlabel('Drag amplitude');
