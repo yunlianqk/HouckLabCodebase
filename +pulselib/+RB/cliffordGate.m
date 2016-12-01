@@ -5,6 +5,7 @@ classdef cliffordGate < handle
         name; % string generated using index of generated clifford
         unitary; % a 2x2 matrix corresponding to the action of the clifford
         primDecomp; % object array containing primitive gate objects.  These are actually handles to the RBExperiments.primitives objects
+        primString; % cellstr containing the name of primitive gates.
     end
     
     properties (Dependent, SetAccess = private)
@@ -16,6 +17,10 @@ classdef cliffordGate < handle
             self.name = ['C', num2str(index)];
             self.unitary = unitary;
             self.primDecomp = primDecomp;
+            self.primString = {};
+            for ind = 1:length(self.primDecomp)
+                self.primString{ind} = self.primDecomp(ind).name;
+            end
         end
         
         function value = get.totalGateDuration(self)

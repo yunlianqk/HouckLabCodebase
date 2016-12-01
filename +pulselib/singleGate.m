@@ -200,7 +200,7 @@ classdef singleGate < handle
             warning('on', 'MATLAB:structOnObject');
         end
         
-       function draw(self) % visualize - draw waveform and bloch vector
+        function draw(self) % visualize - draw waveform and bloch vector
             % print some text
             display(['Gate name: ', self.name]);
             display(['azimuth: ', num2str(self.azimuth)]);

@@ -128,17 +128,6 @@ classdef gateSequence < handle
             self.gateArray(end+1:end+length(gates)) = gates;
         end
 
-        function extend(self, gates)
-            % append gates to the end of sequence
-            if ~iscell(gates)
-                gates = num2cell(gates);
-            end
-            for gate = gates
-                self.checkinput(gate{:})
-            end
-            self.gateArray(end+1:end+length(gates)) = gates;
-        end
-
         function gates = pop(self, idx)
             % get the gates with index=idx and remove it from sequence
             if nargin == 1
@@ -152,7 +141,7 @@ classdef gateSequence < handle
         end
 
         function insert(self, idx, gates)
-            % insert gate at index=idx
+            % insert gates at index=idx
             if ~iscell(gates)
                 gates = num2cell(gates);
             end
