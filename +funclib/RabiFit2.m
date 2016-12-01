@@ -3,13 +3,18 @@ function  newAmplitude = RabiFit2(axis, data, varargin)
 % use sqrt(Power) as data.  Amplitude of pulse for axis
 
     % Construct initial guess for parameters 
-    [peak, index] = max(abs(data));
-    amp_guess = peak;
-    freq_guess = pi*(1/axis(index))/2;
-    beta0 = [amp_guess, freq_guess];
+    [maxdata, maxind] = max(data);
+    [mindata, minind] = min(data);
+    offset_guess = (maxdata + mindata)/2;
+    if minind < maxind
+        amp_guess = maxdata - mindata;
+    else
+        amp_guess = mindata - maxdata;
+    end
+    freq_guess = pi*(1/axis(max(maxind, minind)))/2;
+    beta0 = [amp_guess, freq_guess, offset_guess];
     % Fit data
     coeff = nlinfit(axis, data, @rabi, beta0);
-    theta = coeff(2)*axis(round(length(axis)/2));
     newAmplitude = pi/(2*coeff(2));
     % Plot original and fitted data
     axis_dense = linspace(axis(1), axis(end), 1000);
@@ -29,7 +34,8 @@ end
 function y = rabi(beta, x)
     amp = beta(1);
     freq = beta(2);
-    y = amp*sin(freq*x).^2;
+    offset = beta(3);
+    y = offset + amp*sin(freq*x).^2;
 end
 
 
