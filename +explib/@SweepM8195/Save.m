@@ -1,13 +1,13 @@
-function Save(self, path)
-    if nargin == 1
-        path = self.savepath;
-    end
+function Save(self)
+    path = self.savepath;
     if ~strcmp(path(end), filesep())
         path = [path, filesep()];
     end
     result = self.result;
-    x = paramlib.obj2struct(self);
-    filename = [path, self.experimentName, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
-    save(filename, 'x', 'result');
-    display(['Data saved to ', filename]);
+    temppulseCal = self.pulseCal;
+    self.pulseCal = funclib.obj2struct(self.pulseCal);
+    x = funclib.obj2struct(self);
+    save([path, self.savefile], 'x', 'result');
+    display(['Data saved to ', path, self.savefile]);
+    self.pulseCal = temppulseCal;
 end

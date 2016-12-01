@@ -5,7 +5,7 @@ function RunHistogram(self)
     cardparams = card.GetParams();
     intStart = self.pulseCal.integrationStartIndex;
     intStop = self.pulseCal.integrationStopIndex;
-    numsegs = length(self.playlist);    
+    numsegs = length(self.playlist);
     if isempty(self.numbins)
         numbins = 100;
     else
@@ -75,16 +75,6 @@ function RunHistogram(self)
             drawnow;
         end
     end
-    % Plot final result
-    figure(10);
-    subplot(2, 1, 1);
-    plot(self.result.AmpEdges(2:end), self.result.AmpCounts);
-    xlabel('Amplitude');
-    ylabel('Counts');
-    title(self.experimentName);
-    legend(cellstr(num2str((1:numsegs)')));
-    subplot(2, 1, 2);
-    plot(self.result.PhaseEdges(2:end), self.result.PhaseCounts);
-    xlabel('Phase');
-    ylabel('Counts');
+    
+    self.PlotHistogram();
 end

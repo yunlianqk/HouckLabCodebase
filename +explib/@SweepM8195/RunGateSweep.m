@@ -45,15 +45,14 @@ function RunGateSweep(self)
     end
     
     if self.normalization
-        self.result.AmpInt = (self.result.AmpInt(1:end-2)-self.result.AmpInt(end-1)) ...
-                             /(self.result.AmpInt(end)-self.result.AmpInt(end-1));
-        self.result.PhaseInt = (self.result.PhaseInt(1:end-2)-self.result.PhaseInt(end-1)) ...
-                               /(self.result.PhaseInt(end)-self.result.PhaseInt(end-1));
+        self.result.AmpGnd = self.result.AmpInt(end-1);
+        self.result.AmpEx = self.result.AmpInt(end);
+        self.result.PhaseGnd = self.result.PhaseInt(end-1);
+        self.result.PhaseEx = self.result.PhaseInt(end);
+        self.result.AmpInt = (self.result.AmpInt(1:end-2)-self.result.AmpGnd) ...
+                             /(self.result.AmpEx-self.result.AmpGnd);
+        self.result.PhaseInt = (self.result.PhaseInt(1:end-2)-self.result.PhaseGnd) ...
+                               /(self.result.PhaseEx-self.result.PhaseGnd);
     end
-    % Plot final result
-    figure(10);
-    plot(self.result.AmpInt);
-    xlabel('Sequence');
-    ylabel('Amplitude');
-    title(self.experimentName);
+    self.PlotGateSweep();
 end

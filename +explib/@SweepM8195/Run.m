@@ -17,6 +17,8 @@ function Run(self)
     display(['Running ', self.experimentName, ' ...']);
     
     self.result = struct();
+    self.savefile = [self.experimentName, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
+    
     if self.cavitybaseband && ~isempty(self.cavityFreq)
         self.RunCavitySweep();
     elseif self.histogram

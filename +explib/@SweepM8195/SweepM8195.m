@@ -33,6 +33,7 @@ classdef SweepM8195 < handle
         % Save options
         autosave = 0;
         savepath = 'C:\Data\';
+        savefile;
     end
     
     methods
@@ -45,13 +46,19 @@ classdef SweepM8195 < handle
         SetUp(self);
         Download(self);
         Run(self);
+        Plot(self);
         Save(self, path);
-        
+    end
+    
+    methods (Access = protected)
         LoadGateSweep(self, segsize);
         LoadQubitSweep(self, segsize);
         LoadCavitySweep(self, segsize);
         RunGateSweep(self);
         RunCavitySweep(self);
         RunHistogram(self);
+        PlotGateSweep(self);
+        PlotCavitySweep(self);
+        PlotHistogram(self);
     end
 end

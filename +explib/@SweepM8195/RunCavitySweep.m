@@ -42,10 +42,5 @@ function RunCavitySweep(self)
             title(['FreqPts ', num2str(ind), ' of ', num2str(numsegs)]);
         end
     end
-    % Plot final result
-    figure(10);
-    plot(self.cavityFreq/1e9, self.result.AmpInt);
-    xlabel('Frequency (GHz)');
-    ylabel('Amplitude');
-    title(self.experimentName);
+    self.PlotCavitySweep();
 end
