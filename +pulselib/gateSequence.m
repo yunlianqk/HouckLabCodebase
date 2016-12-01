@@ -117,36 +117,49 @@ classdef gateSequence < handle
             ylabel('Q');
         end
 
-        function append(self, gate)
-            % append a gate to the end of sequence
-            self.checkinput(gate);
-            self.gateArray{end+1} = gate;
-        end
-
-        function extend(self, gateList)
-            % append a list of gates to the end of sequence
-            if ~iscell(gateList)
-                gateList = num2cell(gateList);
+        function append(self, gates)
+            % append gates to the end of sequence
+            if ~iscell(gates)
+                gates = num2cell(gates);
             end
-            for gate = gateList
+            for gate = gates
                 self.checkinput(gate{:})
             end
-            self.gateArray(end+1:end+length(gateList)) = gateList;
+            self.gateArray(end+1:end+length(gates)) = gates;
         end
 
-        function gate = pop(self, idx)
-            % get the gate with index=idx and remove it from sequence
+        function extend(self, gates)
+            % append gates to the end of sequence
+            if ~iscell(gates)
+                gates = num2cell(gates);
+            end
+            for gate = gates
+                self.checkinput(gate{:})
+            end
+            self.gateArray(end+1:end+length(gates)) = gates;
+        end
+
+        function gates = pop(self, idx)
+            % get the gates with index=idx and remove it from sequence
             if nargin == 1
                 idx = 1;
             end
-            gate = self.gateArray{idx};
-            self.gateArray(idx) = [];
+            gates = cell(1, length(idx));
+            for ii = 1:length(idx)
+                gates{ii} = self.gateArray{idx(1)};
+                self.gateArray(ii) = [];
+            end
         end
 
-        function insert(self, idx, gate)
-            % insert a gate at index=idx
-            self.checkinput(gate);
-            self.gateArray = {self.gateArray{1:idx-1}, gate, self.gateArray{idx:end}};
+        function insert(self, idx, gates)
+            % insert gate at index=idx
+            if ~iscell(gates)
+                gates = num2cell(gates);
+            end
+            for gate = gates
+                self.checkinput(gate{:})
+            end
+            self.gateArray = [self.gateArray(1:idx-1), gates, self.gateArray(idx:end)];
         end
 
         function clear(self)
