@@ -1,4 +1,4 @@
-function  [lambda, freq] = ExpCosFit(axis, data, varargin)
+function  [lambda, freq] = ExpCosFit2(axis, data, varargin)
 % Exponentially decaying cosine fit
     %Normalize data
 %     data = data/max(data);
