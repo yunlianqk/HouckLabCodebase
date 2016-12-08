@@ -1,8 +1,11 @@
 classdef AllXY < explib.ArbSequence
     
     methods
-        function self = AllXY(pulseCal)
-            self = self@explib.ArbSequence(pulseCal);
+        function self = AllXY(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.ArbSequence(pulseCal, config);
             self.qubitGates = {{'Identity', 'Identity'}, ...
                                {'X180', 'X180'}, ...
                                {'Y180', 'Y180'}, ...

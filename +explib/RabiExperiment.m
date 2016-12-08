@@ -1,5 +1,10 @@
 classdef RabiExperiment < explib.SweepM8195
     % Rabi Experiment. Qubit gates with varying amplitude.
+   
+    % 'qubitGates' is a cellstr that contains the names of gates
+    % e.g., qubitGates = {'X180'} or qubitGates = {'X90', 'X90'}, etc.
+    % 'ampVector' is an array that contains the amplitudes in the sweep
+    % the amplitude values should be between 0 and 1
 
     properties
         qubitGates = {'X180'};
@@ -7,8 +12,11 @@ classdef RabiExperiment < explib.SweepM8195
     end
     
     methods
-        function self = RabiExperiment(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = RabiExperiment(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
         end
         

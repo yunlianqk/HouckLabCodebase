@@ -6,23 +6,21 @@ function  newDragAmplitude = DragFit(axis, data, varargin)
     % Construct initial guess for parameters 
     [dataMax, maxInd] = max(data);
     [dataMin, minInd] = min(data);
-%     offset_guess = dataMin;
-    offset_guess = 0;
+    offset_guess = dataMin;
     amp_guess = dataMax-dataMin;
-    freq_guess = 2*abs(axis(maxInd)-axis(minInd));
+    freq_guess = 0.5/abs(axis(maxInd)-axis(minInd));
     phase_guess = 0;
     beta0 = [offset_guess amp_guess freq_guess phase_guess];
     % Fit data
 %     coeff = nlinfit(axis, data, @drag, beta0);
-    Lbound=[0, 0, 0, -pi];   % lower bounds on coeff
-    Ubound=[1, 2*amp_guess, 2, pi];    % upper bounds on coeff
-    opts = optimset('Display','off'); % suppress fit message 
-    coeff = lsqcurvefit(@drag, beta0, axis, data, Lbound, Ubound,opts);
+    Lbound =[0, 0, 0, -pi];   % lower bounds on coeff
+    Ubound =[1, 2*amp_guess, abs(freq_guess), pi];    % upper bounds on coeff
+    opts = optimset('Display', 'off'); % suppress fit message 
+    coeff = lsqcurvefit(@drag, beta0, axis, data, Lbound, Ubound, opts);
     
-    freqFit=coeff(3);
-    phaseFit=coeff(4);
-    newDragAmplitude = -1*phaseFit/(2*pi*freqFit);
-%     newAmplitude = pi/(2*coeff(2));
+    freqFit = coeff(3);
+    phaseFit = coeff(4);
+    newDragAmplitude = -phaseFit/(2*pi*freqFit);
     % Plot original and fitted data
     axis_dense = linspace(axis(1), axis(end), 1000);
     Y = drag(coeff, axis_dense);
@@ -43,7 +41,5 @@ function y = drag(beta, x)
     amp = beta(2);
     freq = beta(3);
     phase = beta(4);
-    y = amp*(1-cos(2*pi*freq*x + phase))+offset;
+    y = -amp*cos(2*pi*freq*x + phase) + offset;
 end
-
-

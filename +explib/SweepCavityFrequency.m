@@ -1,4 +1,4 @@
-classdef SweepTransmissionFrequency < explib.SweepM8195
+classdef SweepCavityFrequency < explib.SweepM8195
     
     properties
         qubitGates = {};
@@ -6,8 +6,11 @@ classdef SweepTransmissionFrequency < explib.SweepM8195
     end
     
     methods
-        function self = SweepTransmissionFrequency(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = SweepCavityFrequency(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.normalization = 0;
             self.histogram = 0;
             self.cavityFreq = self.freqVector;

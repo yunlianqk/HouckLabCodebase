@@ -1,7 +1,10 @@
 function Plot(self)
-
-    if self.cavitybaseband && ~isempty(self.cavityFreq)
+    % Plot results
+    
+    if ~isempty(self.cavityFreq)
         self.PlotCavitySweep();
+    elseif ~isempty(self.qubitFreq)
+        self.PlotQubitSweep();
     elseif self.histogram
         self.PlotHistogram();
     else

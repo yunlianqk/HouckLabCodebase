@@ -1,8 +1,27 @@
 classdef RBExperiment < explib.SweepM8195
-    % Randomized benchmarking experiment object
+    % Randomized benchmarking experiment
+    
+    % 'sequenceLengths' is an array that contains the number of Clifford
+    % gates in each RB sequence
+    % 'sequenceIndices' is an array that specifies the full random Clifford sequence
+    
+    % Example: sequenceLengths = [1, 3, 6]
+    %          sequenceIndices = [21, 14, 13, 18, 24, 22]
+    % generates 3 RB sequences:
+    %          [C21]
+    %          [C21, C14, C13]
+    %          [C21, C14, C13, C18, C24, C22]
+    
+    % An undo gate will be automatically calculated and append to the end
+    % of each RB sequence to bring the end result to |g>.
+    % Usually sequenceIndices is left as empty and a random sequence will
+    % be automatically generated for it.
+    % sequenceIndices can also be manually specified. It should satisfy
+    % length(sequenceIndices) >= max(sequenceLengths) and each elemement
+    % should be an integer between 1 and 24 (for single qubit Clifford group).
     
     properties
-        sequenceLengths = unique(round(logspace(log10(1), log10(3500), 32)));
+        sequenceLengths = unique(round(logspace(log10(1), log10(1000), 25)));
         sequenceIndices = [];
         rbsequences; % object array of randomized benchmarking sequences
     end
@@ -15,8 +34,11 @@ classdef RBExperiment < explib.SweepM8195
     end
         
     methods
-        function self = RBExperiment(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = RBExperiment(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
             self.normalization = 1;
             % Generate Clifford decomposition string

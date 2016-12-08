@@ -12,7 +12,7 @@ classdef ArbSequence < explib.SweepM8195
     % self.gatedict.(name), e.g. self.gatedic.('X180') returns the X180 gate
     
     properties 
-        qubitGates = {'Identity'};
+        qubitGates;
     end
     
     properties (SetAccess = private)
@@ -20,12 +20,16 @@ classdef ArbSequence < explib.SweepM8195
     end
     
     methods
-        function self = ArbSequence(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = ArbSequence(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
         end
 
         function SetUp(self)
+            % Construct and store primary gates
             self.gatedict.Identity = self.pulseCal.Identity();
             self.gatedict.X180 = self.pulseCal.X180();
             self.gatedict.X90 = self.pulseCal.X90();

@@ -11,8 +11,11 @@ classdef LongTimeDriftDecay < explib.SweepM8195
     end
     
     methods
-        function self = LongTimeDriftDecay(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = LongTimeDriftDecay(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.normalization = 0;
             self.pulseCal.qubitFreq = self.rabiFreq;
         end

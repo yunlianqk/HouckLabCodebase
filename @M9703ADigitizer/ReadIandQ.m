@@ -12,7 +12,8 @@ function [Idata,Qdata] = ReadIandQ(self)
         device.Acquisition.Abort();
         device.Acquisition.Initiate();
     end
-    timeoutInMs = (params.averages*params.segments*params.trigPeriod + 1)*1000;%NO MORE THAN 10 SECONDS
+    timeoutInMs = max(10000, ...
+                      (params.averages*params.segments*params.trigPeriod + 1.5)*1000);%NO MORE THAN 10 SECONDS
 
     try
         device.Acquisition.WaitForAcquisitionComplete(timeoutInMs);

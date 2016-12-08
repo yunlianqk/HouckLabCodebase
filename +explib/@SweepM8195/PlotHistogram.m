@@ -1,4 +1,6 @@
 function PlotHistogram(self)
+    % Plot single shot histogram
+    
     figure(10);
     subplot(2, 1, 1);
     plot(self.result.AmpEdges(2:end), self.result.AmpCounts);

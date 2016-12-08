@@ -1,5 +1,9 @@
 classdef T1Experiment < explib.SweepM8195
     % T1 Experiment. Qubit gates with varying delay.
+    
+    % 'qubitGates' is a cellstr that contains the names of gates
+    % e.g., qubitGates = {'X180'} or qubitGates = {'Y180'}, etc.
+    % 'delayVector' is an array that contains the delay time following the gate
 
     properties
         qubitGates = {'X180'};
@@ -7,8 +11,11 @@ classdef T1Experiment < explib.SweepM8195
     end
     
     methods
-        function self = T1Experiment(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = T1Experiment(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
         end
         

@@ -1,5 +1,10 @@
 classdef DragExperiment < explib.SweepM8195
     % Simple DRAG sweep. qubit gates with varying drag amplitude
+    
+    % 'qubitGates' is a cellstr that contains the names of gates
+    % e.g., qubitGates = {'X180', 'Xm180'} or qubitGates = {'X90', 'Xm90'}, etc.
+    % 'dragVector' is an array that contains the drag amplitudes in the sweep
+    % the drag amplitude values should be between 0 and 1
 
     properties
         qubitGates = {'X180', 'Xm180'};
@@ -7,8 +12,11 @@ classdef DragExperiment < explib.SweepM8195
     end
     
     methods
-        function self = DragExperiment(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = DragExperiment(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
         end
         

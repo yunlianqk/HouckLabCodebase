@@ -1,8 +1,11 @@
 classdef BAM0Phase < explib.RepeatGates
     
     methods
-        function self = BAM0Phase(pulseCal)
-            self = self@explib.RepeatGates(pulseCal);
+        function self = BAM0Phase(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.RepeatGates(pulseCal, config);
             self.initGates = {'X90'};
             self.repeatGates = {'Y180', 'X180', 'Ym180', 'X180'};
             self.endGates = {'Y90'};

@@ -19,6 +19,7 @@ classdef pulseCal
         rfPower = -60;
         intFreq = 0;
         loPower = 11;
+        loAmplitude = 1;
         measDuration = 10e-6; % length of measurement pulse
         % waveform properties
         startBuffer = 5e-6; % delay after start before qubit pulses can occur

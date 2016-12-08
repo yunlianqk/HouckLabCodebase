@@ -4,7 +4,7 @@ classdef RepeatGates < explib.SweepM8195
     % Typically for error amplification in gate calibration
     % The pattern is defined as initGates*(repeatGates)^n*endGates
     % where n is specified by repeatVector
-    % init/repeat/end Gates are all cellstr's that contain the names of gates
+    % (init/repeat/end)Gates are all cellstr's that contain the names of gates
     % Example:
     % initGates = {'X90'}, repeatGates = {'X180', 'Y180'}, endGates = {'Y90'}
     % repeatVector = 0:2:4
@@ -26,8 +26,11 @@ classdef RepeatGates < explib.SweepM8195
     end
     
     methods
-        function self = RepeatGates(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = RepeatGates(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
         end
 

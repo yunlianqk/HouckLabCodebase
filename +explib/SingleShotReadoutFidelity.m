@@ -1,8 +1,11 @@
 classdef SingleShotReadoutFidelity < explib.SweepM8195
     
     methods
-        function self = SingleShotReadoutFidelity(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = SingleShotReadoutFidelity(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
         end
     
         function SetUp(self)

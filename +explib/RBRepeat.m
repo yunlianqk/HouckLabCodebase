@@ -1,41 +1,41 @@
 classdef RBRepeat < handle
     % Repeat RB experiment to get gate fidelity
     
+    % To use this class, generate an 'explib.RBExperiment' object first
+    % and set its properties (sequenceLengths, card/soft averages, etc.)
+    % Then pass it to self.rb
+    % 'repeat' specifies how many times the RB sequence is repeated
+    % Each repeat uses a different random sequence of Clifford gates
+    
+    % For normal usage, leave 'sequenceLengths' and 'sequenceIndices' as empty.
+    
+    % sequenceIndices can be specified manually. It should be a 2D array of
+    % random numbers between 0 and 24 (for single qubit Clifford group).
+    % The size of the array should be [self.repeats, max(self.rb.sequenceLengths)].
+    % This is useful to redo an exact realization of RBRepeat experiment.
+    
     properties
         experimentName;
         repeat = 10;
         sequenceLengths = [];
         sequenceIndices = [];
         rb = [];
-        pulseCal;
         result;
         autosave = 0;
         savepath = 'C:\data\';
         savefile;
     end
-        
+
     methods
-        function self = RBRepeat(pulseCal)
-            self.pulseCal = pulseCal;
+        function self = RBRepeat(rb)
+            self.rb = rb;
             name = strsplit(class(self), '.');
             self.experimentName = name{end};
+            self.sequenceLengths = self.rb.sequenceLengths;
         end
-            
+        
         function SetUp(self)
-            if isempty(self.rb)
-                self.rb = explib.RBExperiment(self.pulseCal);
-                self.rb.sequenceLengths = unique(round(logspace(log10(1), log10(1000), 20)));
-                self.rb.cavitybaseband = 1;
-                self.rb.bgsubtraction = 0;
-                self.rb.normalization = 1;
-                self.rb.cardAverages = 50;
-                self.rb.softwareAverages = 30;
-            end
-            if ~isempty(self.sequenceLengths)
-                self.rb.sequenceLengths = self.sequenceLengths;
-            else
-                self.sequenceLengths = self.rb.sequenceLengths;
-            end
+            self.sequenceLengths = self.rb.sequenceLengths;
         end
         
         function Run(self)
@@ -44,6 +44,7 @@ classdef RBRepeat < handle
             self.result.AmpInt = zeros(self.repeat, length(self.sequenceLengths));
             self.result.AmpGnd = zeros(1, self.repeat);
             self.result.AmpEx = zeros(1, self.repeat);
+            
             x = self.rb;
             for ind = 1:self.repeat
                 display(['RBSequence ', num2str(ind), ' running']);
@@ -65,13 +66,13 @@ classdef RBRepeat < handle
                 title([x.experimentName, ' ', num2str(ind), ' of ', num2str(self.repeat)]);
                 subplot(1, 2, 2);
                 self.result.rbFit ...
-                    = funclib.RBFit(self.sequenceLengths, self.result.AmpInt(1:ind, :));
+                    = funclib.RBFit(x.sequenceLengths, self.result.AmpInt(1:ind, :));
                 if self.autosave
                     self.Save();
                 end
             end
             subplot(1, 2, 1);
-            imagesc(self.sequenceLengths, 1:ind, self.result.AmpInt);
+            imagesc(x.sequenceLengths, 1:ind, self.result.AmpInt);
             xlabel('# of Cliffords');
             ylabel('Sequence');
             title(self.experimentName);
@@ -97,12 +98,12 @@ classdef RBRepeat < handle
                 path = [path, filesep()];
             end
             result = self.result;
-            temppulseCal = self.pulseCal;
-            self.pulseCal = funclib.obj2struct(self.pulseCal);
+            temppulseCal = self.rb.pulseCal;
+            self.rb.pulseCal = funclib.obj2struct(self.rb.pulseCal);
             x = funclib.obj2struct(self);           
             save([path, self.savefile], 'x', 'result');
             display(['Data saved to ', path, self.savefile]);
-            self.pulseCal = temppulseCal;
+            self.rb.pulseCal = temppulseCal;
         end
     end
 end

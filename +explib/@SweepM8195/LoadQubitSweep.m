@@ -1,85 +1,113 @@
 function LoadQubitSweep(self, segsize)
-
+    % Download waveforms for sweeping qubit frequency
+    
     global awg;
-    % create time axis with correct size
+    % Time axis
     t = (0:segsize-1)/awg.samplerate;
     
-    % generate trigger waveforms
-    trigWaveform = ones(1,length(t)).*(t>10e-9).*(t<510e-9);
+    % Trigger waveform
+    trigWaveform = ones(1, length(t)).*(t>10e-9).*(t<510e-9);
     
-    % generate measurement pulse
-    [iMeasBase, qMeasBase] = self.measurement.uwWaveforms(t, self.measStartTime);
-    
-    % For baseband mode, channel 2 is baseband measurement pulse
-    % background is zeros in channel 1
-    if self.cavitybaseband
-        ch2waveform = iMeasBase;
-        bgwaveform = zeros(1, length(t));
-    % For direct mode, channel 2 is LO, measurement pulse contains carrier
-    % background is measurement pulse in channel 1
-    else
-        ch2waveform = sin(2*pi*(self.pulseCal.cavityFreq+self.pulseCal.intFreq)*t);
-        bgwaveform = iMeasBase.*cos(2*pi*self.pulseCal.cavityFreq*t) ...
-                     + qMeasBase.*sin(2*pi*self.pulseCal.cavityFreq*t);
+    % LO waveform
+    if ~isempty(self.lochannel)
+        loWaveform = self.pulseCal.loAmplitude ...
+                     *cos(2*pi*(self.pulseCal.cavityFreq+self.pulseCal.intFreq)*t);
     end
-    clear iMeasBase qMeasBase;
     
-    % If sweep qubit frequency, gate sequence is ignored and only first
-    % sequence is used
-    numsegs = length(qubitFreq);
+    % Measurement waveform
+    % For baseband mode
+    [cavityWaveform, ~] = self.measurement.uwWaveforms(t, self.measStartTime);
+    % For direct mode    
+    if ~self.cavitybaseband
+        cavityWaveform = cos(2*pi*self.pulseCal.cavityFreq*t).*cavityWaveform;
+    end
+    
+    % Background waveform
+    if self.bgsubtraction
+        if self.qubitchannel == self.cavitychannel
+            bgWaveform = cavityWaveform;
+        else
+            bgWaveform = zeros(1, length(t));
+        end
+    end
+     
+    % Channel mapping vector
+    % channel 1: [1 0; 0 0; 0 0; 0 0]; channel 2: [0 0; 1 0; 0 0; 0 0]
+    table = [1 0; 2 0; 3 0; 4 0];
+    qubitCh = (table == self.qubitchannel);
+    cavityCh = (table == self.cavitychannel);
+    if ~isempty(self.lochannel)
+        loCh = (table == self.lochannel);
+    end
+       
+    % If sweep qubit frequency, gate sequence is ignored and only first sequence is used
     s = self.sequences(1);
     [iQubitBase, qQubitBase] = s.uwWaveforms(t, self.sequenceEndTime - s.totalSequenceDuration);
-    
+
+    segID = 1;
+    numsegs = length(self.qubitFreq);
+    % Main loop for downloading waveforms to AWG
     for ind = 1:numsegs
         display(['loading sequence ', num2str(ind), ' of ', num2str(numsegs)]);
-
-        ch1waveform = iQubitBase.*cos(2*pi*self.qubitFreq(ind)*t) ...
+        % Each segment has different qubit frequency
+        qubitWaveform = iQubitBase.*cos(2*pi*self.qubitFreq(ind)*t) ...
                       + qQubitBase.*sin(2*pi*self.qubitFreq(ind)*t);
 
-        if ~self.cavitybaseband
-            ch1waveform = ch1waveform + bgwaveform; 
-        end
-
-        if self.bgsubtraction
-            segID = ind*2-1;
+        % Load waveform
+        if self.qubitchannel == self.cavitychannel
+            iqdownload(qubitWaveform+cavityWaveform, awg.samplerate, ...
+                       'channelMapping', qubitCh, ...
+                       'segmentNumber', segID, ...
+                       'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
         else
-            segID = ind;
+            iqdownload(qubitWaveform, awg.samplerate, ...
+                       'channelMapping', qubitCh, ...
+                       'segmentNumber', segID, ...
+                       'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
+            iqdownload(cavityWaveform, awg.samplerate, ...
+                       'channelMapping', cavityCh, ...
+                       'segmentNumber', segID, ...
+                       'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
         end
-        % load channel 1
-        iqdownload(ch1waveform, awg.samplerate, ...
-                   'channelMapping', [1 0; 0 0; 0 0; 0 0], ...
-                   'segmentNumber', segID, ...
-                   'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
-        clear ch1waveform;
-        % load channel 2
-        iqdownload(ch2waveform, awg.samplerate, ...
-                   'channelMapping', [0 0; 1 0; 0 0; 0 0], ...
-                   'segmentNumber', segID, ...
-                   'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
-        % create data self.playlist entry
+        if ~isempty(self.lochannel)
+            iqdownload(loWaveform, awg.samplerate, ...
+                       'channelMapping', loCh, ...
+                       'segmentNumber', segID, ...
+                       'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
+        end
+        % Create playlists
         self.playlist(segID).segmentNumber = segID;
         self.playlist(segID).segmentLoops = 1;
         self.playlist(segID).markerEnable = true;
         self.playlist(segID).segmentAdvance = 'Stepped';
+        segID = segID + 1;
         
-        if self.bgsubtraction
-            segID = ind*2;
-            % load background segment
-            iqdownload(bgwaveform, awg.samplerate, ...
-                       'channelMapping', [1 0; 0 0; 0 0; 0 0], ...
+        % Load background
+        if self.bgsubtraction && ~self.histogram
+            iqdownload(bgWaveform, awg.samplerate, ...
+                       'channelMapping', qubitCh, ...
                        'segmentNumber', segID, ...
                        'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
-            iqdownload(ch2waveform, awg.samplerate, ...
-                       'channelMapping', [0 0; 1 0; 0 0; 0 0], ...
-                       'segmentNumber', segID, ...
-                       'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
-            % create background self.playlist entry
+            if self.qubitchannel ~= self.cavitychannel
+                iqdownload(cavityWaveform, awg.samplerate, ...
+                           'channelMapping', cavityCh, ...
+                           'segmentNumber', segID, ...
+                           'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
+            end
+            if ~isempty(self.lochannel)
+                iqdownload(loWaveform, awg.samplerate, ...
+                           'channelMapping', loCh, ...
+                           'segmentNumber', segID, ...
+                           'keepOpen', 1, 'run', 0, 'marker', trigWaveform);
+            end
+            % Create playlists
             self.playlist(segID).segmentNumber = segID;
             self.playlist(segID).segmentLoops = 1;
             self.playlist(segID).markerEnable = true;
             self.playlist(segID).segmentAdvance = 'Stepped';
+            segID = segID + 1;
         end
     end
-    % last self.playlist item must have advance set to 'auto'
-    self.playlist(segID).segmentAdvance = 'Auto';
+    % Last playlist must have advance set to 'auto'
+    self.playlist(end).segmentAdvance = 'Auto';
 end

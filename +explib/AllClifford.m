@@ -1,4 +1,4 @@
-classdef CliffordCheck < explib.SweepM8195
+classdef AllClifford < explib.SweepM8195
     % Repeat all 24 Clifford gates by N=self.repeat times
     % With one additional undo gate at the end
     
@@ -15,8 +15,11 @@ classdef CliffordCheck < explib.SweepM8195
     end
         
     methods
-        function self = CliffordCheck(pulseCal)
-            self = self@explib.SweepM8195(pulseCal);
+        function self = AllClifford(pulseCal, config)
+            if nargin == 1
+                config = [];
+            end
+            self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
             self.normalization = 1;
             % Generate Clifford decomposition string
@@ -57,7 +60,10 @@ classdef CliffordCheck < explib.SweepM8195
         
         function Run(self)
             Run@explib.SweepM8195(self);
-            
+            self.Plot();
+        end
+        
+        function Plot(self)
             numseq = length(self.clfstring);
             ticklabels = cell(1, numseq);
             for row = 1:numseq
@@ -99,7 +105,6 @@ classdef CliffordCheck < explib.SweepM8195
             title([self.experimentName, ', repeat = ', num2str(self.repeat)]);
             xlabel('Clifford gates');
             ylabel('Amplitude');
-            
         end
     end
 end
