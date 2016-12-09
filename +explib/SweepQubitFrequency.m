@@ -40,6 +40,7 @@ classdef SweepQubitFrequency < explib.SweepM8195
             xlabel('Frequency (GHz)');
             ylabel('Amplitude');
             title(self.experimentName);
+			drawnow;
         end
     end
 end

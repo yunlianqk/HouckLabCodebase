@@ -74,6 +74,7 @@ classdef SingleShotReadoutFidelity < explib.SweepM8195
             ylabel('Cumulative counts');
             title(['Fidelity: ', num2str(self.result.PhaseFidelity), ...
                    ', threshold: ', num2str(self.result.PhaseThreshold)]);
+	        drawnow;
         end
     end
 end

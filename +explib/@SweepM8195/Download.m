@@ -28,6 +28,14 @@ function Download(self)
         error(['Time axis is larger than maximum segment size ', int2str(awg.maxSegSize)]);
     end
     
+    % Check sampling rate
+    if self.pulseCal.samplingRate < awg.minSampRate
+        error(['Sampling rate is lower than minimum sampling rate ', num2str(awg.minSampRate)]);
+    end
+    if self.pulseCal.samplingRate > awg.maxSampRate
+        error(['Sampling rate is higer than maximum sampling rate ', num2str(awg.maxSampRate)]);
+    end
+        
     % Download waveforms and create playlists
     self.playlist = struct();
     if ~isempty(self.qubitFreq)

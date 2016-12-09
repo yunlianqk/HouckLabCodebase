@@ -6,4 +6,5 @@ function PlotGateSweep(self)
     xlabel('Sequence');
     ylabel('Amplitude');
     title(self.experimentName);
+	drawnow;
 end

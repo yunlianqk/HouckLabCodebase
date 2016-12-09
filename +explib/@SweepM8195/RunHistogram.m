@@ -82,7 +82,7 @@ function RunHistogram(self)
         end
         % Auto plotting
         if self.doPlot && ~mod(ind, self.updatePlot)
-            figure(10);
+            figure(11);
             subplot(2, 1, 1);
             plot(self.result.AmpEdges(2:end), self.result.AmpCounts);
             title(['SoftAvg ', num2str(ind), ' of ', num2str(self.softwareAverages)]);

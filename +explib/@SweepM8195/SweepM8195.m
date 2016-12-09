@@ -26,6 +26,7 @@ classdef SweepM8195 < handle
         % AWG channel mapping
         qubitchannel = 1;
         cavitychannel = 2;
+        triggerchannel = [];
         lochannel = [];
         % Use upconversion/direct synthesis for measurement pulse
         cavitybaseband = 0;

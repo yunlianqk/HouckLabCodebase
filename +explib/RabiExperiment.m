@@ -50,10 +50,11 @@ classdef RabiExperiment < explib.SweepM8195
         
         function Plot(self)
             figure(188);
-            self.result.newAmp = funclib.RabiFit2(self.ampVector, self.result.AmpInt);
+            self.result.newAmp = funclib.RabiFit(self.ampVector, self.result.AmpInt);
             xlabel('Drag amplitude');
             ylabel('Readout amplitude');
             title([self.experimentName, ', new amplitude: ', num2str(self.result.newAmp)]);
+			drawnow;
         end
     end
 end

@@ -1,7 +1,7 @@
 function PlotHistogram(self)
     % Plot single shot histogram
     
-    figure(10);
+    figure(11);
     subplot(2, 1, 1);
     plot(self.result.AmpEdges(2:end), self.result.AmpCounts);
     xlabel('Amplitude');
@@ -12,4 +12,5 @@ function PlotHistogram(self)
     plot(self.result.PhaseEdges(2:end), self.result.PhaseCounts);
     xlabel('Phase');
     ylabel('Counts');
+	drawnow;
 end

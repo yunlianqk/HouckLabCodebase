@@ -69,6 +69,7 @@ classdef AllXY < explib.ArbSequence
             hold off;
             title(self.experimentName);
             ylabel('P(|0>)');
+			drawnow;
         end
     end
 end     

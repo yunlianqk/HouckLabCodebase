@@ -77,6 +77,7 @@ classdef RBRepeat < handle
             ylabel('Sequence');
             title(self.experimentName);
             colorbar;
+			drawnow;
         end
         
         function Plot(self)
@@ -89,19 +90,24 @@ classdef RBRepeat < handle
             title(self.experimentName);
             subplot(1, 2, 2);
             rbFit = funclib.RBFit(self.sequenceLengths, self.result.AmpInt);
+			drawnow;
             self.result.Fidelity = rbFit.avgGateFidelity;
         end
         
         function Save(self)
+            global card;
             path = self.savepath;
             if ~strcmp(path(end), filesep())
                 path = [path, filesep()];
             end
-            result = self.result;
             temppulseCal = self.rb.pulseCal;
+            
+            result = self.result;
             self.rb.pulseCal = funclib.obj2struct(self.rb.pulseCal);
-            x = funclib.obj2struct(self);           
-            save([path, self.savefile], 'x', 'result');
+            x = funclib.obj2struct(self);
+            x.rb = funclib.obj2struct(self.rb);
+            cardparams = funclib.obj2struct(card.params);
+            save([path, self.savefile], 'x', 'result', 'cardparams');
             display(['Data saved to ', path, self.savefile]);
             self.rb.pulseCal = temppulseCal;
         end

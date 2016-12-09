@@ -21,7 +21,6 @@ classdef AllClifford < explib.SweepM8195
             end
             self = self@explib.SweepM8195(pulseCal, config);
             self.histogram = 0;
-            self.normalization = 1;
             % Generate Clifford decomposition string
             [self.clfmat, self.clfstring] = pulselib.RB.SingleQubitCliffords();
         end
@@ -105,6 +104,7 @@ classdef AllClifford < explib.SweepM8195
             title([self.experimentName, ', repeat = ', num2str(self.repeat)]);
             xlabel('Clifford gates');
             ylabel('Amplitude');
+			drawnow;
         end
     end
 end

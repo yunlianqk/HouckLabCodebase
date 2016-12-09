@@ -39,6 +39,7 @@ classdef LongTimeDriftDecay < explib.SweepM8195
             xlabel('Delay (\mus)');
             ylabel('Amplitude');
             title(self.experimentName);
+			drawnow;
         end
     end
 end

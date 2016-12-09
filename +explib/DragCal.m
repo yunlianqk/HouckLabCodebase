@@ -1,5 +1,5 @@
-classdef DragExperiment < explib.SweepM8195
-    % Simple DRAG sweep. qubit gates with varying drag amplitude
+classdef DragCal < explib.SweepM8195
+    % DRAG calibration for single qubit gates
     
     % 'qubitGates' is a cellstr that contains the names of gates
     % e.g., qubitGates = {'X180', 'Xm180'} or qubitGates = {'X90', 'Xm90'}, etc.
@@ -12,7 +12,7 @@ classdef DragExperiment < explib.SweepM8195
     end
     
     methods
-        function self = DragExperiment(pulseCal, config)
+        function self = DragCal(pulseCal, config)
             if nargin == 1
                 config = [];
             end
@@ -51,7 +51,8 @@ classdef DragExperiment < explib.SweepM8195
             self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.AmpInt);
             xlabel('Drag amplitude');
             ylabel('Readout amplitude');
-            title([self.experimentName, ', new DRAG amplitude: ', num2str(self.result.newDragAmp)]);
+            title([self.experimentName, ', DRAG amplitude: ', num2str(self.result.newDragAmp)]);
+			drawnow;
         end
     end
 end

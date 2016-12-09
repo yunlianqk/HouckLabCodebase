@@ -6,4 +6,5 @@ function PlotQubitSweep(self)
     xlabel('Frequency (GHz)');
     ylabel('Amplitude');
     title(self.experimentName);
+	drawnow;
 end

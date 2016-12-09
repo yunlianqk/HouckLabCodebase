@@ -1,9 +1,12 @@
 function SetUp(self)
 
     % Set up pulses
-    self.measurement = self.pulseCal.measurement();
     % self.sequences should already be created at this stage,
     % typically by SetUp() method in subclasses
+    
+    % Set up measurement pulse
+    self.measurement = self.pulseCal.measurement();
+
     if self.normalization
         % Append Identity and X180 as last two sequences for normalization
         self.sequences(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
