@@ -25,7 +25,9 @@ classdef pulseCal
         startBuffer = 5e-6; % delay after start before qubit pulses can occur
         measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
         endBuffer = 5e-6; % buffer after measurement pulse
-        samplingRate=32e9;
+		% awg properties
+        samplingRate = 32e9;
+		fullscale = 1.0;
         % acquisition properties
         integrationStartIndex = 1; % start point for integration of acquisition card data
         integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
