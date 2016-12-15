@@ -27,7 +27,7 @@ classdef RamseyExperiment < explib.SweepM8195
             end
             % Construct qubit gates
             for col = 1:length(self.qubitGates)
-                gates(col) = pulselib.singleGate(self.qubitGates{col}, self.pulseCal);
+                gates(col) = self.pulseCal.(self.qubitGates{col});
             end
             % Construct sequences
             for row = 1:length(self.delayVector)

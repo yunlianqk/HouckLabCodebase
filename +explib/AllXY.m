@@ -1,11 +1,11 @@
-classdef AllXY < explib.ArbSequence
+classdef AllXY < explib.ArbGates
     
     methods
         function self = AllXY(pulseCal, config)
             if nargin == 1
                 config = [];
             end
-            self = self@explib.ArbSequence(pulseCal, config);
+            self = self@explib.ArbGates(pulseCal, config);
             self.qubitGates = {{'Identity', 'Identity'}, ...
                                {'X180', 'X180'}, ...
                                {'Y180', 'Y180'}, ...
@@ -27,7 +27,7 @@ classdef AllXY < explib.ArbSequence
         end
         
         function Run(self)
-            Run@explib.ArbSequence(self);
+            Run@explib.ArbGates(self);
             self.Plot();
         end
         

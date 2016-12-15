@@ -1,4 +1,4 @@
-classdef ArbSequence < explib.SweepM8195
+classdef ArbGates < explib.SweepM8195
     % Running arbitrary sequences of single qubit gates.
     
     % qubitGates is a cell array of cellstr's that contain the names of gates
@@ -20,7 +20,7 @@ classdef ArbSequence < explib.SweepM8195
     end
     
     methods
-        function self = ArbSequence(pulseCal, config)
+        function self = ArbGates(pulseCal, config)
             if nargin == 1
                 config = [];
             end

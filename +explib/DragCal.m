@@ -1,13 +1,23 @@
 classdef DragCal < explib.SweepM8195
     % DRAG calibration for single qubit gates
     
-    % 'qubitGates' is a cellstr that contains the names of gates
-    % e.g., qubitGates = {'X180', 'Xm180'} or qubitGates = {'X90', 'Xm90'}, etc.
+    % 'qubitGates' is a cellstr that contains the name of gate
+    % e.g., qubitGates = {'X180'} or qubitGates = {'X90'}, etc.
     % 'dragVector' is an array that contains the drag amplitudes in the sweep
     % the drag amplitude values should be between 0 and 1
-
+    % 'numRepeats' determines how many pairs of positive/negative rotations
+    % are concatenated to amplify DRAG error
+    
+    % Example:
+    % qubitGates = {'X180'}, numRepeats = 3, dragVector = linspace(-0.5, 0.5, 101)
+    % will generate a gate sequence (X180*Xm180)^3
+    % and sweep dragAmp from -0.5 to 0.5 in 101 steps
+    % The result should be a cosine like curve with maximum ground state
+    % population at optimal dragAmp
+    
     properties
-        qubitGates = {'X180', 'Xm180'};
+        qubitGates = {'X180'};
+        numRepeats = 3;
         dragVector = linspace(-0.5, 0.5, 101);
     end
     
@@ -21,7 +31,7 @@ classdef DragCal < explib.SweepM8195
         end
         
         function SetUp(self)
-            sweepgates = pulselib.singleGate();
+            gates = pulselib.singleGate();
             self.sequences = pulselib.gateSequence();
             
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
@@ -29,14 +39,19 @@ classdef DragCal < explib.SweepM8195
             end
 
             for row = 1:length(self.dragVector)
-                for col = 1:length(self.qubitGates)
-                    % Construct qubit gates
-                    sweepgates(col) = pulselib.singleGate(self.qubitGates{col}, self.pulseCal);
-                    % Vary drag amplitude
-                    sweepgates(col).dragAmplitude = self.dragVector(row);
+                for col = 1:self.numRepeats
+                    % Positive rotation
+                    gates(2*col-1) = self.pulseCal.(self.qubitGates{1});
+                    % Set drag amplitude
+                    gates(2*col-1).dragAmplitude = self.dragVector(row);
+                    % Negative rotation
+                    gates(2*col) = self.pulseCal.([self.qubitGates{1}(1), 'm', ...
+                                                   self.qubitGates{1}(2:end)]);
+                    % Set drag amplitude
+                    gates(2*col).dragAmplitude = self.dragVector(row);
                 end
                 % Construct sequences
-                self.sequences(row) = pulselib.gateSequence(sweepgates);
+                self.sequences(row) = pulselib.gateSequence(gates);
             end
             SetUp@explib.SweepM8195(self);
         end
@@ -55,5 +70,4 @@ classdef DragCal < explib.SweepM8195
 			drawnow;
         end
     end
-end
-        
+end        

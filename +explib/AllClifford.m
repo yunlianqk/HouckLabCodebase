@@ -89,7 +89,7 @@ classdef AllClifford < explib.SweepM8195
                 end
             end
             figure(753);
-            bar(1:length(self.clfdict), self.result.AmpInt);
+            bar(1:length(self.result.AmpInt), self.result.AmpInt);
             set(gca, 'xtick', 1:numseq);
             set(gca, 'xticklabel', ticklabels);
             set(gca, 'xticklabelrotation', 45);

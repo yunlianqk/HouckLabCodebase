@@ -30,7 +30,7 @@ classdef RabiExperiment < explib.SweepM8195
             for row = 1:length(self.ampVector)
                 for col = 1:length(self.qubitGates)
                     % Construct qubit gates
-                    gates(col) = pulselib.singleGate(self.qubitGates{col}, self.pulseCal);
+                    gates(col) = self.pulseCal.(self.qubitGates{col});
                     % Keep original drag ratio
                     gates(col).dragAmplitude ...
                         = gates(col).dragAmplitude/gates(col).amplitude*self.ampVector(row);
