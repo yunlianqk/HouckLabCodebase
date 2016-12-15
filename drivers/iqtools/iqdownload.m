@@ -62,6 +62,7 @@ for i = 1:nargin-2
             case 'run'; run = varargin{i+1};
             case 'segmentlength'; segmentLength = varargin{i+1};
             case 'segmentoffset'; segmentOffset = varargin{i+1};
+			case 'amplitude'; amplitude = varargin{i+1};
             otherwise; error(['unexpected argument: ' varargin{i}]);
         end
     end
@@ -111,6 +112,10 @@ if (~exist('marker', 'var') || isempty(marker))
 end
 % try to load the configuration from the file arbConfig.mat
 arbConfig = loadArbConfig(arbConfig);
+% update amplitude if it is specified
+if exist('amplitude', 'var')
+    arbConfig.amplitude(1) = amplitude;
+end
 
 % set default channelMapping is none was specified
 if (isempty(channelMapping))
