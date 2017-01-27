@@ -1,6 +1,6 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 specgen card;
+    global pulsegen1 pulsegen2 specgen card fluxgen;
 
     % Set up signal and background acquisition function handles
     self.acqsigfunc = @card.ReadIandQ;
@@ -10,8 +10,12 @@ function SetOutput(self)
         switch self.bgsubtraction
             case 'speconoff'
                 self.acqbgfunc = @SpecOnOff;
+            case 'rfonoff'
+                self.acqbgfunc = @RFOnOff;
             case 'pulseonoff'
                 self.acqbgfunc = @PulseOnOff;
+            case 'fluxonoff'
+                self.acqbgfunc = @FluxOnOff;
             otherwise
                 error('Unknown background subtraction type.');
         end
@@ -118,6 +122,17 @@ function SetOutput(self)
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
         specgen.PowerOn();
+    end
+    function [Ibg, Qbg] = FluxOnOff()
+        fluxgen.PowerOff();
+        pause(self.waittime);
+        [Ibg, Qbg] = card.ReadIandQ();
+        fluxgen.PowerOn();
+    function [Ibg, Qbg] = RFOnOff()
+        rfgen.PowerOff();
+        pause(self.waittime);
+        [Ibg, Qbg] = card.ReadIandQ();
+        rfgen.PowerOn();
     end
     function [Ibg, Qbg] = PulseOnOff()
         ch1 = pulsegen1.waveform1;

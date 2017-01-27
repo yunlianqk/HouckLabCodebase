@@ -1,4 +1,5 @@
-address='PXI0::CHASSIS1::SLOT2::FUNC0::INSTR'; % PXI address
+% address='PXI0::CHASSIS1::SLOT2::FUNC0::INSTR'; % PXI address
+address='PXI0::12-0.0::INSTR'; % PXI address
 card=M9703ADigitizer(address);  % create object
 %% Set card parameters
 cardparams=paramlib.m9703a();   %default parameters

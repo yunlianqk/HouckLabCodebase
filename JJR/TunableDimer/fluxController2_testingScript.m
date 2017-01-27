@@ -8,10 +8,12 @@ fc.leftQubitFluxToFreqFunc = @(x) sqrt(8.*EcLeft.*EjSumLeft.*abs(cos(pi.*x)))-Ec
 %  fc.leftQubitFreqToFluxFunc = @(x) acos(((x-EcLeft).^2)./(8.*EcLeft.*EjSumLeft))./pi;
 fc.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x)))-EcRight;
 % fc.rightQubitFreqToFluxFunc = @(x) acos(((x-EcRight).^2)./(8.*EcRight.*EjSumRight))./pi;
-fc
 %%
-% fc.calculateLeftQubitFrequency(0)
-% fc.calculateRightQubitFrequency(0)
-fc.calculateLeftQubitFluxFromFrequency(4e9)
-
+fc.calculateLeftQubitFrequency(0)
+fc.calculateRightQubitFrequency(0)
+% fc.calculateLeftQubitFluxFromFrequency(5.7e9)
+fc.calculateLeftQubitFrequency(0.15)
+fc.calculateRightQubitFrequency(-0.2)
 %%
+fc.calculateLeftQubitFluxFromFrequency(5.8585e9)
+fc.calculateRightQubitFluxFromFrequency(5.8585e9)

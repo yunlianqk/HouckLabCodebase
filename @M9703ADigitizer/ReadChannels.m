@@ -76,7 +76,7 @@ function dataArray = ReadChannels(self, chList)
     end
     dataArray = squeeze(dataArray);
     
-    % Revert original channel settings
+    % Restore original channel settings
     for ch = 1:8
         pCh = device.Channels.Item(device.Channels.Name(ch));
         if (strcmp(ChI, device.Channels.Name(ch)) || ...

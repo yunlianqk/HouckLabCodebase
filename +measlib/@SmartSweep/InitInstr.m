@@ -1,6 +1,6 @@
 function InitInstr(self)
 
-    global rfgen specgen logen yoko1 pulsegen1 pulsegen2 card triggen;
+    global rfgen specgen logen yoko1 pulsegen1 pulsegen2 card triggen fluxgen;
     
     % Init rfgen
     if ~isempty(self.rffreq)
@@ -62,6 +62,28 @@ function InitInstr(self)
     if ~isempty(self.lophase)
         logen.SetPhase(self.lophase(1));
     end
+
+    % Init fluxgen
+    if ~isempty(self.fluxfreq)
+        fluxgen.SetFreq(self.fluxfreq(1));
+        fluxgen.PowerOn();
+    else
+        fluxgen.PowerOff();
+    end
+    
+    if ~isempty(self.fluxpower)
+        fluxgen.SetPower(self.fluxpower(1));
+    end
+    
+    if ~isempty(self.fluxphase)
+        fluxgen.SetPhase(self.fluxphase(1));
+    end
+    
+    if self.fluxcw
+        fluxgen.ModOff();
+    else
+        fluxgen.ModOn();
+    end
     
     % Init yoko
     if ~isempty(self.yoko1volt)
@@ -108,6 +130,7 @@ function InitInstr(self)
     
     pulsegen1.mkr1offset = -64;
     pulsegen1.mkr2offset = -64;
+    pulsegen2.mkr2offset = -64;    
     pulsegen1.Generate();
     pulsegen2.Generate();
     

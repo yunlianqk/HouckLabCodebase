@@ -52,6 +52,7 @@ classdef Echo < measlib.SmartSweep
             SetUp@measlib.SmartSweep(self);
         end
         function T2 = FitResult(self)
+            self.IQdata.intRange = self.intrange;
             T2 = self.IQdata.fit();
         end
     end

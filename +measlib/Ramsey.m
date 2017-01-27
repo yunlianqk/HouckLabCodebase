@@ -8,7 +8,7 @@ classdef Ramsey < measlib.SmartSweep
     end
     
     methods
-        function self = Ramsey()
+        function self = Ramsey(pulseCal)
             self = self@measlib.SmartSweep();
             self.name = 'Ramsey';
             self.IQdata.meastype = 'Ramsey';

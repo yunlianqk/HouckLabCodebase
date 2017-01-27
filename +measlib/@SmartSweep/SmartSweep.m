@@ -16,6 +16,12 @@ classdef SmartSweep < handle
         intfreq = 0;  % Intermediate frequency between logen and rfgen
         lopower = 11;  % logen power
         lophase = [];  % logen phase
+
+        fluxfreq = [];
+        fluxpower = [];
+        fluxphase = [];
+        fluxcw = 1;
+        
         yoko1volt = [];  % yoko1 voltage
         gateseq = [];  % gate sequences for pulsegen1 channel1 and channel 2
         measpulse = [];  % measurement pulse for pulsegen2 channel1

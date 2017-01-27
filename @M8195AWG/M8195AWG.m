@@ -3,6 +3,8 @@ classdef M8195AWG < handle
 
     properties (Access = public)
         samplerate;     % sample rate
+        minSampRate;    % minimum sampling rate
+        maxSampRate;    % maximum sampling rate
         granularity;    % segement length needs to be multiple of segment granularity
         minSegSize;     % minimum number of samples per segement
         maxSegSize;     % maximum number of samples per segment
@@ -12,9 +14,6 @@ classdef M8195AWG < handle
 
     methods
         function self = M8195AWG()
-            % Add iqtools folder to path
-            addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\drivers\iqtools');
-            
             % Open IQ config window in iqtools
             % choose the configuration settings
             % Then press Ok button to finalize
@@ -36,6 +35,8 @@ classdef M8195AWG < handle
             % update awg sample rate property
             arbConfig = loadArbConfig();
             self.samplerate = arbConfig.defaultSampleRate;
+            self.maxSampRate = arbConfig.maximumSampleRate;
+            self.minSampRate = arbConfig.minimumSampleRate;
             self.granularity = arbConfig.segmentGranularity;
             self.minSegSize = arbConfig.minimumSegmentSize;
             self.maxSegSize = arbConfig.maximumSegmentSize;

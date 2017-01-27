@@ -20,12 +20,15 @@ classdef pulseCal
         rfPower = -60;
         intFreq = 0;
         loPower = 11;
+        loAmplitude = 1;
         measDuration = 10e-6; % length of measurement pulse
         % waveform properties
         startBuffer = 5e-6; % delay after start before qubit pulses can occur
         measBuffer = 10e-9; % delay btw final qubit pulse and measurement pulse
         endBuffer = 5e-6; % buffer after measurement pulse
-        samplingRate=32e9;
+		% awg properties
+        samplingRate = 32e9;
+		fullscale = 1.0;
         % acquisition properties
         integrationStartIndex = 1; % start point for integration of acquisition card data
         integrationStopIndex = 4000; % stoppoint for integration of acquisition card data
@@ -41,6 +44,11 @@ classdef pulseCal
         X180DragAmplitude = 0;
         Xm180Amplitude = 1;
         Xm180DragAmplitude = 0;
+%         YAzimuth = pi/2;
+        X90Azimuth = 0;
+        X180Azimuth = 0;
+        Y90Azimuth = pi/2;
+        Y180Azimuth = pi/2;
         Y90Amplitude = .5;
         Y90DragAmplitude = 0;
         Ym90Amplitude = .5;
@@ -72,6 +80,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.X90Amplitude;
             pulseObj.dragAmplitude = obj.X90DragAmplitude;
+            pulseObj.azimuth = obj.X90Azimuth;
         end
         function pulseObj = Xm90(obj)
             pulseObj = pulselib.singleGate('Xm90');
@@ -80,6 +89,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Xm90Amplitude;
             pulseObj.dragAmplitude = obj.Xm90DragAmplitude;
+            pulseObj.azimuth = obj.X90Azimuth+pi;
         end
         function pulseObj = X180(obj)
             pulseObj = pulselib.singleGate('X180');
@@ -88,6 +98,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.X180Amplitude;
             pulseObj.dragAmplitude = obj.X180DragAmplitude;
+            pulseObj.azimuth = obj.X180Azimuth;
         end
         function pulseObj = Xm180(obj)
             pulseObj = pulselib.singleGate('Xm180');
@@ -96,6 +107,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Xm180Amplitude;
             pulseObj.dragAmplitude = obj.Xm180DragAmplitude;
+            pulseObj.azimuth = obj.X180Azimuth+pi;
         end
         function pulseObj = Y90(obj)
             pulseObj = pulselib.singleGate('Y90');
@@ -104,6 +116,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Y90Amplitude;
             pulseObj.dragAmplitude = obj.Y90DragAmplitude;
+            pulseObj.azimuth = obj.Y90Azimuth;
         end
         function pulseObj = Ym90(obj)
             pulseObj = pulselib.singleGate('Ym90');
@@ -112,6 +125,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym90Amplitude;
             pulseObj.dragAmplitude = obj.Ym90DragAmplitude;
+            pulseObj.azimuth = obj.Y90Azimuth+pi;
         end
         function pulseObj = Y180(obj)
             pulseObj = pulselib.singleGate('Y180');
@@ -120,6 +134,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Y180Amplitude;
             pulseObj.dragAmplitude = obj.Y180DragAmplitude;
+            pulseObj.azimuth = obj.Y180Azimuth;
         end
         function pulseObj = Ym180(obj)
             pulseObj = pulselib.singleGate('Ym180');
@@ -128,28 +143,13 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym180Amplitude;
             pulseObj.dragAmplitude = obj.Ym180DragAmplitude;
+            pulseObj.azimuth = obj.Y180Azimuth+pi;
         end
         function pulseObj = measurement(obj)
             pulseObj=pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
         end
+        function s = toStruct(obj)
+            s = funclib.obj2struct(obj);
+        end
     end
 end
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-        

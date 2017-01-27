@@ -18,6 +18,7 @@ classdef M9703ADigitizer < handle
 %         ChQ2;
         segments;
         trigPeriod;
+        waittrig = 0;
     end
     
     methods
@@ -27,7 +28,7 @@ classdef M9703ADigitizer < handle
             try
                 self.address=address;
                 % Path to IVI drivers
-                addpath('C:\IVI\MATLAB');
+                 addpath('C:\IVI\MATLAB');
                 % Create driver instance
                 self.instrID = instrument.driver.AgMD1();
             
@@ -73,11 +74,10 @@ classdef M9703ADigitizer < handle
         iscorrect = CheckParams(~, params);  % Check card parameters
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
-        [IData, QData] = ReadIandQ(self,awg,PlayList);	% Acquire data from two channels
-%         [IData, QData, I2Data, Q2Data] = Read4ChannelIandQ(self,awg,PlayList);	% Acquire data from two channels
-        [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self,awg,PlayList);	% includes background subtraction
+        WaitTrigger(self);  % Wait for trigger to synchronize multisegment acquisition
+        [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
+        [Idata,Isqdata,Qdata,Qsqdata] = ReadIandQcomplicated(self);	% includes background subtraction
         [Idata,Qdata] = ReadIandQsingleShot(self, awg, PlayList);
         dataArray = ReadChannels(self, chList);  % Acquire data from desired channels
-        dataArray_v2 = ReadChannels_v2(self, chList);  % Acquire data from desired channels
     end
 end

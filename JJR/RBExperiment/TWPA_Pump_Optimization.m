@@ -4,34 +4,43 @@ pnax = PNAXAnalyzer(16);
 gen = E8267DGenerator(24);
 
 %% set pump parameters
-gen.freq = 8.245e9;
-gen.power = 12.85;
-
+gen.freq = 8.242e9;
+gen.power = 12.83;
+%%
+gen.PowerOn()
+%%
+gen.PowerOff()
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 transWaitTime=5;
 pnax.params.start = 10.1e9;
-pnax.params.stop = 10.25e9;
-pnax.params.points = 1001;
-pnax.params.power = 0;
+pnax.params.stop = 	10.25e9;
+pnax.params.points = 3001;
+pnax.params.power = -20;
 pnax.params.averages = 65536;
-pnax.params.ifbandwidth = 10e3;
+pnax.params.ifbandwidth = 5e3;
 pnax.ClearChannelAverages(1);
+pnax.AvgOn();
+pnax.PowerOn();
+pnax.TrigContinuous();
+pnax.AutoScaleAll();
 pause(transWaitTime);
 ftrans = pnax.ReadAxis();
 pnax.SetActiveTrace(1);
+%%
 [data_transS21A data_transS21P] = pnax.ReadAmpAndPhase();
 figure();
 subplot(2,1,1);
 plot(ftrans,data_transS21A,'b');
 subplot(2,1,2);
 plot(ftrans,data_transS21P,'b');
-
+%%
+pnax.AutoScaleAll();
 %% generator power scan
-transWaitTime = 10;
-startPower=12;
-stopPower=14;
-steps=100;
+transWaitTime = 30;
+startPower=12.5;
+stopPower=13.5;
+steps=101;
 
 powerVector=linspace(startPower,stopPower,steps);
 tic;
@@ -61,12 +70,14 @@ save(['C:/Data/TWPA_powerScan' num2str(time(1)) num2str(time(2)) num2str(time(3)
         'S21powerScanAmp','S21powerScanPhase','powerVector','gen');
 figure();
 toc
+gen.PowerOff();
+pnax.TrigHold(1);
 
 %% generator frequency scan
-transWaitTime = 10;
+transWaitTime = 20;
 startFreq=8.2e9;
-stopFreq=8.26e9;
-steps=100;
+stopFreq=8.3e9;
+steps=101;
 
 pumpFreqVector=linspace(startFreq,stopFreq,steps);
 tic;

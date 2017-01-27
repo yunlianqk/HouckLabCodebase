@@ -112,13 +112,11 @@ if (~exist('marker', 'var') || isempty(marker))
     marker = [15*ones(floor(length(iqdata)/2),1); zeros(length(iqdata)-floor(length(iqdata)/2),1)];
 end
 
-% added this to allow changing amplitude of fullscale
-if isempty(amplitude)
-    % try to load the configuration from the file arbConfig.mat
-    arbConfig = loadArbConfig(arbConfig);
-else
-    arbConfig = loadArbConfig(arbConfig);
-    arbConfig.amplitude = amplitude;
+% try to load the configuration from the file arbConfig.mat
+arbConfig = loadArbConfig(arbConfig);
+% update amplitude if it is specified
+if exist('amplitude', 'var')
+    arbConfig.amplitude(1) = amplitude;
 end
 
 % set default channelMapping is none was specified

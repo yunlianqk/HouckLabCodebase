@@ -1,4 +1,4 @@
-function [amplitude, phase] = Demodulate(sampInterval, data, intFreq )
+function [amplitude, phase] = Demodulate(sampInterval, data, intFreq)
 % Demodulate an array of data with intermediate frequency
 % Input: data should be an M*N array,
 %        where each 1*N row vector is a single data
