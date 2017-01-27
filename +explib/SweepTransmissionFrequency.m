@@ -6,12 +6,12 @@ classdef SweepTransmissionFrequency < handle
         % change these to tweak the experiment
 %         startFreq=5e9;
 %         stopFreq=5e9;
-        startFreq=10.165e9;
-        stopFreq=10.1664e9;
-        points = 101;
+        startFreq=5.8e9;
+        stopFreq=5.85e9;
+        points = 41;
         measDuration = 10e-6;
-%         measAmplitude = 0.63; % measurement pulse amp.
-        measAmplitude = .55; % measurement pulse amp.
+        measAmplitude = 0.1; % measurement pulse amp.
+%         measAmplitude = 1.0; % measurement pulse amp.
         startBuffer = 5e-6; % buffer at beginning of waveform
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9; % sampling rate
@@ -88,8 +88,8 @@ classdef SweepTransmissionFrequency < handle
             % Experiment specific properties
 %             intStart=2000; intStop=6000;
 %             softavg=100;
-            intStart=1; intStop=4000;
-            softavg=50;
+            intStart=10; intStop=4000;
+            softavg=10;
             w = obj.genWaveset_M8195A();
             WaveLib = awg.WavesetExtractSegmentLibraryStruct(w);
             PlayList = awg.WavesetExtractPlaylistStruct(w);

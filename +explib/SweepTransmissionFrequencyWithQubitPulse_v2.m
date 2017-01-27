@@ -5,13 +5,15 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
         experimentName = 'SweepTransmissionFrequencyWithQubitPulse_v2';
         % inputs
         pulseCal;
-        freqVector = linspace(10.164e9,10.167e9,101);
-        softwareAverages = 50; 
+%         freqVector = linspace(7.4e9,7.6e9,51);
+        freqVector = linspace(5.8e9,5.83e9,51);
+        softwareAverages = 40; 
         % Dependent properties auto calculated in the update method
         qubit; % main pulse
         sequences; % gateSequence objects
         measurement; % measurement pulse object
-        measStartTime; 
+        measStartTime;
+        zeroGate;
         measEndTime;
         sequenceEndTime;
         waveformEndTime;
@@ -57,7 +59,8 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
         
         function obj=initSequences(obj)
             % generate qubit objects
-            obj.qubit = obj.pulseCal.X180();
+%             obj.qubit = obj.pulseCal.X180();
+            obj.qubit = obj.pulseCal.Identity();
 %             obj.zeroGate = obj.pulseCal.Identity();
 %             obj.oneGate = obj.pulseCal.X180(); 
                         
@@ -188,7 +191,7 @@ classdef SweepTransmissionFrequencyWithQubitPulse_v2 < handle
                 timeString = datestr(datetime);
                 if ~mod(ind,1)
                     figure(101);
-                    plot(obj.freqVector,Pint);
+                    plot(obj.freqVector(1:end-1),Pint(1:end-1));
 %                     ax = gca;
 %                     fitResults = funclib.ExpFit3(xaxisNorm,AmpNorm,ax);
 %                     title(ax,[' T1: ' num2str(fitResults.lambda) '; N=' num2str(ind)])

@@ -2,12 +2,12 @@
 % Create pulseCal object - NOTE: pulseCal objects are VALUE objects not HANDLE objects
 pulseCal = paramlib.pulseCal();
 % generic qubit pulse properties
-pulseCal.qubitFreq = 4.772869998748302e9;
+pulseCal.qubitFreq = 7.5e9;
 pulseCal.sigma = 4e-9;
 pulseCal.cutoff = 4*pulseCal.sigma;
 pulseCal.buffer = 4e-9;
 % measurement pulse properties
-pulseCal.cavityFreq=10.165600e9; % cavity frequency
+pulseCal.cavityFreq=5.823e9; % cavity frequency
 pulseCal.cavityAmplitude = 0.6;
 pulseCal.measDuration = 10e-6; % length of measurement pulse
 % waveform properties

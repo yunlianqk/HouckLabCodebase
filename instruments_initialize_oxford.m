@@ -1,12 +1,18 @@
 % Initialize instruments
-run(['.', filesep(), 'setpath.m']);
+% run(['.', filesep(), 'setpath.m']);
+run(['C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\setpath.m']);
 
 addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer');
+addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\drivers');
              
 address = struct('pnax',    'GPIB0::16::0::INSTR', ...
                  'yoko1',   'GPIB0::2::0::INSTR', ...
                  'yoko2',   'GPIB0::3::0::INSTR', ...
-                 'yoko3',   'GPIB0::4::0::INSTR');
+                 'yoko3',   'GPIB0::4::0::INSTR',...
+                 'rfgen',   'GPIB0::25::0::INSTR',...
+                 'logen',   'GPIB0::23::0::INSTR',...
+                 'specgen',  'GPIB0::24::0::INSTR',...
+                 'triggen',  'GPIB0::9::0::INSTR');
  
 global pnax;
 pnax = PNAXAnalyzer(address.pnax);
@@ -28,10 +34,10 @@ yoko3 = YOKOGS200(address.yoko3);
 
 % global rfgen;
 % rfgen = E8267DGenerator(address.rfgen);
-
+% 
 % global specgen;
 % specgen = E8267DGenerator(address.specgen);
-
+% 
 % global logen;
 % logen = E8267DGenerator(address.logen);
 

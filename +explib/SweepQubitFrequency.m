@@ -3,20 +3,20 @@ classdef SweepQubitFrequency < handle
     
     properties
         % change these to tweak the experiment
-        startFreq=4.7e9;
-        stopFreq=4.84e9;
+        startFreq=7.4e9;
+        stopFreq=7.6e9;
         points = 101;
         gateType = 'X180';
         qubitAmp = .7; % qubit pulse amplitude
         qubitSigma = 4e-9; % qubit pulse sigma
         interPulseBuffer = 200e-9; % time between qubit pulse and measurement pulse
 %         cavityFreq=10.1657e9; % cavity frequency
-        cavityFreq=10.165600e9; % cavity frequency
+        cavityFreq=5.82275e9; % cavity frequency
         cavityAmp=.6;       % cavity pulse amplitude
         measDuration = 10e-6;
         measStartTime = 5e-6; 
         endBuffer = 5e-6; % buffer after measurement pulse
-        samplingRate=32e9; % sampling rate
+        samplingRate=1.6e9; % sampling rate
         % these are auto calculated
         freqVector;
         qubit; % qubit pulse object
@@ -79,7 +79,8 @@ classdef SweepQubitFrequency < handle
         function [result] = runExperimentM8195A(obj,awg,card,cardparams)
             display('running experiment')
             % integration times
-            intStart=4000; intStop=8000;
+%             intStart=4000; intStop=8000;
+            intStart=4000; intStop=7000;
             % software averages
             softavg=10;
             w = obj.genWaveset_M8195A();

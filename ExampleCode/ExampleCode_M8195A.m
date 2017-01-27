@@ -1,4 +1,3 @@
-
 %%%%%%%%%%%%%%% INTIALIZATIONS
 % CHECKLIST
 % m8195a SFP open, with the following setting adjustments
@@ -8,26 +7,26 @@
 %   - Trigger tab: Trigger/Gate, Advance Event -> Trigger Inaddpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
 
 % Initialize awg object
-cd 'C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode'
-addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode');
+cd 'C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode'
+addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode');
 % Choose settings in IQ config window -> press Ok
 % Import FIR filter -> press Ok
 awg = M8195AWG();
 %% Generate vector for typical Rabi experiment
-waveLength=20e-6;
+waveLength=2e-6;
 tAxis=(1/awg.samplerate:1/awg.samplerate:waveLength);
 
 % Readout pulse parameters
 read.Amp=1;
-read.Freq=4.772869998748302e9;
+read.Freq=1e9;
 read.start=10e-6;
-read.length=5e-6;
-read.buffer=500e-9;
+read.length=0.2e-6;
+read.buffer=50e-9;
 % Qubit gaussian pulse parameters
 % varying amplitudes
 qubit.Amp=[0 1];
 qubit.Freq=4.772869998748302e9;
-qubit.sigma=50e-9;
+qubit.sigma=5e-9;
 qubit.cutoff=4*qubit.sigma;
 qubit.center=read.start-read.buffer-qubit.cutoff/2;
 for i=1:length(qubit.Amp)
@@ -79,7 +78,7 @@ for i=1:length(qubit.Amp)
     WaveLib(2*i-1).segNumber = i;
     WaveLib(2*i-1).keepOpen = 1;
     WaveLib(2*i-1).run = 0;
-%     WaveLib(2*i-1).marker = marker;
+    WaveLib(2*i-1).marker = marker;
     WaveLib(2*i-1).correction = 1;
     
     % Waveforms for Ch4
@@ -99,7 +98,7 @@ for i=1:(length(qubit.Amp)-1)
     %Channel 1+4 playlist
     PlayList(i).segmentNumber=i;
     PlayList(i).segmentLoops=1;
-%     PlayList(i).markerEnable=true;
+    PlayList(i).markerEnable=true;
     PlayList(i).segmentAdvance='Stepped';
 end
 
@@ -129,7 +128,7 @@ cardparams.couplemode='DC'; % 'DC'/'AC'
 cardparams.delaytime=10e-6; % Delay time from trigger to start of acquistion, units second
 cardparams.ChI='Channel1';
 cardparams.ChQ='Channel2';
-cardparams.trigSource='External4'; % Trigger source
+cardparams.trigSource='External1';% Trigger source
 cardparams.trigLevel=0.5; % Trigger level in volts
 cardparams.trigPeriod=50e-6; % Trigger period in seconds
 

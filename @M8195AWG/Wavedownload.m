@@ -1,4 +1,4 @@
-function Wavedownload(self,WaveLib)
+function Wavedownload(self,WaveLib,amplitude)
 % function download waveform library to awg memory
 % waveforms to be used in predefined sequence playlist
 % [!] Waveform correction needs to be done prior to download
@@ -11,6 +11,12 @@ function Wavedownload(self,WaveLib)
 %   wavelib(i).run = 0 (default), 1 will run the waveform immediately after downloading it
 %   wavelib(i).correction = 1 (true) if you want to apply FIR filter, 0 otherwise
 
+    if length(varargin)==0
+        amplitude= [1 1];
+    else
+       disp('rea') 
+    end
+        
     % start from scratch and delete all segments
     iqseq('delete', [], 'keepOpen', 1);
 
@@ -38,8 +44,8 @@ function Wavedownload(self,WaveLib)
         newlength=ceil(length(WaveLib(i).waveform)/self.granularity)*self.granularity;
         old=WaveLib(i).waveform;
         newWaveform = [old,zeros(1,newlength-length(old))];
-%         old=WaveLib(i).marker;
-%         newMarker = [old,zeros(1,newlength-length(old))];
+        old=WaveLib(i).marker;
+        newMarker = [old,zeros(1,newlength-length(old))];
         
         iqdownload(newWaveform,...
             self.samplerate,...
@@ -50,9 +56,11 @@ function Wavedownload(self,WaveLib)
             'keepOpen',...
             WaveLib(i).keepOpen,...
             'run',...
-            WaveLib(i).run);%,...
-%             'marker',...
-%             newMarker);
+            WaveLib(i).run,...
+            'marker',...
+            newMarker,...
+            'amplitude',...
+            amplitude);
         
     end
 end

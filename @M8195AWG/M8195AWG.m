@@ -13,7 +13,7 @@ classdef M8195AWG < handle
     methods
         function self = M8195AWG()
             % Add iqtools folder to path
-            addpath('C:\Users\newforce\Documents\GitHub\HouckLabMeasurementCode\iqtools');
+            addpath('C:\Users\Administrator\Documents\GitHub\HouckLabMeasurementCode\drivers\iqtools');
             
             % Open IQ config window in iqtools
             % choose the configuration settings
@@ -48,6 +48,7 @@ classdef M8195AWG < handle
         % Each method is defined in a separate file
         WaveLib = ApplyCorrection(self,WaveLib) % returns predistorted waveform library
         Wavedownload(self, WaveLib) % download waveform library to the awg
+        Wavedownload_amplitudeSpecify(self, WaveLib, amplitude) % download waveform library to the awg
         SeqRun(self,PlayList)       % Run sequence playlist based on the downloaded library
         SeqStop(self,PlayList)      % Stop sequence playlist
         

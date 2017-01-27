@@ -1,4 +1,4 @@
 function SetPhase(gen, phase)
-% Set phase (in degrees)
-    fprintf(gen.instrhandle, 'PHASe %fDEG', phase);
+% Set phase (in radians)
+    fprintf(gen.instrhandle, 'PHASe %fRad', phase);
 end

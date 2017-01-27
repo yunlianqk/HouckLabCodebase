@@ -2,7 +2,7 @@ address='PXI0::CHASSIS1::SLOT2::FUNC0::INSTR'; % PXI address
 card=M9703ADigitizer(address);  % create object
 %% Set card parameters
 cardparams=paramlib.m9703a();   %default parameters
-
+%%
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*1e-6;    % samples for a single trace
 cardparams.averages=2000;  % software averages PER SEGMENT

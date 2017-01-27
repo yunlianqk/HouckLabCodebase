@@ -24,9 +24,9 @@ card=M9703ADigitizer(address);  % create object
 cardparams=paramlib.m9703a();   %default parameters
 cardparams.samplerate=1.6e9;   % Hz units
 % cardparams.samples=1.6e9*6.25e-6;    % samples for a single trace
-% cardparams.samples=round(1.6e9*2.5e-6);    % samples for a single trace
+cardparams.samples=round(1.6e9*4.5e-6);    % samples for a single trace
 % cardparams.samples=round(1.6e9*1.25e-6);    % samples for a single trace
-cardparams.samples=1100;    % samples for a single trace
+%cardparams.samples=1100;    % samples for a single trace
 % cardparams.averages=100;  % software averages PER SEGMENT
 % cardparams.averages=200;  % software averages PER SEGMENT
 cardparams.averages=10;  % software averages PER SEGMENT
@@ -55,10 +55,10 @@ winopen('C:\Data')
 pulseCal = explib.RecalibrateContinuous(pulseCal, awg, card, cardparams);
 %% old experiments
 % x = explib.SweepQubitFrequency();
-x = explib.SweepTransmissionFrequencyWithQubitPulse();
+%x = explib.SweepTransmissionFrequencyWithQubitPulse();
 % x = explib.SweepTransmissionFrequency();
 % x = explib.SweepQubitSigma();
-% x = explib.SweepTransmissionPower();
+x = explib.SweepTransmissionPower();
 cardparams.averages=10;  % software averages PER SEGMENT
 card.SetParams(cardparams); % Update parameters and setup acquisition and trigerring 
 x.runExperimentM8195A(awg,card,cardparams);

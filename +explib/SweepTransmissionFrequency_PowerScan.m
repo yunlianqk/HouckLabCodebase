@@ -2,7 +2,7 @@
 % script repeats sweep of transmission frequency, keeping only the
 % integrated result.  plots this as a powerscan.
 
-amplitudeVector = linspace(0,1,11);
+amplitudeVector = linspace(0,0.5,11);
 
 %initializions
 display([' ']);
@@ -39,8 +39,8 @@ for ind = 1:length(amplitudeVector)
 end
 loopResults.freqVector = freqVector;
 loopResults.amplitudeVector = amplitudeVector;
-loopResults.experiment = x;
-
-save(['C:\Data\SweepTransmission_PowerScan' '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
-        'loopResults', 'awg','card','cardparams');
+loopResults.experim% 
+% save(['C:\Data\SweepTransmission_PowerScan' '_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6)) '.mat'],...
+%         'loopResults', 'awg','card','cardparams');
+ent = x;
 

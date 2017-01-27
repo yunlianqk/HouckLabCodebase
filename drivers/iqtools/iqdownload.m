@@ -46,6 +46,7 @@ sequence = [];
 arbConfig = [];
 segmentLength = [];
 segmentOffset = [];
+amplitude = [];
 clear marker;
 run = 1;
 for i = 1:nargin-2
@@ -62,6 +63,7 @@ for i = 1:nargin-2
             case 'run'; run = varargin{i+1};
             case 'segmentlength'; segmentLength = varargin{i+1};
             case 'segmentoffset'; segmentOffset = varargin{i+1};
+            case 'amplitude'; amplitude = varargin{i+1};
             otherwise; error(['unexpected argument: ' varargin{i}]);
         end
     end
@@ -109,8 +111,15 @@ end
 if (~exist('marker', 'var') || isempty(marker))
     marker = [15*ones(floor(length(iqdata)/2),1); zeros(length(iqdata)-floor(length(iqdata)/2),1)];
 end
-% try to load the configuration from the file arbConfig.mat
-arbConfig = loadArbConfig(arbConfig);
+
+% added this to allow changing amplitude of fullscale
+if isempty(amplitude)
+    % try to load the configuration from the file arbConfig.mat
+    arbConfig = loadArbConfig(arbConfig);
+else
+    arbConfig = loadArbConfig(arbConfig);
+    arbConfig.amplitude = amplitude;
+end
 
 % set default channelMapping is none was specified
 if (isempty(channelMapping))

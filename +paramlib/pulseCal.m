@@ -8,27 +8,28 @@ classdef pulseCal
     
     properties
         % generic qubit pulse properties
-        qubitFreq = 4e9;
+        qubitFreq = 7.508e9;
         specPower = -50;
         sigma = 25e-9; % gaussian width in seconds
         cutoff = 100e-9; % force pulse tail to zero. this is the total time the pulse is nonzero in seconds
         buffer = 4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
         % measurement pulse properties
-        cavityFreq = 10e9;
-        cavityAmplitude = 1;
+        cavityFreq = 5.81015e9;
+%         cavityFreq = 5.812e9;
+        cavityAmplitude = 0.1;
         rfPower = -60;
         intFreq = 0;
         loPower = 11;
         measDuration = 10e-6; % length of measurement pulse
         % waveform properties
         startBuffer = 5e-6; % delay after start before qubit pulses can occur
-        measBuffer = 200e-9; % delay btw final qubit pulse and measurement pulse
+        measBuffer = 10e-9; % delay btw final qubit pulse and measurement pulse
         endBuffer = 5e-6; % buffer after measurement pulse
         samplingRate=32e9;
         % acquisition properties
         integrationStartIndex = 1; % start point for integration of acquisition card data
-        integrationStopIndex = 10000; % stoppoint for integration of acquisition card data
-        cardDelayOffset = 1.5e-6; % time delay AFTER measurement pulse to start acquisition
+        integrationStopIndex = 4000; % stoppoint for integration of acquisition card data
+        cardDelayOffset = 0.0e-6; % time delay AFTER measurement pulse to start acquisition
         % USAGE: cardparams.delaytime = experimentObject.measStartTime + pulseCal.cardDelayOffset;
         cardAvg = 30000;
         % gate specific properties
