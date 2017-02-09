@@ -30,7 +30,7 @@ function Run(self)
     
     % Clear result
     self.result = struct();
-    % Generator filename for saving data
+    % Generate filename for saving data
     self.savefile = [self.experimentName, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
     
     % Run experiment

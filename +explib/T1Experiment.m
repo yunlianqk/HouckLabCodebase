@@ -51,7 +51,6 @@ classdef T1Experiment < explib.SweepM8195
             xlabel('Delay (\mus)');
             ylabel('Amplitude');
             title(['T_1 = ', num2str(self.result.T1), ' \mus']);
-            save('D:\Gengyan\test.mat', 'self');
 			drawnow;
         end
     end

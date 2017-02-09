@@ -161,9 +161,10 @@ classdef singleGate < handle
 
         function [iBaseband, qBaseband] = iqSegment(self, tSegment, tStart)
             % Returns baseband signals for a given time segment
-            iBaseband = zeros(1, length(tSegment));
-            qBaseband = iBaseband;
-            if ~strcmp(self.name, 'Identity')
+            if strcmp(self.name, 'Identity')
+                iBaseband = zeros(1, length(tSegment));
+                qBaseband = iBaseband;
+            else
                 tCenter = tStart + self.totalDuration/2;
                 g = self.gaussian(tSegment, tCenter);
                 g = self.applyGaussianCutoff(tSegment, tCenter, g);
@@ -174,9 +175,8 @@ classdef singleGate < handle
         end
         
         function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tStart)
-            % given just a time axis and pulse time, returns final baseband
-            % signals. can be added to similar outputs from other gates to
-            % form a composite waveform
+            % Given time axis and pulse start time, returns final baseband signals
+
             iBaseband = zeros(1, length(tAxis));
             qBaseband = iBaseband;
             if ~strcmp(self.name, 'Identity')
@@ -210,7 +210,7 @@ classdef singleGate < handle
             display(['Total pulse duration (including buffer): ', num2str(self.totalDuration), 's'])
             % create wavef,orm time axis
             pulseTime = self.totalDuration;
-            t = linspace(-pulseTime, pulseTime, 1001); % make time axis twice as long as pulse
+            t = -pulseTime:1e-9:pulseTime; % make time axis twice as long as pulse
             % create waveform
             g = self.gaussian(t, 0);
             gc = self.applyGaussianCutoff(t, 0, g);
