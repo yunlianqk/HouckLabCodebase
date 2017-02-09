@@ -1,13 +1,17 @@
 function InitInstr(self)
 
-    global rfgen specgen logen yoko1 pulsegen1 pulsegen2 card triggen fluxgen;
+    global rfgen specgen logen specgen2 fluxgen ...
+           yoko1 yoko2 pulsegen1 pulsegen2 card triggen;
     
     % Init rfgen
     if ~isempty(self.rffreq)
         rfgen.SetFreq(self.rffreq(1));
         rfgen.PowerOn();
     else
-        rfgen.PowerOff();
+        try
+            rfgen.PowerOff();
+        catch
+        end
     end
     
     if ~isempty(self.rfpower)
@@ -18,9 +22,9 @@ function InitInstr(self)
         rfgen.SetPhase(self.rfphase(1));
     end
       
-    if self.rfcw
+    if self.rfcw == 1
         rfgen.ModOff();
-    else
+    elseif self.rfcw == 0
         rfgen.ModOn();
     end
     
@@ -29,7 +33,10 @@ function InitInstr(self)
         specgen.SetFreq(self.specfreq(1));
         specgen.PowerOn();
     else
-        specgen.PowerOff();
+        try
+            specgen.PowerOff();
+        catch
+        end
     end
     
     if ~isempty(self.specpower)
@@ -40,9 +47,9 @@ function InitInstr(self)
         specgen.SetPhase(self.specphase(1));
     end
     
-    if self.speccw
+    if self.speccw == 1
         specgen.ModOff();
-    else
+    elseif self.speccw == 0
         specgen.ModOn();
     end
     
@@ -52,7 +59,10 @@ function InitInstr(self)
         logen.ModOff();
         logen.PowerOn();
     else
-        logen.PowerOff();
+        try
+            logen.PowerOff();
+        catch
+        end
     end
     
     if ~isempty(self.lopower)
@@ -63,12 +73,40 @@ function InitInstr(self)
         logen.SetPhase(self.lophase(1));
     end
 
+    % Init specgen2
+    if ~isempty(self.spec2freq)
+        specgen2.SetFreq(self.spec2freq(1));
+        specgen2.PowerOn();
+    else
+        try
+            specgen2.PowerOff();
+        catch
+        end
+    end
+    
+    if ~isempty(self.spec2power)
+        specgen2.SetPower(self.spec2power(1));
+    end
+    
+    if ~isempty(self.spec2phase)
+        specgen2.SetPhase(self.spec2phase(1));
+    end
+    
+    if self.spec2cw == 1
+        specgen2.ModOff();
+    elseif self.spec2cw == 0
+        specgen2.ModOn();
+    end
+    
     % Init fluxgen
     if ~isempty(self.fluxfreq)
         fluxgen.SetFreq(self.fluxfreq(1));
         fluxgen.PowerOn();
     else
-        fluxgen.PowerOff();
+        try
+            fluxgen.PowerOff();
+        catch
+        end
     end
     
     if ~isempty(self.fluxpower)
@@ -79,15 +117,20 @@ function InitInstr(self)
         fluxgen.SetPhase(self.fluxphase(1));
     end
     
-    if self.fluxcw
+    if self.fluxcw == 1
         fluxgen.ModOff();
-    else
+    elseif self.fluxcw == 0
         fluxgen.ModOn();
     end
     
-    % Init yoko
+    % Init yoko1
     if ~isempty(self.yoko1volt)
         yoko1.SetVoltage(self.yoko1volt(1));
+    end
+    
+    % Init yoko2
+    if ~isempty(self.yoko2volt)
+        yoko2.SetVoltage(self.yoko1volt(1));
     end
     
     % Init pulsegen1 and pulsegen2
@@ -147,10 +190,10 @@ function InitInstr(self)
     delaytime = delaytime + self.carddelayoffset;
     % Acquisition time
     if strcmp(self.cardacqtime, 'auto')
-        if self.rfcw
+        if self.rfcw == 1
         % Default value for CW measurement
             acqtime = self.autocardacqtime;
-        else
+        elseif self.rfcw == 0
         % Default value for pulsed measurement
             acqtime = round(self.measpulse.totalDuration/1e-6)*1e-6 + 1e-6;
         end
@@ -159,10 +202,10 @@ function InitInstr(self)
     end
     % Trigger period
     if strcmp(self.trigperiod, 'auto')
-        if self.rfcw
+        if self.rfcw == 1
         % Default value for CW measurement
             trigperiod = self.autotrigperiod;
-        else
+        elseif self.rfcw == 0
     % Default value for pulsed measurement
             trigperiod = max(ceil(self.waveformEndTime/1e-6+1)*1e-6, ...
                              round((delaytime+acqtime)/1e-6)*1e-6+4e-6);

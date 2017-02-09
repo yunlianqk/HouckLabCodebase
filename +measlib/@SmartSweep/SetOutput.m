@@ -1,6 +1,6 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 specgen card fluxgen;
+    global pulsegen1 pulsegen2 rfgen specgen specgen2 card fluxgen;
 
     % Set up signal and background acquisition function handles
     self.acqsigfunc = @card.ReadIandQ;
@@ -23,17 +23,13 @@ function SetOutput(self)
     
     % Pre-allocate output data
     cardparams = card.GetParams();
-    self.IQdata.colAxis = cardparams.delaytime + ...
+    self.result.colAxis = cardparams.delaytime + ...
                           cardparams.sampleinterval*(0:cardparams.samples-1);
-    self.IQdata.sampleinterval = cardparams.sampleinterval;
-    self.IQdata.intFreq = self.intfreq;
-    self.IQdata.rawdataI = zeros(self.numSweep2, cardparams.samples);
-    self.IQdata.rawdataQ = zeros(self.numSweep2, cardparams.samples);
-    self.ampI = zeros(self.numSweep1, self.numSweep2);
-    self.phaseI = zeros(self.numSweep1, self.numSweep2);
-    self.ampQ = zeros(self.numSweep1, self.numSweep2);
-    self.phaseQ = zeros(self.numSweep1, self.numSweep2);
-    self.IQdata.intRange = self.intrange;
+    self.result.sampleinterval = cardparams.sampleinterval;
+    self.result.intRange = [];
+    self.result.intFreq = self.intfreq;
+    self.result.Idata = zeros(self.numSweep2, cardparams.samples);
+    self.result.Qdata = zeros(self.numSweep2, cardparams.samples);
     
     % Set up plot function handles
     if self.plotsweep1
@@ -56,13 +52,13 @@ function SetOutput(self)
     
 %=================functions whose handles are used above===================
     function PlotSweep2(Idata, Qdata)
-        figure(101);
+        figure(100);
         subplot(2, 2, 1);
         plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform1, ...
              pulsegen1.timeaxis/1e-6, pulsegen1.waveform2, 'r');
         axis tight;
         ylim([-1, 1]);
-        legend('I', 'Q');
+        legend('ch1', 'ch2');
         title('AWG 1');
         subplot(2, 2, 3);
         plot(pulsegen2.timeaxis/1e-6, pulsegen2.waveform1, ...
@@ -72,15 +68,15 @@ function SetOutput(self)
         title('AWG 2');
         xlabel('Time (\mus)');
         subplot(2, 2, 2);
-        imagesc(self.IQdata.colAxis/1e-6, 1:size(Idata, 1), Idata);
+        imagesc(self.result.colAxis/1e-6, 1:size(Idata, 1), Idata);
         title('I data');
         subplot(2, 2, 4);
-        imagesc(self.IQdata.colAxis/1e-6, 1:size(Qdata, 1), Qdata);
+        imagesc(self.result.colAxis/1e-6, 1:size(Qdata, 1), Qdata);
         title('Q data');
         xlabel('Time (\mus)');
     end
     function PlotSweep1(Iamp, Iphase, Qamp, Qphase)
-        figure(102);
+        figure(101);
         subplot(2, 2, 1);
         if size(Iamp, 1) == 1 || size(Iamp, 2) == 1
             plot(Iamp);
@@ -119,15 +115,24 @@ function SetOutput(self)
     end
     function [Ibg, Qbg] = SpecOnOff()
         specgen.PowerOff();
+        try
+            specgen2.PowerOff();
+        catch
+        end
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
         specgen.PowerOn();
+        try
+            specgen2.PowerOn();
+        catch
+        end
     end
     function [Ibg, Qbg] = FluxOnOff()
         fluxgen.PowerOff();
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
         fluxgen.PowerOn();
+    end
     function [Ibg, Qbg] = RFOnOff()
         rfgen.PowerOff();
         pause(self.waittime);

@@ -1,6 +1,7 @@
 function SetSweep(self)
 
-    global rfgen specgen logen yoko1 pulsegen1 pulsegen2 fluxgen;
+    global rfgen specgen logen specgen2 fluxgen ...
+           yoko1 yoko2 pulsegen1 pulsegen2;
 
     emsg1 = 'Arrays must have the same number of rows';
     emsg2 = 'Arrays must have the same number of columns';
@@ -29,13 +30,15 @@ function SetSweep(self)
              'specfreq', 'specpower', 'specphase', ...
              'lofreq', 'lopower', 'lophase', ...
              'fluxfreq', 'fluxpower', 'fluxphase', ...
-             'yoko1volt', ...
+             'spec2freq', 'spec2power', 'spec2phase', ...
+             'yoko1volt', 'yoko2volt', ...
              'gateseq', 'fluxseq'};
     fHdle = {@rfgen.SetFreq, @rfgen.SetPower, @rfgen.SetPhase, ...
              @specgen.SetFreq, @specgen.SetPower, @specgan.SetPhase, ...
              @logen.SetFreq, @logen.SetPower, @logen.SetPhase, ...
              @fluxgen.SetFreq, @fluxgen.SetPower, @fluxgen.SetPhase, ...
-             @yoko1.SetVoltage, ...
+             @specgen2.SetFreq, @specgen2.SetPower, @specgen2.SetPhase, ...
+             @yoko1.SetVoltage, @yoko2.SetVoltage, ...
              @setgatewav, @setfluxwav};
     % Set up the sweep according to the shape of the pName{idx}
     for idx = 1:length(pName)
@@ -96,7 +99,7 @@ function SetSweep(self)
             self.numSweep2 = shape(1);
         end
     end
-    % Set function handles for starting AWGs
+    % Add function handles for starting AWGs
     if numel(self.gateseq) > 1 || size(self.awgch1, 1) > 1 ...
        || size(self.awgch2, 1) > 1
         self.sweep2data{jj} = zeros(1, self.numSweep2);
@@ -109,18 +112,51 @@ function SetSweep(self)
         self.sweep2func{jj} = @startawg2;
         jj = jj + 1;
     end
+    
+    % For repeating gates, pre-calculate baseband waveform for all primitive gates
+    % in order to speed up gate calibration
+     if isprop(self, 'gatedict')
+        self.iGateWaveforms = struct();
+        self.qGateWaveforms = struct();
+        for gateName = fieldnames(self.gatedict)'
+            tGate = 0:1/self.pulseCal.samplingRate:self.gatedict.(gateName{1}).totalDuration;
+            [self.iGateWaveforms.(gateName{1}), self.qGateWaveforms.(gateName{1})] ...
+                = self.gatedict.(gateName{1}).uwWaveforms(tGate, 0);
+        end
+    end
 %=================functions whose handles are used above===================
-    % Set AWG waveforms and start generation
+    % Set AWG waveforms
     function setgatewav(gateseq)
-        [pulsegen1.waveform1, pulsegen1.waveform2] ...
-            = gateseq.uwWaveforms(self.awgtaxis, ...
-                                  self.seqEndTime-gateseq.totalSequenceDuration);
+        if isprop(self, 'gatedict')
+            % Use pre-calculated baseband waveforms if possible
+            pulsegen1.waveform1 = zeros(1, length(self.awgtaxis));
+            pulsegen1.waveform2 = zeros(1, length(self.awgtaxis));
+            start = find(self.awgtaxis >= (self.seqEndTime - gateseq.totalSequenceDuration), 1);
+            for col = 1:len(gateseq)
+                % For each gate in the current sequence s
+                gate = gateseq.gateArray{col}.name;
+                % Find pre-calculated baseband waveform by its name
+                itemp = self.iGateWaveforms.(gate);
+                qtemp = self.qGateWaveforms.(gate);
+                % Update the corresponding segment in the waveform
+                stop = start + length(itemp) - 1;
+                pulsegen1.waveform1(start:stop) = itemp;
+                pulsegen1.waveform2(start:stop) = qtemp;
+                % Go to next gate
+                start = stop;
+            end
+        else
+            % Otherwise calculate waveforms from gateSequence object
+             [pulsegen1.waveform1, pulsegen1.waveform2] ...
+                = gateseq.uwWaveforms(self.awgtaxis, self.seqEndTime-gateseq.totalSequenceDuration);
+        end
     end
     function setfluxwav(fluxseq)
         [pulsegen2.waveform2, ~] ...
             = fluxseq.uwWaveforms(self.awgtaxis, ...
                                   self.seqEndTime-fluxseq.totalSequenceDuration);
     end
+    % For raw AWG waveform input
     function setawgch1(waveform)
         pulsegen1.waveform1 = waveform';
     end
@@ -133,6 +169,7 @@ function SetSweep(self)
     function setawgch4(waveform)
         pulsegen2.waveform2 = waveform';
     end
+    % Start generation for AWG
     function startawg1(~)
         pulsegen1.Generate();
     end

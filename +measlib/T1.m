@@ -1,25 +1,28 @@
 classdef T1 < measlib.SmartSweep
-    %X180RABI Summary of this class goes here
-    %   Detailed explanation goes here
+    % T1 Experiment. Qubit gates with varying delay.
+    
+    % 'qubitGates' is a cellstr that contains the names of gates
+    % e.g., qubitGates = {'X180'} or qubitGates = {'Y180'}, etc.
+    % 'delayVector' is an array that contains the delay time following the gate
     
     properties
-        delayList = linspace(0, 20e-6, 101);
-        pulseCal = paramlib.pulseCal();
+        qubitGates = {'X180'};
+        delayVector = linspace(0, 20e-6, 101);
     end
     
     methods
-        function self = T1(pulseCal)
-            self = self@measlib.SmartSweep();
-            self.name = 'T1';
-            self.IQdata.meastype = 'T1';
-            self.speccw = 0;
-            self.rfcw = 0;
+        function self = T1(pulseCal, config)
             if nargin == 1
-                self.pulseCal = pulseCal;
+                config = [];
             end
-            self.UpdateParams();            
+            self = self@measlib.SmartSweep(config);
+            self.pulseCal = pulseCal;
+            self.speccw = 0;
+            self.rfcw = 0;         
         end
-        function UpdateParams(self)
+        
+        function SetUp(self)
+            % Update params from pulseCal
             self.specfreq = self.pulseCal.qubitFreq;
             self.specpower = self.pulseCal.specPower;
             self.rffreq = self.pulseCal.cavityFreq;
@@ -31,25 +34,40 @@ classdef T1 < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
-            
-            self.gateseq = [];
-            X180 = self.pulseCal.X180();
-            for delay = self.delayList
-                currentseq = paramlib.gateSequence(X180);
-                currentseq.append(pulselib.delay(delay));
-                self.gateseq = [self.gateseq, currentseq];
+            % Construct pulse sequence
+            gates = pulselib.singleGate();
+            self.gateseq = pulselib.gateSequence();
+            if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
+                self.qubitGates = cellstr(self.qubitGates);
+            end
+            for col = 1:length(self.qubitGates)
+                gates(col) = self.pulseCal.(self.qubitGates{col});
+            end
+            % Construct sequences
+            for row = 1:length(self.delayVector)
+                % Append qubit gates
+                self.gateseq(row) = pulselib.gateSequence(gates);
+                % Append varying delay
+                self.gateseq(row).append(pulselib.delay(self.delayVector(row)));
             end
             self.measpulse = self.pulseCal.measurement();
-            self.IQdata.rowAxis = self.delayList;
-        end        
-        function SetUp(self)
-            self.UpdateParams();
+            self.result.rowAxis = self.delayVector;
             SetUp@measlib.SmartSweep(self);
         end
-        function T1 = FitResult(self)
-            self.IQdata.intRange = self.intrange;
-            T1 = self.IQdata.fit();
+        
+        function Fit(self, fignum)
+            if nargin == 1
+                fignum = 102;
+            end
+            self.Integrate();
+            self.Normalize();
+            figure(fignum);
+            fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampI);
+            t1 = fitresult.lambda;
+            ylabel('P(|1>)');
+            xlabel('Delay (\mus)');
+            title(['T_1 = ', num2str(t1), ' \mus']);
+            axis tight;
         end
     end
 end
-

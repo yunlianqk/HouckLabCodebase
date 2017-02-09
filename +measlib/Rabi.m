@@ -1,17 +1,18 @@
-classdef Ramsey < measlib.SmartSweep
-    % Ramsey experiment. Two qubit gates with varying delay in between.
+classdef Rabi < measlib.SmartSweep
+    % Rabi Experiment. Qubit gates with varying amplitude.
     
     % 'qubitGates' is a cellstr that contains the names of gates
-    % e.g., qubitGates = {'X90'}
-    % 'delayVector' is an array that contains delay time between the gates
+    % e.g., qubitGates = {'X180'} or qubitGates = {'X90', 'X90'}, etc.
+    % 'ampVector' is an array that contains the amplitudes in the sweep
+    % the values in 'ampVector' should be between 0 and 1
     
     properties
-        qubitGates = {'X90'};
-        delayVector = linspace(0, 20e-6, 101);
+        qubitGates = {'X180'};
+        ampVector = linspace(0, 1, 101);
     end
     
     methods
-        function self = Ramsey(pulseCal, config)
+        function self = Rabi(pulseCal, config)
             if nargin == 1
                 config = [];
             end
@@ -34,41 +35,41 @@ classdef Ramsey < measlib.SmartSweep
             self.endBuffer = self.pulseCal.endBuffer;
             self.cardavg = self.pulseCal.cardAvg;
             self.carddelayoffset = self.pulseCal.cardDelayOffset;
-            
-            % Construct qubit gates
+            % Construct pulse sequence
             gates = pulselib.singleGate();
+            self.gateseq = pulselib.gateSequence();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
                 self.qubitGates = cellstr(self.qubitGates);
             end
-            for col = 1:length(self.qubitGates)
-                gates(col) = self.pulseCal.(self.qubitGates{col});
-            end
-            % Construct sequences
-            self.gateseq = pulselib.gateSequence();
-            for row = 1:length(self.delayVector)
-                % Append qubit gates
+            for row = 1:length(self.ampVector)
+                for col = 1:length(self.qubitGates)
+                    % Construct qubit gates
+                    gates(col) = self.pulseCal.(self.qubitGates{col});
+                    % Keep original drag ratio
+                    gates(col).dragAmplitude ...
+                        = gates(col).dragAmplitude/gates(col).amplitude*self.ampVector(row);
+                    % Vary amplitude
+                    gates(col).amplitude = self.ampVector(row);
+                end
+                % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
-                % Append varying delay
-                self.gateseq(row).append(pulselib.delay(self.delayVector(row)));
-                % Append qubit gates again
-                self.gateseq(row).append(gates);
             end
             self.measpulse = self.pulseCal.measurement();
-            self.result.rowAxis = self.delayVector;
+            self.result.rowAxis = self.ampVector;
             SetUp@measlib.SmartSweep(self);
         end
         
         function Fit(self, fignum)
             if nargin == 1
-                fignum = 103;
+                fignum = 102;
             end
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampI);
+            piamp = funclib.RabiFit(self.result.rowAxis, self.result.ampI);
             ylabel('P(|1>)');
-            xlabel('Delay (\mus)');
-            title(sprintf('T_2^* = %.2f \\mus, detuning = \\pm %.2f MHz', t2, detuning));
+            xlabel('Amplitude');
+            title(['\pi amplitude = ', num2str(piamp)]);
             axis tight;
         end
     end
