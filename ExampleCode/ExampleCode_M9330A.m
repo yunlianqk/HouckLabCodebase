@@ -8,6 +8,8 @@ pulsegen1 = M9330AWG(address1);
 address2 = 'PXI48::14::0::INSTR';
 pulsegen2 = M9330AWG(address2);
 clear('address1', 'address2');
+%% Synchronize two awg modules
+pulsegen2.SyncWith(pulsegen1);
 %% Set parameters
 % Time axis: 0.8 ns sampling interval, 30 us total length
 taxis = 0:0.8e-9:30e-6;
@@ -43,6 +45,3 @@ hold on;
 plot(pulsegen1.timeaxis/1e-6, pulsegen1.marker2, 'r');
 xlabel('Time (\mus)');
 title('Channel 2');
-
-%% Synchronize two awg modules
-pulsegen2.SyncWith(pulsegen1);

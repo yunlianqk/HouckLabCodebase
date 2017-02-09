@@ -21,8 +21,7 @@ classdef U1082ADigitizer < handle
             % Initializes and returns instrID
             [status, self.instrID] = Aq_InitWithOptions(self.address, 0, 0, 'asbus = false');
              if status ~= 0
-                display('Initialization error for U1082A digitizer');
-                return
+                error('U1082A digitizer failed to initialize');
             end   
                     
             % Clock settings
