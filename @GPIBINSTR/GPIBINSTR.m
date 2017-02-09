@@ -14,13 +14,27 @@ classdef GPIBINSTR < handle
             success = 0;
             self.address = address;
             % Extract integer primary GPIB address from full address string
-            instrID = sscanf(address, 'GPIB0::%d::0::INSTR');
+            instrID = sscanf(address, 'GPIB0::%d');
             % If instrument is already open
-            self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
-                                         'Status', 'open');
-            self.instrhandle = instrfind('Name', ['GPIB0-', num2str(instrID)], 'Status', 'open');
-            if ~isempty(self.instrhandle)
-                success = 1;
+            if ~success
+                self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID)], ...
+                                             'Status', 'open');
+                if ~isempty(self.instrhandle)
+                    success = 1;
+                end
+            end
+            if ~success
+                self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
+                                             'Status', 'open');
+                if ~isempty(self.instrhandle)
+                    success = 1;
+                end
+            end
+            if ~success            
+                self.instrhandle = instrfind('Name', ['GPIB0-', num2str(instrID)], 'Status', 'open');
+                if ~isempty(self.instrhandle)
+                    success = 1;
+                end
             end
             % Try gpib with ni
             if ~success
