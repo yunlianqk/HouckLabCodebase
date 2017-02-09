@@ -146,7 +146,9 @@ classdef pulseCal
             pulseObj.azimuth = obj.Y180Azimuth+pi;
         end
         function pulseObj = measurement(obj)
-            pulseObj=pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
+            pulseObj = pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
+            pulseObj.cutoff = 4*pulseObj.sigma;
+            pulseObj.buffer = obj.buffer;
         end
         function s = toStruct(obj)
             s = funclib.obj2struct(obj);
