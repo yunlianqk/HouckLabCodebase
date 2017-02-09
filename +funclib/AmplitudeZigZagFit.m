@@ -1,4 +1,4 @@
-function fitResult = AmplitudeZigZagFit( numPiRotations, data, varargin)
+function fitResult = AmplitudeZigZagFit(numPiRotations, data, varargin)
 % Fit the zigzag for amplitude calibration.  See Sheldon et al. Phys. Rev. A 93, 012301 (2016)
 % inputs: 
 % numPiRotations - this is the xaxis, should handle amplitude
@@ -19,7 +19,6 @@ function fitResult = AmplitudeZigZagFit( numPiRotations, data, varargin)
     fitResult.errorInRadians = x(2);  
     fitResult.updateFactor = 1/(1+x(2)/pi); % multiply old pi pulse amplitude by this factor to find new amplitude.        percentage_corr = 1/(1 + x(2)/(pi/2));
 
-    
     Y = amp_error(x, numPiRotations);
     
     if ~isempty(varargin) && ishandle(varargin{1})
@@ -33,11 +32,9 @@ function fitResult = AmplitudeZigZagFit( numPiRotations, data, varargin)
     plotlib.hline(0)
     plotlib.hline(1)
     hold(ax, 'off');
-    
-        
 end
 
-function [ P ] = amp_error(x, xdata)
+function P = amp_error(x, xdata)
 % Some numbers and a sign were changed from the paper to ensure that error corresponded to
 % over-rotation in radians.
     offset = x(1);

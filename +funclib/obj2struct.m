@@ -1,8 +1,9 @@
 function s = obj2struct(obj)
 % Convert an object to a struct
 
-    warning('off', 'MATLAB:structOnObject');
-    s = struct(obj);
-    warning('on', 'MATLAB:structOnObject');
+     s = struct();
+     for p = properties(obj)'
+         s.(p{:}) = obj.(p{:});
+     end
 end
 

@@ -12,7 +12,7 @@ function [amplitude, phase] = Demodulate(sampInterval, data, intFreq)
         truncPoints = totLength;
     else
     % Truncate the dataset such that the remainder contains an integer number of periods
-        truncPoints = floor(sampInterval*(totLength-1)*intFreq)/(sampInterval*intFreq)+1;
+        truncPoints = floor((sampInterval*(totLength-1)*intFreq)/(sampInterval*intFreq))+1;
     end
     data = data(:, 1:truncPoints);
     timeVector = linspace(0, (truncPoints-1)*sampInterval, truncPoints);

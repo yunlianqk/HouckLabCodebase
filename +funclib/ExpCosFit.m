@@ -1,32 +1,31 @@
 function  [lambda, freq] = ExpCosFit(axis, data, varargin)
 % Exponentially decaying cosine fit
-    %Normalize data
-    data = data/max(data);
+
     % Construct initial guess for parameters
-    offset_guess = (max(data)+min(data))*.5;
-    amp_guess = max(data)-min(data);
+    datamax = max(data);
+    datamin = min(data);
+    amp_guess = datamax - datamin;
+    offset_guess = (datamax+datamin)*.5;
     phaseoffset = 0;
-    % Use fft to guess fringefreq
-    fAxis = linspace(0, 1/(axis(2)-axis(1)), length(axis));
-    spec = fft(data);
-    [~, index] = max(spec(2:floor(length(axis)/2)));
-    fringefreq_guess = fAxis(index);
-    index = round(2/fringefreq_guess/(axis(2)-axis(1)));
-    try
-        lambda_guess = abs(axis(index)/log(1-(data(1)-data(index))/amp_guess));
-    catch
-        lambda_guess = 1;
-    end
     
-    if lambda_guess < 0
-        display('Guess for decay is negative. Fit will not work');
-    end
-    beta0 = [amp_guess, lambda_guess, offset_guess, fringefreq_guess, phaseoffset];
+    % Find local extrema in data
+    [peak, peakloc] = findpeaks(data, axis);
+    [dip, diploc] = findpeaks(-data, axis);
+    dip = -dip;
+    % Remove extrema due to noise in data
+    peakloc = peakloc(peak > offset_guess);
+    diploc = diploc(dip < offset_guess);
+    peak = peak(peak > offset_guess);
+    dip = dip(dip < offset_guess);
+    % Guess frequency
+    freq_guess = 0.5/abs(peakloc(1)- diploc(1));
+    lambda_guess = -(peakloc(1)-peakloc(end)) ...
+                   /log((peak(1)-offset_guess)/(peak(end)-offset_guess));
+    beta0 = [amp_guess, lambda_guess, offset_guess, freq_guess, phaseoffset];
     % Fit data
-%     coeff = nlinfit(axis, data, @ExpCos_beta, beta0);
-    coeff = lsqcurvefit(@ExpCos_beta,beta0, axis, data);
+    coeff = nlinfit(axis, data, @ExpCos_beta, beta0);
     lambda = coeff(2);
-    freq = coeff(4)/(2*pi);
+    freq = coeff(4);
     % Plot original and fitted data
     axis_dense = linspace(axis(1), axis(end), 1000);
     Y = ExpCos_beta(coeff, axis_dense);
