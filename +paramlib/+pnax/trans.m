@@ -1,9 +1,5 @@
 classdef trans
     % Defines the parameters for a transmission measurement for PNAX
-    
-    properties (Constant)
-        measclass = 'trans';
-    end
     properties
         start = 5e9;
         stop = 6e9;

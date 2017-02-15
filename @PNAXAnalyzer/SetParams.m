@@ -9,10 +9,13 @@ function SetParams(pnax, params)
     % Create measurement  
     pnax.CreateMeas(params.channel, params.trace, params.meastype); 
 
-    % If channel has the same measurement class, update the parameters
     oldparams = pnax.GetParams();
-    if strcmp(oldparams.measclass, params.measclass)
-        switch params.measclass
+    measclass = strsplit(class(params), '.');
+    measclass = measclass{end};
+    
+    % If channel has the same measurement class, update the parameters    
+    if strcmp(class(oldparams), class(params))
+        switch measclass
             case 'trans'
                 pnax.UpdateTransParams(oldparams, params);
             case 'spec'
@@ -28,7 +31,7 @@ function SetParams(pnax, params)
     % Otherwise, clear the channel and set up the parameters
     pnax.DeleteChannel(params.channel);
     pnax.CreateMeas(params.channel, params.trace, params.meastype);
-    switch params.measclass
+    switch measclass
         case 'trans'
             pnax.SetTransParams(params);
         case 'spec'

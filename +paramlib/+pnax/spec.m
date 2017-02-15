@@ -1,10 +1,5 @@
 classdef spec
     % Defines the parameters for a spectroscopy measurement for PNAX
-    
-    properties (Constant)
-        measclass = 'spec';
-    end
-    
     properties
         start = 4e9;
         stop = 5e9;

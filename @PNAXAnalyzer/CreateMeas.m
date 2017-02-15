@@ -14,7 +14,7 @@ function CreateMeas(pnax, channel, trace, meastype)
         % Select the measurment
         fprintf(pnax.instrhandle, 'CALCulate%d:PARameter:SELect ''%s''', [channel, meas]);
         % Feed the measurement to the trace
-        fprintf(pnax.instrhandle, 'DISPlay:WINDow:TRACe%d:FEED ''%s''', [trace,meas]);
+        fprintf(pnax.instrhandle, 'DISPlay:WINDow:TRACe%d:FEED ''%s''', [trace, meas]);
     % If measurement already exists, modify it
     else
         fprintf(pnax.instrhandle, 'CALCulate%d:PARameter:SELect ''%s''', [channel, meas]);
