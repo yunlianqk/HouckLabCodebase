@@ -1,13 +1,11 @@
 % Close existing instruments
-instrlist = {'E8267DGenerator', ...
-             'PNAXAnalyzer', ...
-             'YOKOGS200', ...
-             'YOKO7651', ...
-             'AWG33250A', ...
-             'U1082ADigitizer', ...
-			 'U1084ADigitizer', ...
-             'M9330AWG', ...
-             'LAKESHORE370'};
+instrlist = {};
+filelist = dir('.');
+for file = filelist'
+    if file.name(1) == '@'
+        instrlist = [instrlist, file.name(2:end)];
+    end
+end
 
 % Finalize and clear any variable that belongs to above classes
 varlist = who();
@@ -26,4 +24,4 @@ if (~isempty(instrfind))
 end
 
 run(['.', filesep(), 'unsetpath.m']);
-clear('index', 'varlist', 'instrlist');
+clear('index', 'varlist', 'instrlist', 'filelist', 'file');
