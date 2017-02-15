@@ -15,53 +15,58 @@ classdef GPIBINSTR < handle
             self.address = address;
             % Extract integer primary GPIB address from full address string
             instrID = sscanf(address, 'GPIB0::%d');
-            % If instrument is already open
-            if ~success
-                self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID)], ...
-                                             'Status', 'open');
-                if ~isempty(self.instrhandle)
-                    success = 1;
-                end
-            end
-            if ~success
+
+            while (~success)
+                % If device is gpib handle and already open
                 self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
                                              'Status', 'open');
                 if ~isempty(self.instrhandle)
                     success = 1;
+                    break;
                 end
-            end
-            if ~success            
+                
+                % If device is visa handle and already open
+                self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID)], ...
+                                             'Status', 'open');
+                if ~isempty(self.instrhandle)
+                    success = 1;
+                    break;
+                end
                 self.instrhandle = instrfind('Name', ['GPIB0-', num2str(instrID)], 'Status', 'open');
                 if ~isempty(self.instrhandle)
                     success = 1;
+                    break;
                 end
-            end
-            % Try gpib with ni
-            if ~success
+
+                % Try gpib with ni
                 try
                     self.instrhandle = gpib('ni', 0, instrID);
                     fopen(self.instrhandle);
                     success = 1;
+                    break;
                 catch
                 end
-            end
-            % Try visa with ni
-            if ~success
+            
+                % Try visa with ni
                 try
                     self.instrhandle = visa('ni', address);
                     fopen(self.instrhandle);
                     success = 1;
+                    break;
                 catch
                 end
-            end
-            % Try visa with agilent
-            if ~success
+                
+                % Try visa with agilent
                 try
                     self.instrhandle = visa('agilent', address);
                     fopen(self.instrhandle);
                     success = 1;
+                    break;
                 catch
                 end
+                
+                % Tried everything, exit loop with u
+                break;
             end
             % Display some info
             if ~success
