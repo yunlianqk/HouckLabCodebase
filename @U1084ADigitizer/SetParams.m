@@ -29,7 +29,7 @@ function SetParams(self, params)
     % Horizontal settings
     status = AqD1_configHorizontal(self.instrID, params.sampleinterval, params.delaytime);
     if status
-        error('Error in horizontal settings. Sampling interval can be 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence.');
+        error('Sampling interval can be 1 ns to 2048 ns in 2^n sequence.');
     end
     % configure the delay parameters
     % delaytime as configured by confighorsettings is ignored
@@ -43,41 +43,36 @@ function SetParams(self, params)
         end
     end
     % Averaging settings
-    % NbrRoundRobins is used instead of NbrWavefroms so that averaging
-    % works for mulitsegment acquisition as well
-    softAvg = params.softAvg;
-    NbrRoundRobins = params.averages;
-    % For multi segment mode, max avg is 65536
-    % For single segment mode, auto software avg is ued if averages > 65536
-    if params.averages > self.maxAvg && params.segments > 1
+    
+    if params.averages > self.maxAvg
         error(['Error setting averages. Max number of averages is ', num2str(self.maxAvg)]);
     end
     if params.segments > self.maxSeg
         error(['Error setting segments. Max number of segments is ', num2str(self.maxSeg)]);
     end
-    % NbrSamples must be multiple of 16
-    NbrSamples = ceil(params.samples/16)*16;
-    if (NbrSamples * params.segments > 2^21)
-        display('Warning: Make sure samples * segments <= 2^21');
+    % NbrSamples must be multiple of 2048
+    params.samples = ceil(params.samples/2048)*2048;
+    if (params.samples > 2^18)
+        display('Warning: Make sure samples <= 2^18');
+    end
+    if (params.samples * params.segments > 2^25)
+        display('Warning: Make sure samples * segments <= 2^25');
     end
     for channel = 1:2
-        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSamples', ...
-                                           NbrSamples);
-%         if status
-%             error('Error setting nbrSamples');
-%         end
-        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrRoundRobins', ...
-                                           NbrRoundRobins);                                      
-%         if status
-%             error('Error setting nbrAverages');
-%         end
-        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSegments', ...
-                                           params.segments);
-%         if status
-%             error('Error setting segments');
-%         end
+        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSamples', params.samples);
+        if status < 0
+            error('Error setting nbrSamples');
+        end
+        
+        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSegments', params.segments);
+        if status < 0
+            error('Error setting segments');
+        end
+        status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrWaveforms', params.averages);
+        if status < 0
+            error('Error setting averages');
+        end       
         AqD1_configAvgConfigInt32(self.instrID, channel, 'DitherRange',0);
-        AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrWaveforms', 1);
         AqD1_configAvgConfigInt32(self.instrID, channel, 'TrigResync', 0);
     end
 
@@ -130,18 +125,14 @@ function SetParams(self, params)
     self.AqReadParameters.firstSegment = 0;
     self.AqReadParameters.nbrSegments = params.segments;
     self.AqReadParameters.firstSampleInSeg = 0;
-    self.AqReadParameters.nbrSamplesInSeg = NbrSamples;
-    self.AqReadParameters.segmentOffset = NbrSamples;
-    self.AqReadParameters.dataArraySize = (NbrSamples+32)*params.segments*8; % in bytes, 32 bit int is 4 bytes
+    self.AqReadParameters.nbrSamplesInSeg = params.samples;
+    self.AqReadParameters.segmentOffset = params.samples;
+    self.AqReadParameters.dataArraySize = (params.samples+32)*params.segments*8; % in bytes, 32 bit int is 4 bytes
     self.AqReadParameters.segDescArraySize = 40*params.segments;
     self.AqReadParameters.flags = 0;
     self.AqReadParameters.reserved = 0;
     self.AqReadParameters.reserved2 = 0;
     self.AqReadParameters.reserved3 = 0;
     self.AqReadParameters.trigPeriod = params.trigPeriod;
-    self.AqReadParameters.softAvg = params.softAvg;
-    if params.trigPeriod < (StartDelay+NbrSamples)*params.sampleinterval
-        display('Warning: trigPeriod is shorter than delay + acquisition time');
-    end
-    self.AqReadParameters.timeOut = params.trigPeriod*NbrRoundRobins*params.segments + 1;
+    self.AqReadParameters.timeOut = params.trigPeriod*params.averages*params.segments + 1;
 end

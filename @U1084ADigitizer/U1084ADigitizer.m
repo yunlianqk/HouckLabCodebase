@@ -10,8 +10,8 @@ classdef U1084ADigitizer < handle
     end
     properties (Access = private)
         AqReadParameters;   % Internal struct for ReadIandQ() method
-        maxAvg = 65536;  % Maximum on-card averages
-        maxSeg = 8191;   % Maximun segments
+        maxAvg = 16777216;  % Maximum on-card averages
+        maxSeg = 131072;   % Maximun segments
     end
     
     methods

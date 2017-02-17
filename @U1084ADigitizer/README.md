@@ -1,6 +1,5 @@
 # Acqiris U1082A 8-Bit Digitizer
 ## Usage
-See also the [example code](../ExampleCode/U1082A.m).
 ### Open instrument
 ```matlab
 address = 'PXI7::4::0::INSTR';  % PXI address
@@ -48,9 +47,7 @@ samplinginterval = card.params.sampleinterval;
 
 ## Discussion
 ### Averaging
-The on-card averaging is set by the parameter `NbrRoundRobins` in the low-level code. `NbrRoundRobins` is used instead of `NbrWaveforms` so that the on-card averaging works for both single and multi segment acquisition. The maximum on-card averages is 65536.
-
-**Software averaging** is automatic used for **single segment** mode if `card.params.averages` is greater than 65536. For example, if card.params.averages = 150000, it will be split into software averages = 3 and on-card averages = 50000. For multi segment mode, software averaging cannot be easily implemented, because the start of the first segment usually needs to be synchronized with pulse generation.
+No software averaging is implemented because on-card averaging can be as large as 16777216.
 
 ### Multi segment mode
 Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191.
@@ -90,13 +87,13 @@ A class to store parameters for Acqiris digitizer
   * **s = self.toStruct()**: Converts the object to a struct
   
 ## Hardware specifications
-The following specs are only for reference. Check the [datasheet](./Specs.pdf) for details.
+The following specs are only for reference. Check the [datasheet](./U1084ASpecs.pdf) for details.
 
 - **fullscale**  can be selectable from 0.05 V to 5 V in 1, 2, 5 sequence
 - **offset** can be within ± 2 V for 0.05/0.5 V fullscale, and ± 5 V for 1 to 5 V fullscale
-- **sampleinterval** is selectable from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
-- **samples** can be 16 to 2 Mega (2^21) in steps of 16
-- **segments** can be 1 to 8191
-- **samples × segments** needs to be less than 2^21
-- **averages** can be between 1 and 65536
+- **sampleinterval** is selectable from 1 ns to 2048 ns in 2<sup>n</sup> sequence
+- **samples** can be 2048 to 2<sup>18</sup> in steps of 2048
+- **segments** can be 1 to 131072
+- **samples × segments** needs to be less than 2<sup>25</sup>
+- **averages** can be between 1 and 16777216
 - **trigLevel** can be within ± 2.5 V for external trigger, or in fraction of fullscale within ± 0.5 for internal trigger

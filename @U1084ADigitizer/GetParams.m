@@ -13,8 +13,8 @@ function params = GetParams(self)
     params.delaytime = double(StartDelay)*params.sampleinterval;
     [~, params.samples] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrSamples');
     params.samples = double(params.samples);
-    [~, NbrRoundRobins] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrRoundRobins');
-    params.averages = double(NbrRoundRobins)*self.AqReadParameters.softAvg;
+    [~, params.averages] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrWaveforms');
+    params.averages = double(params.averages);
     [~, params.segments] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrSegments');
     params.segments = double(params.segments);
     [~, ~, trigPattern, ~, ~, ~, ~] = AqD1_getTrigClass(self.instrID);
@@ -37,5 +37,5 @@ function params = GetParams(self)
         params.trigLevel = double(trigLevel) / 100;
     end
     params.trigPeriod = self.AqReadParameters.trigPeriod;
-    params.softAvg = self.AqReadParameters.softAvg;
+    params.softAvg = 1;
 end
