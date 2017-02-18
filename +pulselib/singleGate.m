@@ -159,47 +159,28 @@ classdef singleGate < handle
             qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
 
-        function [iBaseband, qBaseband] = iqSegment(self, tSegment, tStart)
-            % Returns baseband signals for a given time segment
+        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tStart)
+            % Returns baseband signals for a given time axis and start time
             if strcmp(self.name, 'Identity')
-                iBaseband = zeros(1, length(tSegment));
+                iBaseband = zeros(1, length(tAxis));
                 qBaseband = iBaseband;
             else
                 tCenter = tStart + self.totalDuration/2;
-                g = self.gaussian(tSegment, tCenter);
-                g = self.applyGaussianCutoff(tSegment, tCenter, g);
-                d = self.drag(tSegment, tCenter);
-                d = self.applyDragCutoff(tSegment, tCenter, d);
+                g = self.gaussian(tAxis, tCenter);
+                g = self.applyGaussianCutoff(tAxis, tCenter, g);
+                d = self.drag(tAxis, tCenter);
+                d = self.applyDragCutoff(tAxis, tCenter, d);
                 [iBaseband, qBaseband] = project(self, g, d);
             end
         end
-        
-        function [iBaseband, qBaseband] = uwWaveforms(self, tAxis, tStart)
-            % Given time axis and pulse start time, returns final baseband signals
 
-            iBaseband = zeros(1, length(tAxis));
-            qBaseband = iBaseband;
-            if ~strcmp(self.name, 'Identity')
-                start = find(tAxis>=(tStart), 1);
-                stop = find(tAxis<=(tStart+self.totalDuration), 1, 'last');
-                [iBaseband(start:stop), qBaseband(start:stop)] ...
-                    = self.iqSegment(tAxis(start:stop), tAxis(start));
-            end
-        end
-        
         function [stateOut, stateTilt, stateAzimuth] = actOnState(self, stateIn)
             % given an input state vector act with unitary and return final state 
             stateOut = self.unitary*stateIn;
-            stateTilt = 2*acos(abs(stateOut(1)));
+            stateTilt = 2*real(acos(abs(stateOut(1))));
             stateAzimuth = angle(stateOut(2))-angle(stateOut(1));
         end
-        
-        function s = toStruct(self)
-            warning('off', 'MATLAB:structOnObject');
-            s = struct(self);
-            warning('on', 'MATLAB:structOnObject');
-        end
-        
+                
         function draw(self) % visualize - draw waveform and bloch vector
             % print some text
             display(['Gate name: ', self.name]);
@@ -208,9 +189,9 @@ classdef singleGate < handle
             display('unitary rotation matrix:');
             disp(self.unitary);
             display(['Total pulse duration (including buffer): ', num2str(self.totalDuration), 's'])
-            % create wavef,orm time axis
+            % create time axis
             pulseTime = self.totalDuration;
-            t = -pulseTime:1e-9:pulseTime; % make time axis twice as long as pulse
+            t = linspace(-pulseTime, pulseTime, 5001);
             % create waveform
             g = self.gaussian(t, 0);
             gc = self.applyGaussianCutoff(t, 0, g);
@@ -224,11 +205,11 @@ classdef singleGate < handle
             % plot
             figure(712);
             subplot(3, 2, 1);
-            plot(t, g, 'b', t, gc, 'r', t, window*max(g), 'k');
-            title('gaussian pulse');
+            plot(t, g, 'b', t, gc, 'r', t, window*max(g), 'k--');
+            title('Gaussian pulse');
             subplot(3, 2, 3);
-            plot(t, d, 'b', t, dc, t, window*max(d), 'k');
-            title('drag pulse');
+            plot(t, d, 'b', t, dc, t, window*max(d), 'k--');
+            title('DRAG pulse');
             subplot(3, 2, [2, 4]);
             scatter3(iBaseband, qBaseband, t, [], 1:length(t), '.');
             axis square;
@@ -246,7 +227,7 @@ classdef singleGate < handle
             plotlib.blochSpherePlot(ax, stateTilt, stateAzimuth, 'replot');
             subplot(3, 2, 5);
             plot(t, iBaseband, 'b', t, qBaseband, 'r');
-            title('I and Q baseband waveforms');
+            title('I/Q baseband waveforms');
             legend('I', 'Q');
         end
     end
