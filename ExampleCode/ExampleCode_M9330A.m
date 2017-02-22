@@ -1,7 +1,5 @@
 %% Add class definition files to PATH
-repopath = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
-addpath(repopath);
-clear(repopath);
+run(['..', filesep(), 'setpath.m']);
 %% Open card
 address1 = 'PXI50::15::0::INSTR'; % PXI address
 pulsegen1 = M9330AWG(address1);

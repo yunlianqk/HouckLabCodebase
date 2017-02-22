@@ -1,7 +1,5 @@
 %% Add class definition files to PATH
-repopath = 'F:\Documents\GitHub\HouckLabMeasurementCode\';
-addpath(repopath);
-clear('repopath');
+run(['..', filesep(), 'setpath.m']);
 %% Open PNAX 
 address = 'GPIB0::16::0::INSTR'; % GPIB address for PNAX
 pnax = PNAXAnalyzer(address);
