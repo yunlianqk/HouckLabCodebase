@@ -29,24 +29,9 @@ classdef DragCal < measlib.SmartSweep
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
             self.normalization = 1;
-            self.speccw = 0;
-            self.rfcw = 0;
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
-            
             % Construct gate sequences
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
                 self.qubitGates = cellstr(self.qubitGates);
@@ -69,9 +54,6 @@ classdef DragCal < measlib.SmartSweep
                 % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
             end
-            % Construct measurement pulse
-            self.measpulse = self.pulseCal.measurement();
-            
             self.result.rowAxis = self.dragVector;
             SetUp@measlib.SmartSweep(self);
         end
@@ -83,7 +65,7 @@ classdef DragCal < measlib.SmartSweep
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.ampI);
+            self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.ampInt);
             xlabel('Drag amplitude');
             ylabel('P(|1>)');
             title(['DRAG amplitude: ', num2str(self.result.newDragAmp)]);

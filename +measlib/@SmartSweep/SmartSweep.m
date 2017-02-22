@@ -33,20 +33,11 @@ classdef SmartSweep < handle
         gateseq = [];  % gate sequences for pulsegen1 channel1 and channel 2
         measpulse = [];  % measurement pulse for pulsegen2 channel1
         fluxseq = [];  % gate sequences for pulsegen2 channel1
-        normalization = 0;
         
         % General pulse timing parameters
         startBuffer = 1e-6;  % delay after start before pulses can occur
         measBuffer = 200e-9;  % delay gate pulse and measurement pulse
         endBuffer = 5e-6;  % buffer after measurement pulse
-        
-        % The following five parameters can be used to 
-        % directly pass waveform data to AWGs
-        awgtaxis = [];  % Time axis for pulsegen1 and pulsegen2
-        awgch1 = [];  % wav
-        awgch2 = [];
-        awgch3 = [];
-        awgch4 = [];
         
         % Acquisition and trigger parameters
         waittime = 0.1;  % Wait time btw instrument setup and acquisition
@@ -55,6 +46,8 @@ classdef SmartSweep < handle
         cardacqtime = 'auto';  % Duration of acquistion
         cardavg = 10000;  % Averaging
         bgsubtraction = [];  % Background subtraction
+        normalization = 0;  % Use zero and pi pulse to normalize readout
+        intrange = [];   % start and stop time for integration
         
         % Plotting options
         plotsweep1 = 1;  % Plot on/off for inner loop
@@ -63,25 +56,24 @@ classdef SmartSweep < handle
         
         % Saving options
         autosave = 0;
-        savepath = 'D:\Data\';
+        savepath = 'C:\Data\';
         savefile;
         
         % Measured results
-        result = struct('Idata', [], ... % rawdata
-                        'Qdata', [], ...
-                        'ampI', [], ... % integrated/demodulated data
-                        'ampQ', [], ...
-                        'phaseI', [], ...
-                        'phaseQ', [], ...
-                        'colAxis', [], ... % Corresponds to columns in rawdata
-                        'rowAxis', [], ... % Corresponds to rows in rawdata
-                        'intRange', [], ... % The start and end time for data integration
-                        'intFreq', [], ... % Intermediate frequency when using heterodyne
+        result = struct('dataI', [], ... % rawdata
+                        'dataQ', [], ...
+                        'ampInt', [], ... % integrated/demodulated data
+                        'phaseInt', [], ...
+                        'tAxis', [], ... % time axis for digitizer
+                        'rowAxis', [], ... % rows axis for rawdata
+                        'intRange', [], ... % start and stop time for integration
+                        'intFreq', [], ... % intermediate frequency
                         'sampleinterval', []);
     end
     
     properties (Access = private)
         lofreq = [];  % logen frequency, equals rffreq + intfreq
+        awgtaxis = [];  % Time axis for pulsegen1 and pulsegen2
         numSweep1 = 1;  % Size of outer loop
         numSweep2 = 1;  % Size of inner loop
         sweep1data = {};  % parameters for outer loop
@@ -113,31 +105,20 @@ classdef SmartSweep < handle
             if nargin == 0
                 config = [];
             end
-            % If config is a struct
-            if isstruct(config)
-                for p = fieldnames(config)'
-                    if isprop(self, p{:})
-                        self.(p{:}) = config.(p{:});
-                    end
-                end
-            end
-            % If config is an object
-            if isobject(config)
-                for p = properties(config)'
-                    if isprop(self, p{:})
-                        self.(p{:}) = config.(p{:});
-                    end
-                end
-            end
-        end
+            self.UpdateParams(config);
+         end
         
         function SetUp(self)
+            if isa(self.pulseCal, 'paramlib.pulseCal')
+                self.UpdateParams(self.pulseCal);
+            end
             self.SetPulse();
             self.SetSweep();
             self.InitInstr();
             self.SetOutput();
         end
         
+        UpdateParams(self, config);
         SetPulse(self);
         SetSweep(self);
         InitInstr(self);

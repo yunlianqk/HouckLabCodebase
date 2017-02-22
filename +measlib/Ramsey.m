@@ -17,24 +17,9 @@ classdef Ramsey < measlib.SmartSweep
             end
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
-            self.speccw = 0;
-            self.rfcw = 0;
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
-            
             % Construct qubit gates
             gates = pulselib.singleGate();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
@@ -53,7 +38,6 @@ classdef Ramsey < measlib.SmartSweep
                 % Append qubit gates again
                 self.gateseq(row).append(gates);
             end
-            self.measpulse = self.pulseCal.measurement();
             self.result.rowAxis = self.delayVector;
             SetUp@measlib.SmartSweep(self);
         end
@@ -65,7 +49,7 @@ classdef Ramsey < measlib.SmartSweep
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampI);
+            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
             ylabel('P(|1>)');
             xlabel('Delay (\mus)');
             title(sprintf('T_2^* = %.2f \\mus, detuning = \\pm %.2f MHz', t2, detuning));

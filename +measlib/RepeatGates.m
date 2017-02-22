@@ -19,6 +19,9 @@ classdef RepeatGates < measlib.SmartSweep
         repeatGates;
         endGates;
         repeatVector;
+    end
+    
+    properties (Hidden)
         % Pre-calculated waveforms to speed up pulse generation
         gatedict = struct();
         iGateWaveforms = struct();
@@ -38,19 +41,6 @@ classdef RepeatGates < measlib.SmartSweep
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
-            
             % Construct and store primary gates
             self.gatedict = struct();
             self.gatedict.Identity = self.pulseCal.Identity();
@@ -89,10 +79,6 @@ classdef RepeatGates < measlib.SmartSweep
                     self.gateseq(row).append(self.gatedict.(self.endGates{col}));
                 end
             end
-            
-            % Construct measurement pulse
-            self.measpulse = self.pulseCal.measurement();
-            
             self.result.rowAxis = self.repeatVector;
             SetUp@measlib.SmartSweep(self);
         end

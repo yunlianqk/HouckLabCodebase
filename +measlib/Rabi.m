@@ -18,23 +18,9 @@ classdef Rabi < measlib.SmartSweep
             end
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
-            self.speccw = 0;
-            self.rfcw = 0;
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
             % Construct pulse sequence
             gates = pulselib.singleGate();
             self.gateseq = pulselib.gateSequence();
@@ -54,7 +40,7 @@ classdef Rabi < measlib.SmartSweep
                 % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
             end
-            self.measpulse = self.pulseCal.measurement();
+            
             self.result.rowAxis = self.ampVector;
             SetUp@measlib.SmartSweep(self);
         end
@@ -66,7 +52,7 @@ classdef Rabi < measlib.SmartSweep
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            piamp = funclib.RabiFit(self.result.rowAxis, self.result.ampI);
+            piamp = funclib.RabiFit(self.result.rowAxis, self.result.ampInt);
             ylabel('P(|1>)');
             xlabel('Amplitude');
             title(['\pi amplitude = ', num2str(piamp)]);

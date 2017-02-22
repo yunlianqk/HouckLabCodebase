@@ -4,15 +4,16 @@ function Plot(self, fignum)
         fignum = 101;
     end
 
+    self.result.intRange = self.intrange;
     if isempty(self.result.intRange)
-        self.result.intRange = [self.result.colAxis(1), self.result.colAxis(end)];
+        self.result.intRange = [self.result.tAxis(1), self.result.tAxis(end)];
     end
    
     figure(fignum);
     % Plot raw data
-    numRows = size(self.result.Idata, 1);
+    numRows = size(self.result.dataI, 1);
     subplot(2, 3, 1);
-    imagesc(self.result.colAxis/1e-6, 1:numRows, self.result.Idata);
+    imagesc(self.result.tAxis/1e-6, 1:numRows, self.result.dataI);
     hold on;
     plot([self.result.intRange(1), self.result.intRange(1)]/1e-6, ...
          [1, numRows], ...
@@ -23,7 +24,7 @@ function Plot(self, fignum)
     hold off;
     title('Raw data I');
     subplot(2, 3, 4);
-    imagesc(self.result.colAxis/1e-6, 1:numRows, self.result.Qdata);
+    imagesc(self.result.tAxis/1e-6, 1:numRows, self.result.dataQ);
     hold on;
     plot([self.result.intRange(1), self.result.intRange(1)]/1e-6, ...
          [1, numRows], ...
@@ -37,20 +38,12 @@ function Plot(self, fignum)
     % Plot integrated/demodulated data
     self.Integrate();
     self.Normalize();
-    subplot(2, 3, 2);
-    plot(self.result.rowAxis, self.result.ampI);
-    title('Amplitude I');
+    subplot(2, 2, 2);
+    plot(1:numRows, self.result.ampInt);
+    title('Amplitude');
     axis tight;
-    subplot(2, 3, 5);
-    plot(self.result.rowAxis, self.result.ampQ);
-    title('Amplitude Q');
-    axis tight;
-    subplot(2, 3, 3);
-    plot(self.result.rowAxis, self.result.phaseI);
-    axis tight;
-    title('Phase I');
-    subplot(2, 3, 6);
-    plot(self.result.rowAxis, self.result.phaseQ);
-    title('Phase Q');
+    subplot(2, 2, 4);
+    plot(1:numRows, self.result.phaseInt);
+    title('Phase');
     axis tight;
 end

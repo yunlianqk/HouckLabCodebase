@@ -1,11 +1,19 @@
 function Save(self)
     global card;
     
+    if isempty(self.savepath)
+        self.savepath = 'C:\Data\';
+    end
+
     path = self.savepath;
     if ~strcmp(path(end), filesep())
         path = [path, filesep()];
     end
-        
+    
+    if ~exist(path, 'dir')
+        mkdir(path);
+    end
+
     if isprop(self, 'pulseCal')
         temppulseCal = self.pulseCal;
         self.pulseCal = funclib.obj2struct(self.pulseCal);

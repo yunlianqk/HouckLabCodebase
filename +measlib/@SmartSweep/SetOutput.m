@@ -23,13 +23,13 @@ function SetOutput(self)
     
     % Pre-allocate output data
     cardparams = card.GetParams();
-    self.result.colAxis = cardparams.delaytime + ...
-                          cardparams.sampleinterval*(0:cardparams.samples-1);
+    self.result.tAxis = cardparams.delaytime + ...
+                        cardparams.sampleinterval*(0:cardparams.samples-1);
     self.result.sampleinterval = cardparams.sampleinterval;
     self.result.intRange = [];
     self.result.intFreq = self.intfreq;
-    self.result.Idata = zeros(self.numSweep2, cardparams.samples);
-    self.result.Qdata = zeros(self.numSweep2, cardparams.samples);
+    self.result.dataI = zeros(self.numSweep2, cardparams.samples);
+    self.result.dataQ = zeros(self.numSweep2, cardparams.samples);
     
     % Set up plot function handles
     if self.plotsweep1
@@ -51,7 +51,7 @@ function SetOutput(self)
     display(['Estimated measurement time: ', num2str(totaltime), ' seconds.']);
     
 %=================functions whose handles are used above===================
-    function PlotSweep2(Idata, Qdata)
+    function PlotSweep2(dataI, dataQ)
         figure(100);
         subplot(2, 2, 1);
         plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform1, ...
@@ -68,43 +68,29 @@ function SetOutput(self)
         title('AWG 2');
         xlabel('Time (\mus)');
         subplot(2, 2, 2);
-        imagesc(self.result.colAxis/1e-6, 1:size(Idata, 1), Idata);
+        imagesc(self.result.tAxis/1e-6, 1:size(dataI, 1), dataI);
         title('I data');
         subplot(2, 2, 4);
-        imagesc(self.result.colAxis/1e-6, 1:size(Qdata, 1), Qdata);
+        imagesc(self.result.tAxis/1e-6, 1:size(dataQ, 1), dataQ);
         title('Q data');
         xlabel('Time (\mus)');
     end
-    function PlotSweep1(Iamp, Iphase, Qamp, Qphase)
+    function PlotSweep1(amp, phase)
         figure(101);
-        subplot(2, 2, 1);
-        if size(Iamp, 1) == 1 || size(Iamp, 2) == 1
-            plot(Iamp);
+        subplot(2, 1, 1);
+        if size(amp, 1) == 1 || size(amp, 2) == 1
+            plot(amp);
         else
-            imagesc(Iamp);
+            imagesc(amp);
         end
-        title('I amplitude');
-        subplot(2, 2, 3);
-        if size(Iphase, 1) == 1 || size(Iphase, 2) == 1
-            plot(Iphase);
+        title('Amplitude');
+        subplot(2, 1, 2);
+        if size(phase, 1) == 1 || size(phase, 2) == 1
+            plot(phase);
         else
-            imagesc(Iphase);
+            imagesc(phase);
         end
-        title('I phase');
-        subplot(2, 2, 2);
-        if size(Qamp, 1) == 1 || size(Qamp, 2) == 1
-            plot(Qamp);
-        else
-            imagesc(Qamp);
-        end
-        title('Q amplitude');
-        subplot(2, 2, 4);
-        if size(Qphase, 1) == 1 || size(Qphase, 2) == 1
-            plot(Qphase);
-        else
-            imagesc(Qphase);
-        end
-        title('Q phase');
+        title('Phase');
     end
     function DoNothing(varargin)
     end    

@@ -146,7 +146,7 @@ function InitInstr(self)
     if ~isempty(self.gateseq)
         [pulsegen1.waveform1, pulsegen1.waveform2] ...
             = self.gateseq(1).uwWaveforms(self.awgtaxis, ...
-              	self.seqEndTime-self.gateseq(1).totalSequenceDuration);
+              	self.seqEndTime-self.gateseq(1).totalDuration);
     end
     if ~isempty(self.measpulse)
         [pulsegen2.waveform1, ~] ...
@@ -155,20 +155,7 @@ function InitInstr(self)
     if ~isempty(self.fluxseq)
         [pulsegen2.waveform2, ~] ...
             = self.fluxseq(1).uwWaveforms(self.awgtaxis, ...
-                self.seqEndTime-self.fluxseq(1).totalSequenceDuration);
-    end
-    
-    if ~isempty(self.awgch1)
-        pulsegen1.waveform1 = self.awgch1(1, :);
-    end
-    if ~isempty(self.awgch2)
-        pulsegen1.waveform2 = self.awgch2(1, :);
-    end
-    if ~isempty(self.awgch3)
-        pulsegen2.waveform1 = self.awgch3(1, :);
-    end
-    if ~isempty(self.awgch4)
-        pulsegen2.waveform2 = self.awgch4(1, :);
+                self.seqEndTime-self.fluxseq(1).totalDuration);
     end
     
     pulsegen1.mkr1offset = -64;

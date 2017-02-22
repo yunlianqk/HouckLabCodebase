@@ -24,20 +24,6 @@ classdef CrossResonance < measlib.SmartSweep
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.controlfreq;
-            self.spec2freq = self.targetfreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
             % Construct gate objects on control qubit
             X180 = self.pulseCal.X180();
             Id = self.pulseCal.Identity();
@@ -118,16 +104,16 @@ classdef CrossResonance < measlib.SmartSweep
                         self.gateseq(row) = pulselib.gateSequence(X180);
                         self.gateseq(row).append(delaygate);
                         self.gateseq(row).append(X180);
-%                         self.gateseq(row).append(Id);
                         self.gateseq(row).append(delaygate);
                         self.gateseq(row).append(Id);
-%                         self.gateseq(row).append(X180);
                     end
                 end
             end
-            self.measpulse = self.pulseCal.measurement();
             self.result.rowAxis = self.durationVector;
             SetUp@measlib.SmartSweep(self);
+            % Update params
+            self.specfreq = self.controlfreq;
+            self.spec2freq = self.targetfreq;
         end
     end
 end

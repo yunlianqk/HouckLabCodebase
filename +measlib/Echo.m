@@ -20,23 +20,9 @@ classdef Echo < measlib.SmartSweep
             end
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
-            self.speccw = 0;
-            self.rfcw = 0;
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
             % Construct pulse sequence
             startgates = pulselib.singleGate();
             echogates = pulselib.singleGate();
@@ -79,7 +65,6 @@ classdef Echo < measlib.SmartSweep
                 end
                 self.gateseq(row).append(endgates);
             end
-            self.measpulse = self.pulseCal.measurement();
             self.result.rowAxis = self.delayVector;
             SetUp@measlib.SmartSweep(self);
         end
@@ -92,9 +77,9 @@ classdef Echo < measlib.SmartSweep
             self.Normalize();
             figure(fignum);
             if self.numfringes
-                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampI);
+                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
             else
-                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampI);
+                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampInt);
                 t2 = fitresult.lambda;
             end
             ylabel('P(|1>)');

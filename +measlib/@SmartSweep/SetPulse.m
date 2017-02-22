@@ -4,8 +4,15 @@ function SetPulse(self)
     
     seqDuration = 0;
     measDuration = 0;
-    self.pulseCal.samplingRate = pulsegen1.samplingrate;
+    
+    if ~isempty(self.pulseCal)
+        self.pulseCal.samplingRate = pulsegen1.samplingrate;
+    end
 
+    if isempty(self.measpulse) && ~isempty(self.pulseCal)
+        self.measpulse = self.pulseCal.measurement();
+    end
+    
     if ~isempty(self.gateseq) && ~isa(self.gateseq, 'pulselib.gateSequence')
         % Check data type of gateseq
         error('gateseq must be a gateSequence object.')
@@ -30,13 +37,13 @@ function SetPulse(self)
     end
     
     try
-        seqDuration = max([self.gateseq.totalSequenceDuration]);
+        seqDuration = max([self.gateseq.totalDuration]);
     catch
     end
     
     try
         seqDuration = max(seqDuration, ...
-                          max([self.fluxseq.totalSequenceDuration]));
+                          max([self.fluxseq.totalDuration]));
     catch
     end
     
@@ -48,8 +55,24 @@ function SetPulse(self)
     self.seqEndTime = self.startBuffer + seqDuration;
     self.measStartTime = self.seqEndTime + self.measBuffer;
     self.waveformEndTime = self.measStartTime + measDuration + self.endBuffer;
-    if isempty(self.awgch1) || isempty(self.awgch2) ...
-       || isempty(self.awgch3) || isempty(self.awgch4)
-        self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
+    self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
+    
+    % Update generator cw flag
+    if ~isempty(self.measpulse)
+        self.rfcw = 0;
+    elseif ~isempty(self.rffreq)
+        self.rfcw = 1;
+    end
+    
+    if ~isempty(self.gateseq)
+        self.speccw = 0;
+    elseif ~isempty(self.specfreq)
+        self.speccw = 1;
+    end
+    
+    if ~isempty(self.fluxseq)
+        self.fluxcw = 0;
+    elseif ~isempty(self.fluxfreq)
+        self.fluxcw = 1;
     end
 end
