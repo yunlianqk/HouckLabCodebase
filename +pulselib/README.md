@@ -106,13 +106,13 @@ tstart = 20e-9;  % Pulse sequence starts at t = 20 ns
 ```
 `iWaveform` and `qWaveform` can now be passed to AWG's.
 
-![Waveforms](./waveforms.svg)
+![Waveforms](./waveforms.png)
 
 ### Using pulseCal
 The [`paramlib.pulseCal`](../+paramlib/README.md#-class-paramlib-pulsecal) class
 provides properties to store qubit gate parameters and methods to create gate objects. The following figure illustrates the usage of `pulseCal`, `singleGate` and `gateSequence` objects together to generate AWG waveforms.
 
-![classes](./classes.svg)
+![classes](./classes.png)
 
 ```matlab
 gatelist = {'X180', 'measurement'};  % List of gate names
@@ -165,7 +165,7 @@ gateSeq.insert(2, pulselib.delay(50e-9));
   * **gate.draw()**: plot the gate's waveforms.
 
 * **Illustration**:  
-  ![X180](./X180.svg)
+  ![X180](./X180.png)
   
 #### *class* pulselib.measPulse < handle
 * **Properties**:
@@ -183,7 +183,7 @@ gateSeq.insert(2, pulselib.delay(50e-9));
   * **meas.draw()**: plot the pulse's waveforms.
   
 * **Illustration**:  
-  ![measpulse](./measpulse.svg)
+  ![measpulse](./measpulse.png)
 
 #### *class* pulselib.delay < handle
 **Properties**:
