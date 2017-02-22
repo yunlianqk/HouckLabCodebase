@@ -2,10 +2,10 @@ function [IData, QData] = ReadIandQ(self)
 % Acquire data from two channels
     MaxTimeout = 10;  % Maximum single timeout is 10 seconds, hardware coded
     params = self.params;
-    if params.trigPeriod < params.delaytime+params.samples*params.sampleinterval+4e-6
+    if params.trigPeriod < params.delaytime+params.samples*params.sampleinterval
         display('Warning: trigger period is shorter than delay + acquisition time');
         display(['Set trigge period to more than ', ...
-                  num2str((params.delaytime+params.samples*params.sampleinterval)/1e-6+4), ...
+                  num2str((params.delaytime+params.samples*params.sampleinterval)/1e-6), ...
                   ' us']);
     end
     % Stop any ongoing acquistion
@@ -20,7 +20,7 @@ function [IData, QData] = ReadIandQ(self)
     % read the channels
     [status, dataDesc, ~, IData] = AqD1_readData(self.instrID, 1, ...
                                                  self.AqReadParameters);
-    if status ~= 0
+    if status  < 0
         error(['Error reading channel. Make sure trigger is available ', ...
                'and trigger period is set correctly.']);
     end
