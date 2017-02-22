@@ -14,7 +14,7 @@ address = 'GPIB0::16::0::INSTR'; % GPIB address
 pnax = PNAXAnalyzer(address);
 ```
 ### Create measurements
-To set up a transmission scan, first create a [**paramlib.pnax.trans**](../+paramlib/README.md#-class-paramlib-pnax-trans) *object* that contains the parameters:
+To set up a transmission scan, first create a [**paramlib.pnax.trans**](../+paramlib/README.md#class-paramlibpnaxtrans) *object* that contains the parameters:
 ```matlab
 transCh1 = paramlib.pnax.trans();  % Use paramlib.pnax.spec() for spectroscopy measurement
 transCh1.start = 5e9;
@@ -38,7 +38,7 @@ pnax.params = transCh1;
 ```
 to pass the parameters to the instrument.
 
-To set up a spectroscopy scan, use [**paramlib.pnax.spec**](../+paramlib/README.md#-class-paramlib-pnax-spec) *object* instead:
+To set up a spectroscopy scan, use [**paramlib.pnax.spec**](../+paramlib/README.md#class-paramlibpnaxspec) *object* instead:
 ```matlab
 specCh2 = paramlib.pnax.spec();
 specCh2.start = 5e9;
@@ -114,7 +114,7 @@ freqvector = pnax.ReadAxis();
 * **Properties**: 
   * **address** (*string*): GPIB address of the instrument
   * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
-  * [**params**](../+paramlib/README.md#-class-paramlib-pnax-trans) (*object*): Contains parameters for a measurement
+  * [**params**](../+paramlib/README.md#class-paramlibpnaxtrans) (*object*): Contains parameters for a measurement
   * **timeout** (*float*, Private): Wait time when there is error in communication
 
 * **Methods**:
@@ -157,7 +157,7 @@ freqvector = pnax.ReadAxis();
 `pnax = PNAXAnalyzer(address)` opens PNAX with `address` and returns a `pnax` object.
 
 ##### SetParams
-`pnax.SetParams(params)` sets up the [parameters](../+paramlib/README.md#-class-paramlib-pnax-trans) for a measurement.
+`pnax.SetParams(params)` sets up the [parameters](../+paramlib/README.md#class-paramlibpnaxtrans) for a measurement.
 
 ##### SetActiveChannel
 `pnax.SetActiveChannel(channel)` sets the channel specified by *interger* `channel` as active.
@@ -169,7 +169,7 @@ freqvector = pnax.ReadAxis();
 `pnax.SetActiveMeas(meas)` sets the measurement specified by *string* `meas` as active.
 
 ##### GetParams
-`params = pnax.GetParams()` returns an *object* `params` containing the [parameters](../+paramlib/README.md#-class-paramlib-pnax-trans) of the active measurement.
+`params = pnax.GetParams()` returns an *object* `params` containing the [parameters](../+paramlib/README.md#class-paramlibpnaxtrans) of the active measurement.
 
 ##### GetChannelList
 `chlist = pnax.GetChannelList()` returns an *array* `chlist` containing the number for each channel.

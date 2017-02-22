@@ -4,12 +4,12 @@ A library containing the parameter classes for different instruments.
 ## Contents
 - [Usage of pulseCal class](#usage-of-pulsecal-class)
 - [Class definitions](#class-definitions)
-    - [paramlib.pnax.trans](#-class-paramlib-pnax-trans)
-    - [paramlib.pnax.spec](#-class-paramlib-pnax-spec)
-    - [paramlib.pnax.psweep](#-class-paramlib-pnax-psweep)
-    - [paramlib.acqiris](#-class-paramlib-acqiris)
-    - [paramlib.m9703a](#-class-paramlib-m9703a)
-    - [paramlib.pulseCal](#-class-paramlib-pulsecal)
+    - [paramlib.pnax.trans](#class-paramlibpnaxtrans)
+    - [paramlib.pnax.spec](#class-paramlibpnaxspec)
+    - [paramlib.pnax.psweep](#class-paramlibpnaxpsweep)
+    - [paramlib.acqiris](#class-paramlibacqiris)
+    - [paramlib.m9703a](#class-paramlibm9703a)
+    - [paramlib.pulseCal](#class-paramlibpulsecal)
 
 ## Usage of pulseCal class
 See also [example code](../ExampleCode/ExampleCode_pulseCal.m).
@@ -26,7 +26,7 @@ pulseCal.cutoff = 4*pulseCal.sigma;
 pulseCal.X180Amplitude = 0.8;
 pulseCal.X180DragAmplitude = 0.25;
 ```
-Calling `pulseCal.X180()` will return a [`pulselib.singleGate` ](../+pulselib/README.md#-class-pulselib-singlegate-handle) object with its stored parameters:
+Calling `pulseCal.X180()` will return a [`pulselib.singleGate` ](../+pulselib/README.md#-classpulselibsinglegate--handle) object with its stored parameters:
 ```
 >> pulseCal.X180()
 

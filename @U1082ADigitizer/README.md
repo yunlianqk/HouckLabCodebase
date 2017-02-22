@@ -13,7 +13,7 @@ address = 'PXI7::4::0::INSTR';  % PXI address
 card = U1082ADigitizer(address);
 ```
 ### Set/get parameters
-To set the parameters, first create a [**paramlib.acqiris**](../+paramlib/README.md#-class-paramlib-acqiris) *object* that contains the parameters:
+To set the parameters, first create a [**paramlib.acqiris**](../+paramlib/README.md#class-paramlibacqiris) *object* that contains the parameters:
 ```matlab
 cardparams = paramlib.acqiris();
 cardparams.fullscale = 0.2;
@@ -70,7 +70,7 @@ The acquistion will terminate if it is completed, or a timeout is reached, which
 * **Properties**: 
   * **address** (*string*, Read-only): PXI address of the instrument
   * **instrID** (*integer*, Read-only): ID of the instrument
-  * [**params**](../+paramlib/README.md#-class-paramlib-acqiris) (*object*): Contains parameters
+  * [**params**](../+paramlib/README.md#class-paramlibacqiris) (*object*): Contains parameters
 
 * **Methods**:
   * **card = U1082ADigitizer(address)**: Opens the instrument with `address` and returns a `card` object

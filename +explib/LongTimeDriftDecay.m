@@ -25,7 +25,7 @@ classdef LongTimeDriftDecay < explib.SweepM8195
             rabi = pulselib.measPulse(self.rabiDuration, self.rabiDrive);
             self.sequences = [];
             for delay = self.delayList
-                currentseq = paramlib.gateSequence(rabi);
+                currentseq = pulselib.gateSequence(rabi);
                 currentseq.append(pulselib.delay(delay));
                 self.sequences = [self.sequences, currentseq];
             end

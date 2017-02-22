@@ -10,10 +10,10 @@ A library containing classes for pulse generation.
     - [Generating waveforms](#generating-waveforms)
     - [Using pulseCal](#using-pulsecal)
 - [Class definitions](#class-definitions)
-    - [pulselib.singleGate](#-class-pulselib-singlegate-handle)
-    - [pulselib.measPulse](#-class-pulselib-measpulse-handle)
-    - [pulselib.delay](#-class-pulselib-delay-handle)
-    - [pulselib.gateSequence](#-class-pulselib-gatesequence-handle)
+    - [pulselib.singleGate](#class-pulselibsinglegate--handle)
+    - [pulselib.measPulse](#class-pulselibmeaspulse--handle)
+    - [pulselib.delay](#class-pulselibdelay--handle)
+    - [pulselib.gateSequence](#class-pulselibgatesequence--handle)
 
 ## Introduction
 The goal of `pulselib` is to provide **an interface between abstract qubit gates and real AWG waveforms**. Each class defines a type of gate with the relevant parameters, and can return waveforms when given the AWG's (discretized) time-axis.
@@ -64,7 +64,7 @@ gateSequence with properties:
    totalUnitary: [2x2 double]
 ```
 ### Manipulating pulse sequence
-The [API](#-class-pulselib-gatesequence-handle) for `pulselib.gateSequence` is similar to that of a Python list. However, there is no nested list structure, so the API is simpler (for example, there is no `extend` method in addition to  `append` method). Use `append`, `insert`, `pop` and `clear` methods to manipulate `gateSeq`.
+The [API](#class-pulselibgatesequence--handle) for `pulselib.gateSequence` is similar to that of a Python list. However, there is no nested list structure, so the API is simpler (for example, there is no `extend` method in addition to  `append` method). Use `append`, `insert`, `pop` and `clear` methods to manipulate `gateSeq`.
 ```matlab
 gateSeq.append([X180, X180]);  % append two X180's to the end of sequence
 gateSeq.insert(2, Y90);  % insert Y90 as the 2nd gate of sequence
@@ -109,7 +109,7 @@ tstart = 20e-9;  % Pulse sequence starts at t = 20 ns
 ![Waveforms](./waveforms.png)
 
 ### Using pulseCal
-The [`paramlib.pulseCal`](../+paramlib/README.md#-class-paramlib-pulsecal) class
+The [`paramlib.pulseCal`](../+paramlib/README.md#class-paramlibpulsecal) class
 provides properties to store qubit gate parameters and methods to create gate objects. The following figure illustrates the usage of `pulseCal`, `singleGate` and `gateSequence` objects together to generate AWG waveforms.
 
 ![classes](./classes.png)
