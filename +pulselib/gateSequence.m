@@ -150,11 +150,8 @@ classdef gateSequence < handle
             if nargin == 1
                 idx = 1;
             end
-            gates = cell(1, length(idx));
-            for ii = 1:length(idx)
-                gates{ii} = self.gateArray{idx(1)};
-                self.gateArray(ii) = [];
-            end
+            gates = self.gateArray{idx};
+            self.gateArray(idx) = [];
         end
 
         function insert(self, idx, gates)

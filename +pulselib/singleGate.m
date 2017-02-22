@@ -155,7 +155,7 @@ classdef singleGate < handle
         function [iBaseband, qBaseband] = project(self, g, d)
             % find I and Q baseband using azimuth
             % g is main gaussian waveform and d is drag waveform
-            iBaseband = cos(self.azimuth).*g + sin(self.azimuth).*d;
+            iBaseband = cos(self.azimuth).*g - sin(self.azimuth).*d;
             qBaseband = sin(self.azimuth).*g + cos(self.azimuth).*d;
         end
 

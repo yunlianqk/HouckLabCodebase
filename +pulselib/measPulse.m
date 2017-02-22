@@ -43,8 +43,8 @@ classdef measPulse < handle
             tCtr2 = tCtr1 + self.duration;
             r = self.amplitude.*ones(1,length(tAxis));
             r = r.*(tAxis > tCtr1).*(tAxis < tCtr2) ...
-                + r.*(tAxis <= tCtr1).*exp(-((tAxis-tCtr1).^2)./(2.*self.sigma.^2)) ...
-                + r.*(tAxis >= tCtr2).*exp(-((tAxis-tCtr2).^2)./(2.*self.sigma.^2));
+                + r.*(tAxis <= tCtr1).*exp(-((tAxis-tCtr1).^2)/(2*self.sigma^2)) ...
+                + r.*(tAxis >= tCtr2).*exp(-((tAxis-tCtr2).^2)/(2*self.sigma^2));
         end
         
         function rc = applyCutoff(self, tAxis, tStart, r)
