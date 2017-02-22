@@ -1,22 +1,28 @@
-# Acqiris U1082A 8-Bit Digitizer
+# Acqiris U1084A 8-Bit Digitizer
+## Contents
+- [Usage](#usage)
+- [Remarks](#remarks)
+- [Class definition](#class-definition)
+- [Hardware specifications](#hardware-specifications)
+
 ## Usage
 ### Open instrument
 ```matlab
 address = 'PXI7::4::0::INSTR';  % PXI address
-card = U1082ADigitizer(address);
+card = U1084ADigitizer(address);
 ```
 ### Set/get parameters
-To set the parameters, first create a [**paramlib.acqiris**](#params) *object* that contains the parameters:
+To set the parameters, first create a [**paramlib.acqiris**](../+paramlib/README.md#-class-paramlib-acqiris) *object* that contains the parameters:
 ```matlab
 cardparams = paramlib.acqiris();
 cardparams.fullscale = 0.2;
 cardparams.sampleinterval = 1e-9;
-cardparams.samples = 10000;
+cardparams.samples = 10240;
 cardparams.averages = 30000;
 cardparams.segments = 1;
-cardparams.delaytime = 10e-6;
+cardparams.delaytime = 2e-6;
 cardparams.couplemode = 'DC';
-cardparams.timeout = 10;
+cardparams.trigPeriod = 50e-6;
 ```
 Then either use the `SetParams` method
 ```matlab
@@ -45,18 +51,18 @@ samplinginterval = card.params.sampleinterval;
 ```
 `Idata` and `Qdata` are both M × N arrays, where M = `card.params.segments` and N = `card.params.samples`.
 
-## Discussion
+## Remarks
 ### Averaging
 No software averaging is implemented because on-card averaging can be as large as 16777216.
 
 ### Multi segment mode
-Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191.
-
+Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 131072.
+  
 ### Timeout
 The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. In the code, timeout is set to be **trigger period × on-card averages × segments**. To ensure a normal completion of acquisition, make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives.
 
 ## Class definition
-#### *class* U1082ADigitizer < handle
+#### *class* U1084ADigitizer < handle
 * **Properties**: 
   * **address** (*string*, Read-only): PXI address of the instrument
   * **instrID** (*integer*, Read-only): ID of the instrument
@@ -68,23 +74,6 @@ The acquistion will terminate if it is completed, or a timeout is reached, which
   * **cardparams = card.GetParams()**: Gets parameters
   * **[IData, QData] = card.ReadIandQ()**: Reads data. `IData` and `QData` are M × N arrays where M = number of segments and N = number of samples
   * **card.Finalize()**: Closes the instrument
-  
-#### <a name="params"></a>*class* paramlib.acqiris
-A class to store parameters for Acqiris digitizer
-* **Properties**:
-  * **fullscale** (*float*): Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
-  * **offset** (*float*): Offset in volts, within ± 2 V for 0.05/0.5 V full scale, and ± 5 V for 1 to 5 V fullscale
-  * **sampleinterval** (*float*): Sampling interval in seconds, from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
-  * **samples** (*integer*): Number of samples for each segment, from 16 to 2 Mega (2^21) in steps of 16
-  * **averages** (*integer*): Number of averages, from 1 to 65536
-  * **segments** (*integer*): Number of segments, from 1 to 8191
-  * **delaytime** (*float*): Delay time in seconds before starting acquistion
-  * **couplemode** (*string*): Coupling mode, possible values are 'AC' and 'DC'
-  * **trigSource** (*string*): Trigger source, can be 'External1' (default) or 'Channel1', 'Channel2'
-  * **trigLevel** (*float*): Trigger level, in volts within ± 2.5 (default = 0.5) for external trigger, and in fraction of fullscale within ± 0.5 for internal trigger
-  * **trigPeriod** (*float*): Trigger period in seconds (default = 100e-6), used to calculate timeout
-* **Methods**:
-  * **s = self.toStruct()**: Converts the object to a struct
   
 ## Hardware specifications
 The following specs are only for reference. Check the [datasheet](./U1084ASpecs.pdf) for details.

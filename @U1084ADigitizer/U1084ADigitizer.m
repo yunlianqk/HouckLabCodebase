@@ -1,5 +1,5 @@
 classdef U1084ADigitizer < handle
-% Contains paramaters and methods for U1082A Digitizer
+% Contains paramaters and methods for U1084A Digitizer
 
     properties (SetAccess = private, GetAccess = public)
         address;    % PXI address
