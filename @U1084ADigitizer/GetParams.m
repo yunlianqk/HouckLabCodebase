@@ -9,8 +9,8 @@ function params = GetParams(self)
         params.couplemode = 'DC';
     end
     [~, params.sampleinterval, ~] = AqD1_getHorizontal(self.instrID);
-    [~, StartDelay] = AqD1_getAvgConfigInt32(self.instrID, 1, 'StartDelay');
-    params.delaytime = double(StartDelay)*params.sampleinterval;
+    [~, params.delaytime] = AqD1_getAvgConfigInt32(self.instrID, 1, 'StartDelay');
+    params.delaytime = double(params.delaytime)*params.sampleinterval;
     [~, params.samples] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrSamples');
     params.samples = double(params.samples);
     [~, params.averages] = AqD1_getAvgConfigInt32(self.instrID, 1, 'NbrWaveforms');
@@ -37,5 +37,4 @@ function params = GetParams(self)
         params.trigLevel = double(trigLevel) / 100;
     end
     params.trigPeriod = self.AqReadParameters.trigPeriod;
-    params.softAvg = 1;
 end

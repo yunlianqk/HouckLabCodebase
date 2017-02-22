@@ -19,7 +19,7 @@ function SetParams(self, params)
     for channel = 1:2
         status = AqD1_configVertical(self.instrID, channel, params.fullscale, ...
                                      params.offset, Vertcoupling, Vertbandwidth);
-        if status
+        if status < 0
             error('Error:Vert',...
                   ['Error in vertical settings\n', ...
                    'Fullscale can be 0.05 V to 5 V in 1, 2, 5 sequence\n', ...
@@ -28,17 +28,16 @@ function SetParams(self, params)
     end
     % Horizontal settings
     status = AqD1_configHorizontal(self.instrID, params.sampleinterval, params.delaytime);
-    if status
+    if status < 0
         error('Sampling interval can be 1 ns to 2048 ns in 2^n sequence.');
     end
     % configure the delay parameters
     % delaytime as configured by confighorsettings is ignored
     % StartDelay must be multiple of 16
-    StartDelay = params.delaytime/params.sampleinterval;
-    StartDelay = floor(StartDelay/16)*16;
+    StartDelay = floor(params.delaytime/params.sampleinterval/16)*16;
     for channel = 1:2
         status = AqD1_configAvgConfigInt32(self.instrID, channel, 'StartDelay', StartDelay);
-        if status
+        if status < 0
             error('Error setting delay time');
         end
     end
@@ -61,16 +60,16 @@ function SetParams(self, params)
     for channel = 1:2
         status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSamples', params.samples);
         if status < 0
-            error('Error setting nbrSamples');
+            error('Error setting number of samples');
         end
         
         status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrSegments', params.segments);
         if status < 0
-            error('Error setting segments');
+            error('Error setting number of segments');
         end
         status = AqD1_configAvgConfigInt32(self.instrID, channel, 'NbrWaveforms', params.averages);
         if status < 0
-            error('Error setting averages');
+            error('Error setting number of averages');
         end       
         AqD1_configAvgConfigInt32(self.instrID, channel, 'DitherRange',0);
         AqD1_configAvgConfigInt32(self.instrID, channel, 'TrigResync', 0);
@@ -100,8 +99,8 @@ function SetParams(self, params)
     % second parameter = 0 sets trigclass to edge trigger
     % third parameter = '80000000' sets trigsource to external trigger 1
     % last 4 parameters are unused
-    if status
-        error('Error setting trigger');
+    if status < 0
+        error('Error setting trigger source');
     end
     status = AqD1_configTrigSource(self.instrID, trigCh, 0, 0, trigLevel, 0.0);
     % second parameter = -1 sets trigger channel to external sources
@@ -110,12 +109,10 @@ function SetParams(self, params)
     %                    positive/negative/out of window/into window
     % fifth parameter sets trigger level
     % sixth parameter sets trigger level 2 when window trigger is used
-    if status
-        error('Error:Trig', ...
-              ['Error setting trigger\n', ...
+    if status < 0
+        error(['Error setting trigger level\n', ...
                'Trigger level can be with +/- 2.5 V for external trigger ', ...
                'or +/- 0.5 for internal trigger']);
-        
     end
     
     % Set up AqReadParameters for readIandQ
@@ -134,5 +131,6 @@ function SetParams(self, params)
     self.AqReadParameters.reserved2 = 0;
     self.AqReadParameters.reserved3 = 0;
     self.AqReadParameters.trigPeriod = params.trigPeriod;
-    self.AqReadParameters.timeOut = params.trigPeriod*params.averages*params.segments + 1;
+    self.AqReadParameters.timeOut = ceil((StartDelay+params.samples)*params.sampleinterval/params.trigPeriod) ...
+        *params.trigPeriod*params.averages*params.segments + 1;
 end
