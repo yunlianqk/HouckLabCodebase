@@ -17,9 +17,9 @@ function UpdateSpecParams(pnax, oldparams, newparams)
                 [channel, newparams.points]);
     end            
 
-    if oldparams.power ~= newparams.power
+    if oldparams.specpower ~= newparams.specpower
         fprintf(pnax.instrhandle, 'SOURce%d:POWer3 %f', ...
-                [channel, newparams.power]);
+                [channel, newparams.specpower]);
     end
     
     if oldparams.cwfreq ~= newparams.cwfreq
@@ -28,8 +28,10 @@ function UpdateSpecParams(pnax, oldparams, newparams)
     end
     
     if oldparams.cwpower ~= newparams.cwpower
-        fprintf(pnax.instrhandle, 'SOURce%d:POWer1 %f',  ...
-                [channel, newparams.cwpower]);
+        fprintf(pnax.instrhandle, sprintf('SOURce%d:POWer%s %f',  ...
+                                          channel, ...
+                                          newparams.meastype(end), ...
+                                          newparams.cwpower));
     end
     
     if oldparams.ifbandwidth ~= newparams.ifbandwidth

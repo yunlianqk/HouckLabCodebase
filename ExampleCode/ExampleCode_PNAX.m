@@ -23,8 +23,6 @@ pnax.SetParams(transCh1);
 pnax.AvgOn();
 pnax.PowerOn();
 pnax.TrigContinuous();
-%%
-
 %% Set channel 2 paramters for transmission S13
 transCh2 = transCh1;
 transCh2.channel = 2;
@@ -82,7 +80,7 @@ plot(specfreqvector/1e9, specamp);
 title('S21 amp spec');
 xlabel('Frequency (GHz)');
 %% Add trace
-transCh1Tr5 = TRANSParams();
+transCh1Tr5 = paramlib.pnax.trans();
 transCh1Tr5.trace = 5;
 transCh1Tr5.meastype = 'S11';
 pnax.SetParams(transCh1Tr5);

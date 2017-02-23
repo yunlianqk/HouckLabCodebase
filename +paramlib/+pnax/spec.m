@@ -4,7 +4,7 @@ classdef spec
         start = 4e9;
         stop = 5e9;
         points = 1001;
-        power = -50;
+        specpower = -50;
         averages = 1000;
         ifbandwidth = 5e3;
         cwfreq  = 7e9;

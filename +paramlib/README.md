@@ -97,7 +97,7 @@ A class to store parameters for spectroscopy measurement
 * **Properties**: 
   * **start** (*float*): start frequency
   * **stop** (*float*): stop frequency
-  * **power** (*float*): RF power
+  * **specpower** (*float*): spec power
   * **points** (*integer*): number of sweeping points
   * **averages** (*integer*): number of averages
   * **ifbandwidth** (*float*): IF bandwidth
@@ -198,4 +198,3 @@ A class to store parameters for qubit gates.
     * **gate = pulseCal.X90()**: returns a X180 gate object with the parameters stored in `pulseCal`
     
     *similar methods for X180, Y90, measurement pulse, etc.* ...
-

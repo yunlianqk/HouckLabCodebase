@@ -6,6 +6,8 @@ function transparams = GetTransParams(pnax)
     
     transparams.trace = pnax.GetActiveTrace();
     
+    transparams.meastype = pnax.GetMeasType(pnax.GetActiveMeas());
+    
     fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:STARt?', transparams.channel);
     transparams.start = fscanf(pnax.instrhandle, '%f');
 
@@ -15,7 +17,8 @@ function transparams = GetTransParams(pnax)
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts?', transparams.channel);
     transparams.points = fscanf(pnax.instrhandle, '%d');
 
-    fprintf(pnax.instrhandle, 'SOURce%d:POWer1?', transparams.channel);
+    fprintf(pnax.instrhandle, 'SOURce%d:POWer%s?', ...
+            [transparams.channel, transparams.meastype(end)]);
     transparams.power = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth?', transparams.channel);
@@ -26,6 +29,4 @@ function transparams = GetTransParams(pnax)
 
     fprintf(pnax.instrhandle, 'CALCulate%d:FORMat?', transparams.channel);
     transparams.format = fscanf(pnax.instrhandle, '%s');
-
-    transparams.meastype = pnax.GetMeasType(pnax.GetActiveMeas());
 end

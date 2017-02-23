@@ -6,6 +6,8 @@ function specparams = GetSpecParams(pnax)
     
     specparams.trace = pnax.GetActiveTrace();
     
+    specparams.meastype = pnax.GetMeasType(pnax.GetActiveMeas());
+    
     fprintf(pnax.instrhandle, 'SENse%d:FOM:RANGe4:FREQuency:STARt?', ...
             specparams.channel);
     specparams.start = fscanf(pnax.instrhandle, '%f');
@@ -16,14 +18,14 @@ function specparams = GetSpecParams(pnax)
 
     fprintf(pnax.instrhandle, 'SOURce%d:POWer3?', ...
             specparams.channel);
-    specparams.power = fscanf(pnax.instrhandle, '%f');
+    specparams.specpower = fscanf(pnax.instrhandle, '%f');
 
     fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:CW?', ...
             specparams.channel);
     specparams.cwfreq = fscanf(pnax.instrhandle, '%f');                
 
-    fprintf(pnax.instrhandle, 'SOURce%d:POWer1?', ...
-            specparams.channel);
+    fprintf(pnax.instrhandle, 'SOURce%d:POWer%s?', ...
+            [specparams.channel, specparams.meastype(end)]);
     specparams.cwpower = fscanf(pnax.instrhandle, '%f');
     
     fprintf(pnax.instrhandle, 'SENSe%d:SWEep:POINts?', specparams.channel);
@@ -37,6 +39,4 @@ function specparams = GetSpecParams(pnax)
 
     fprintf(pnax.instrhandle, 'CALCulate%d:FORMat?', specparams.channel);
     specparams.format = fscanf(pnax.instrhandle, '%s');
-
-    specparams.meastype = pnax.GetMeasType(pnax.GetActiveMeas());
 end
