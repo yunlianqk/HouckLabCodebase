@@ -130,7 +130,7 @@ function InitInstr(self)
     
     % Init yoko2
     if ~isempty(self.yoko2volt)
-        yoko2.SetVoltage(self.yoko1volt(1));
+        yoko2.SetVoltage(self.yoko2volt(1));
     end
     
     % Init pulsegen1 and pulsegen2

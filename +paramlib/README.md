@@ -26,7 +26,7 @@ pulseCal.cutoff = 4*pulseCal.sigma;
 pulseCal.X180Amplitude = 0.8;
 pulseCal.X180DragAmplitude = 0.25;
 ```
-Calling `pulseCal.X180()` will return a [`pulselib.singleGate` ](../+pulselib/README.md#-classpulselibsinglegate--handle) object with its stored parameters:
+Calling `pulseCal.X180()` will return a [`pulselib.singleGate` ](../+pulselib/README.md#class-pulselibsinglegate--handle) object with its stored parameters:
 ```
 >> pulseCal.X180()
 
