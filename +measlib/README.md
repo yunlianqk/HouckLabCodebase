@@ -45,8 +45,6 @@ To customize your own measurement:
 
 The objects for instruments **must be named** as listed in the second column above. For E8267D generators and YOKOGAWA voltage sources, sweeping paramters can be scalar, row vector, column vector, or 2D array (see next section for details). For M9330A AWG's, `gateseq` and `fluxseq` can be an object array of [`pulsegen.gateSequence`](../+pulselib/README.md#class-pulselibgatesequence--handle); `measpulse` can only be a single object of [`pulsegen.measPulse`](../+pulselib/README.md#class-pulselibmeaspulse--handle).
 
-After setting up the parameters, call the `SetUp` and `Run` methods:
-
 #### Setting parameters
 The parameters can be scalar, row vector, column vector or 2D array. The result is shown in the code and table below.
 
@@ -80,7 +78,7 @@ The duration of each pulse sequence is therefore `startBuffer + max([gateseq.tot
 - `carddelayoffset` can be used to fine tune the delay time for the digitizer. When set to zero, acquisition should start roughly at the beginning of the measurement pulse. `carddelayoffset` specifies the **additional** delay (can be positive or negative) with respect to that value.
 
 #### Running measurement
-- `SetUp` method handles pulse timing, generate waveforms for AWG's and set up relevant instruments.
+- `SetUp` method handles pulse timing, generates waveforms for AWG's and sets up relevant instruments.
 - `bgsubtraction` property can be set to `[]`, `'speconoff'`, `'rfonoff'`, `'fluxonoff'`, `'pulseonoff'` for background subtraction.
 - `Run` method starts the measurement and stores the measured data.
 
@@ -89,8 +87,9 @@ During the measurement the data will be plotted and updated.
 - `plotsweep1 = 1/0` turns on/off plotting of outer loop.
 - `plotsweep2 = 1/0` turns on/off plotting of inner loop.
 - `plotupdate = n` updates the plot every `n` sweeping points.
-- `intrange` sets the start and stop time for integrating raw data. For example, the following figure shows a T1 measurement with `intrange = [62e-6, 66e-6]` (dashed lines). Changing `intrange` and rerunning `Plot()` will calculate and plot the updated data.
+- `intrange` sets the start and stop time for integrating raw data. For example, the following figure shows a T1 measurement with `intrange = [62e-6, 66e-6]` (dashed lines). Changing `intrange` and rerunning `Plot()` will calculate and plot the updated data.  
   ![intrange](./intrange.png)
+  
 #### Saving data
 The measured data is stored in a *struct* `result`, which contains the following fields:
 - `dataI` (*2D array*): raw data for I channel
@@ -170,21 +169,27 @@ end
 ```
 
 #### Setting up sweeps
-This is done in [SetSweep](./@SmartSweep/SetSweep.m) method and is the most opaque part of the code. The idea is maintaining three **cell arrays of function handles** corresponding to the three types of sweeps ("inner loop", "outer loop" and "both loops") and three **data arrays** corresponding to the values that need to be swept. Then go through each parameter and decide whether it needs to be swept based on its shape. If it needs to be swept, create a corresponding function handle that sets the value of the instrument, and add it to the corresponding list (row vector -> inner loop; column vector -> outer loop; 2D array -> both loops). Also add the values to the corresponding data array.
+This is done in [SetSweep](./@SmartSweep/SetSweep.m) method and is the most opaque part of the code. The idea is maintaining three **cell arrays of function handles** corresponding to the three types of sweeps ("inner loop", "outer loop" and "both loops") and three **data arrays** corresponding to the values that need to be swept. Then go through each parameter and decide whether it needs to be swept based on its shape. If it needs to be swept, create a corresponding function handle that sets the value of the instrument, and add it to the corresponding cell array (row vector -> inner loop; column vector -> outer loop; 2D array -> both loops). The values of the parameter that needs to be swept are added to the corresponding data array.
 ```matlab
 global rfgen yoko1 yoko2;
 
+% Error messages
 emsg1 = 'Arrays must have the same number of rows';
 emsg2 = 'Arrays must have the same number of columns';
 
+% Length of outer loop
 self.numSweep1 = 1;
+% Length of inner loop
 self.numSweep2 = 1;
+% Data arrays
 self.sweep1data = {};
-self.sweep1func = {};
 self.sweep2data = {};
-self.sweep2func = {};
 self.sweep3data = {};
+% Function handle arrays
+self.sweep1func = {};
+self.sweep2func = {};
 self.sweep3func = {};
+% Loop indices
 ii = 1;
 jj = 1;
 kk = 1;
@@ -202,7 +207,7 @@ for idx = 1:length(pName)
     % If not scalar
         if shape(1) > 1
             if shape(2) == 1
-            % If column vector, set to outer loop
+            % If column vector, add to outer loop
                 self.sweep1data{ii} = self.(pName{idx});
                 self.sweep1func{ii} = fHdle{idx};
                 ii = ii + 1;
@@ -211,7 +216,7 @@ for idx = 1:length(pName)
                 end
                 self.numSweep1 = shape(1);
             else
-            % If 2D array, set to both loops
+            % If 2D array, add to both loops
                 self.sweep3data{kk} = self.(pName{idx});
                 self.sweep3func{kk} = fHdle{idx};
                 kk = kk + 1;
@@ -225,7 +230,7 @@ for idx = 1:length(pName)
                 self.numSweep2 = shape(2);
             end
         else
-        % If row vector, set to inner loop
+        % If row vector, add to inner loop
             self.sweep2data{jj} = self.(pName{idx});
             self.sweep2func{jj} = fHdle{idx};
             jj = jj + 1;
@@ -239,10 +244,12 @@ end
 ```
 In the [`Run`](./@SmartSweep/Run.m) method, each value in the data arrays is pass to the corresponding function handle using `feval`.
 ```matlab
+% Outer loop
 for row = 1:self.numSweep1
     for idx1 = 1:length(self.sweep1data)
         feval(self.sweep1func{idx1}, self.sweep1data{idx1}(row));
     end
+    % Inner loop
     for col = 1:self.numSweep2
         for idx2 = 1:length(self.sweep2data)
             feval(self.sweep2func{idx2}, self.sweep2data{idx2}(:, col));
@@ -291,10 +298,10 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     *similar parameters for specgen, logen, fluxgen, yokos, etc.*...
     
     *Pulse generation parameters*
-    - **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal)* object): pulse paramters
-    - **gateseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle)* object): qubit pulse sequences
-    - **measpulse** (*[pulselib.measPulse](../+pulselib/README.md#class-pulselibmeaspulse--handle)* object): measurement pulse
-    - **fluxseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle)* object): addition pulse sequence when needed
+    - **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse paramters
+    - **gateseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): qubit pulse sequences
+    - **measpulse** (*[pulselib.measPulse](../+pulselib/README.md#class-pulselibmeaspulse--handle) object*): measurement pulse
+    - **fluxseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): addition pulse sequence when needed
 
     *Pulse timing parameters*
     - **startBuffer** (*float*): buffer before pulse sequence starts
