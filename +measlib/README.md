@@ -242,7 +242,7 @@ for idx = 1:length(pName)
     end
 end
 ```
-In the [`Run`](./@SmartSweep/Run.m) method, each value in the data arrays is pass to the corresponding function handle using `feval`.
+In the [`Run`](./@SmartSweep/Run.m) method, each value in the data arrays is passed to the corresponding function handle using `feval`.
 ```matlab
 % Outer loop
 for row = 1:self.numSweep1
@@ -265,19 +265,19 @@ for row = 1:self.numSweep1
 To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in the example below) to `SmartSweep`,
 - In class definition, add property `yoko3volt` to `SmartSweep`.
 - In `SetSweep` method, add declaration `global yoko3` to the top.
-- In `SetSweep` method, add `yoko3volt` to `pName`
+- In `SetSweep` method, add `yoko3volt` to `pName`  
   ```matlab
   pName = {'rffreq', 'rfpower', 'rfphase', ...
            'yoko1volt', 'yoko2volt', 'yoko3volt'};
   ```
-    and `@yoko3.SetVoltage` to `fHdle`
+  and `@yoko3.SetVoltage` to `fHdle`  
   ```matlab
   fHdle = {@rfgen.SetFreq, @rfgen.SetPower, @rfgen.SetPhase, ...
            @yoko1.SetVoltage, @yoko2.SetVoltage, @yoko3.SetVoltage};
   ```
   
 - In `InitInstr` method, add declaration `global yoko3` to the top.
-- In `InitInstr` method, add initialization for `yoko3`
+- In `InitInstr` method, add initialization for `yoko3`  
   ```matlab
   if ~isempty(self.yoko3volt)
       yoko3.SetVoltage(self.yoko3volt(1));
