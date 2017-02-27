@@ -52,9 +52,23 @@ classdef Rabi < measlib.SmartSweep
             self.Integrate();
             self.Normalize();
             figure(fignum);
+            subplot(2, 1, 1);
             piamp = funclib.RabiFit(self.result.rowAxis, self.result.ampInt);
-            ylabel('P(|1>)');
-            xlabel('Amplitude');
+            if self.normalization
+                ylabel('Normalized readout amplitude');
+            else
+                ylabel('Readout amplitude');
+            end
+            title(['\pi amplitude = ', num2str(piamp)]);
+            axis tight;
+            subplot(2, 1, 2);
+            piamp = funclib.RabiFit(self.result.rowAxis, self.result.phaseInt);
+            if self.normalization
+                ylabel('Normalized readout phase');
+            else
+                ylabel('Readout phase');
+            end
+            xlabel('Drive amplitude');
             title(['\pi amplitude = ', num2str(piamp)]);
             axis tight;
         end

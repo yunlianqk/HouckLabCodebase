@@ -12,7 +12,7 @@ function Plot(self, fignum)
     figure(fignum);
     % Plot raw data
     numRows = size(self.result.dataI, 1);
-    subplot(2, 3, 1);
+    subplot(2, 2, 1);
     imagesc(self.result.tAxis/1e-6, 1:numRows, self.result.dataI);
     hold on;
     plot([self.result.intRange(1), self.result.intRange(1)]/1e-6, ...
@@ -23,7 +23,7 @@ function Plot(self, fignum)
          '--r', 'LineWidth', 2);
     hold off;
     title('Raw data I');
-    subplot(2, 3, 4);
+    subplot(2, 2, 3);
     imagesc(self.result.tAxis/1e-6, 1:numRows, self.result.dataQ);
     hold on;
     plot([self.result.intRange(1), self.result.intRange(1)]/1e-6, ...

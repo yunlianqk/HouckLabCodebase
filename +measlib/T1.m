@@ -42,16 +42,31 @@ classdef T1 < measlib.SmartSweep
         
         function Fit(self, fignum)
             if nargin == 1
-                fignum = 102;
+                fignum = 103;
             end
             self.Integrate();
             self.Normalize();
             figure(fignum);
+            subplot(2, 1, 1);
             fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampInt);
             t1 = fitresult.lambda;
-            ylabel('P(|1>)');
-            xlabel('Delay (\mus)');
+            if self.normalization
+                ylabel('Normalized readout amplitude');
+            else
+                ylabel('Readout amplitude');
+            end
             title(['T_1 = ', num2str(t1), ' \mus']);
+            axis tight;
+            subplot(2, 1, 2);
+            fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.phaseInt);
+            t1 = fitresult.lambda;
+            if self.normalization
+                ylabel('Normalized readout phase');
+            else
+                ylabel('Readout phase');
+            end
+            title(['T_1 = ', num2str(t1), ' \mus']);
+            xlabel('Delay (\mus)');
             axis tight;
         end
     end

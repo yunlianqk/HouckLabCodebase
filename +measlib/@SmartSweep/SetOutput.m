@@ -74,6 +74,7 @@ function SetOutput(self)
         imagesc(self.result.tAxis/1e-6, 1:size(dataQ, 1), dataQ);
         title('Q data');
         xlabel('Time (\mus)');
+        drawnow;
     end
     function PlotSweep1(amp, phase)
         figure(101);
@@ -91,6 +92,7 @@ function SetOutput(self)
             imagesc(phase);
         end
         title('Phase');
+        drawnow;
     end
     function DoNothing(varargin)
     end    

@@ -277,7 +277,8 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
   ```
   
 - In `InitInstr` method, add declaration `global yoko3` to the top.
-- In `InitInstr` method, add initialization for `yoko3`  
+- In `InitInstr` method, add initialization for `yoko3`
+
   ```matlab
   if ~isempty(self.yoko3volt)
       yoko3.SetVoltage(self.yoko3volt(1));
@@ -341,5 +342,5 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     - **x = SmartSweep()**: returns a SmartSweep object `x`
     - **x.SetUp()**: sets up the measurement
     - **x.Run()**: runs the measurement
-    - **x.Plot()**: plots the measured data
+    - **x.Plot([fignum])**: plots the measured data. If `fignum` is specified, it plots in the corresponding figure window.
     - **x.Save()**: saves the measured data

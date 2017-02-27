@@ -7,7 +7,7 @@ function SetParams(self, params)
     end
     
     % Vertical settings
-    Vertbandwidth = 0; % 5= 35 MHz LPF
+    Vertbandwidth = 0; % 5 = 35 MHz LPF
     if (strcmp(params.couplemode,'AC'))
         Vertcoupling = 4; % 4 = AC coupled, 50 Ohm
     elseif (strcmp(params.couplemode,'DC'))
@@ -19,7 +19,7 @@ function SetParams(self, params)
     for channel = 1:2
         status = AqD1_configVertical(self.instrID, channel, params.fullscale, ...
                                      params.offset, Vertcoupling, Vertbandwidth);
-        if status < 0
+        if status
             error('Error:Vert',...
                   ['Error in vertical settings\n', ...
                    'Fullscale can be 0.05 V to 5 V in 1, 2, 5 sequence\n', ...
@@ -28,7 +28,7 @@ function SetParams(self, params)
     end
     % Horizontal settings
     status = AqD1_configHorizontal(self.instrID, params.sampleinterval, params.delaytime);
-    if status < 0
+    if status
         error('Sampling interval can be 1 ns to 2048 ns in 2^n sequence.');
     end
     % configure the delay parameters
@@ -37,7 +37,7 @@ function SetParams(self, params)
     StartDelay = floor(params.delaytime/params.sampleinterval/16)*16;
     for channel = 1:2
         status = AqD1_configAvgConfigInt32(self.instrID, channel, 'StartDelay', StartDelay);
-        if status < 0
+        if status
             error('Error setting delay time');
         end
     end
@@ -99,7 +99,7 @@ function SetParams(self, params)
     % second parameter = 0 sets trigclass to edge trigger
     % third parameter = '80000000' sets trigsource to external trigger 1
     % last 4 parameters are unused
-    if status < 0
+    if status
         error('Error setting trigger source');
     end
     status = AqD1_configTrigSource(self.instrID, trigCh, 0, 0, trigLevel, 0.0);
@@ -109,7 +109,7 @@ function SetParams(self, params)
     %                    positive/negative/out of window/into window
     % fifth parameter sets trigger level
     % sixth parameter sets trigger level 2 when window trigger is used
-    if status < 0
+    if status
         error(['Error setting trigger level\n', ...
                'Trigger level can be with +/- 2.5 V for external trigger ', ...
                'or +/- 0.5 for internal trigger']);

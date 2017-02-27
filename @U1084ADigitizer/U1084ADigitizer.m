@@ -19,28 +19,33 @@ classdef U1084ADigitizer < handle
         % Initialize card
             self.address = address;
             % Initializes and returns instrID
-            [status, self.instrID] = Aq_InitWithOptions(self.address, 0, 0, 'asbus = false');
-             if status ~= 0
-                display('Initialization error for U1084A digitizer');
-                return
-            end   
-                    
-            % Clock settings
-            AqD1_configExtClock(self.instrID, 2, 1000, 1, 1, 1);
-            % second parameter:  clock type (2 = ext 10 MHZ ref)
-            % third parameter: inputthreshold in mV,
-            % last 3 parameters are unused
+            [status, self.instrID] = Aq_InitWithOptions(self.address, 0, 1, '');
             
+            if status
+                error('Initialization error for U1084A digitizer');
+            end
+                    
+            % Clock settings: use INTERNAL clock
+            status = AqD1_configExtClock(self.instrID, 0, 0, 1, 1, 1);
+            % second parameter:  clock type (0 = int clock, 2 = ext 10 MHZ ref)
+            % third parameter: inputthreshold in mV
+            % last 3 parameters are unused
+
+            % Setting tp external clock always give error
+            % unless threshold = 0 !?
+            if status
+                error('Error setting external clock for U1084A digitizer');
+            end
+
             status = Aq_calibrate(self.instrID);
-            if status ~= 0
-                display('Calibration error for U1084A digitizer');
-                return
+            if status
+                error('Calibration error for U1084A digitizer');
             end
             
             % Set to averaging mode
             AqD1_configMode(self.instrID, 2, 0, 0);
           
-%             % Load default settings
+            % Load default settings
             self.SetParams(paramlib.acqiris());
             display([class(self), ' object created.']);
         end
