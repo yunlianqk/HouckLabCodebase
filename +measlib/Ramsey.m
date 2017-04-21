@@ -59,7 +59,7 @@ classdef Ramsey < measlib.SmartSweep
             title(sprintf('T_2^* = %.2f \\mus, detuning = \\pm %.2f MHz', t2, detuning));
             axis tight;
             subplot(2, 1, 2);
-                        [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
+            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
             if self.normalization
                 ylabel('Normalized readout phase');
             else

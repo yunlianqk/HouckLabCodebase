@@ -18,9 +18,6 @@ classdef CrossResonance < measlib.SmartSweep
             end
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
-            self.speccw = 0;
-            self.rfcw = 0;   
-            self.spec2cw = 0;
         end
         
         function SetUp(self)
@@ -97,9 +94,9 @@ classdef CrossResonance < measlib.SmartSweep
                     if self.controlstate == 0
                         self.gateseq(row) = pulselib.gateSequence(Id);
                         self.gateseq(row).append(delaygate);
-                        self.gateseq(row).append(X180);
+                        self.gateseq(row).append(Id);%(X180);
                         self.gateseq(row).append(delaygate);
-                        self.gateseq(row).append(X180);
+                        self.gateseq(row).append(Id);%(X180);
                     else
                         self.gateseq(row) = pulselib.gateSequence(X180);
                         self.gateseq(row).append(delaygate);
@@ -110,10 +107,51 @@ classdef CrossResonance < measlib.SmartSweep
                 end
             end
             self.result.rowAxis = self.durationVector;
-            SetUp@measlib.SmartSweep(self);
-            % Update params
             self.specfreq = self.controlfreq;
             self.spec2freq = self.targetfreq;
+            SetUp@measlib.SmartSweep(self);
         end
+        
+        function Fit(self, fignum)
+            if nargin == 1
+                fignum = 104;
+            end
+            self.Integrate();
+            self.Normalize();
+            figure(fignum);
+            subplot(2, 1, 1);
+            
+            [t2, detuning,mse,t2Err,detuningErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
+            self.result.Ampt2=t2;
+            self.result.Ampfreq=detuning;
+            self.result.AmpMSE=mse;
+            self.result.Ampt2Err=t2Err;
+            self.result.AmpfreqErr=detuningErr;
+            if self.normalization
+                ylabel('Normalized readout amplitude');
+            else
+                ylabel('Readout amplitude');
+            end
+
+            title(sprintf('T_2^* = %.2f \\pm %.2f \\mus, detuning =  %.2f MHz \\pm %.2f MHz', t2,t2Err, detuning,detuningErr));
+            axis tight;
+            subplot(2, 1, 2);
+            
+            [t2, detuning,mse,t2Err,detuningErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
+            self.result.Phaset2=t2;
+            self.result.Phasefreq=detuning;
+            self.result.PhaseMSE=mse;
+            self.result.Phaset2Err=t2Err;
+            self.result.PhasefreqErr=detuningErr;
+            if self.normalization
+                ylabel('Normalized readout phase');
+            else
+                ylabel('Readout phase');
+            end
+            title(sprintf('T_2^* = %.2f \\pm %.2f \\mus, detuning = %.2f MHz \\pm %.2f MHz', t2, t2Err,detuning,detuningErr));
+            xlabel('Delay (\mus)');
+            axis tight;
+        end
+        
     end
 end
