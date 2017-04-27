@@ -22,15 +22,15 @@ specgen = E8267DGenerator(address.specgen);
 
 global logen;
 logen = E8267DGenerator(address.logen);
-
-global pnax;
-pnax = PNAXAnalyzer(address.pnax);
-
-global yoko1;
-yoko1 = YOKOGS200(address.yoko1);
-
-global yoko2;
-yoko2 = YOKOGS200(address.yoko2);
+% 
+% global pnax;
+% pnax = PNAXAnalyzer(address.pnax);
+% 
+% global yoko1;
+% yoko1 = YOKOGS200(address.yoko1);
+% 
+% global yoko2;
+% yoko2 = YOKOGS200(address.yoko2);
 
 global triggen;
 triggen = AWG33250A(address.triggen);
