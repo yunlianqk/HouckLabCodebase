@@ -1,20 +1,19 @@
-classdef Echo < measlib.SmartSweep
+classdef AutoRamsey < measlib.SmartSweep
     % Echo experiment. Two qubit gates with varying delay and echo pulse in between.
     
     % 'qubitGates' is a cellstr that contains the names of gates
     % e.g., qubitGates = {'X90'}
     % 'delayVector' is an array that contains delay time between the gates
-    % 'numfringes' is an integer that adds intentional Ramsey-like fringes
+    % 'fringefreq' is the freq of the phase of last pi/2 pulse
     
     properties
         qubitGates = {'X90'};
-        echoGates = {'X180'};
-        numfringes = 0;
-        delayVector = linspace(0, 20e-6, 101);
+        fringefreq=50e6;
+        delayVector = linspace(0, 100e-9, 101);
     end
     
     methods
-        function self = Echo(pulseCal, config)
+        function self = AutoRamsey(pulseCal, config)
             if nargin == 1
                 config = [];
             end
@@ -25,7 +24,6 @@ classdef Echo < measlib.SmartSweep
         function SetUp(self)
             % Construct pulse sequence
             startgates = pulselib.singleGate();
-            echogates = pulselib.singleGate();
             endgates = pulselib.singleGate();
             self.gateseq = pulselib.gateSequence();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
@@ -38,12 +36,10 @@ classdef Echo < measlib.SmartSweep
             for col = 1:length(self.qubitGates)
                 startgates(col) = self.pulseCal.(self.qubitGates{col});
             end
-            for col = 1:length(self.echoGates)
-                echogates(col) = self.pulseCal.(self.echoGates{col});
-            end
+
             % Vary azimuth angle of the last gates to introduce Ramsey-like fringes
-            if self.numfringes
-                azimuthVector = linspace(0, 2*pi*self.numfringes, length(self.delayVector));
+            if self.fringefreq
+                azimuthVector = linspace(0, 2*pi*self.fringefreq*self.delayVector(end), length(self.delayVector));
             else
                 azimuthVector = zeros(1, length(self.delayVector));
             end
@@ -51,16 +47,13 @@ classdef Echo < measlib.SmartSweep
             for row = 1:length(self.delayVector)
                 % Append qubit gates
                 self.gateseq(row) = pulselib.gateSequence(startgates);
-                % Append half delay
-                self.gateseq(row).append(pulselib.delay(self.delayVector(row)/2));
-                % Append echo gate
-                self.gateseq(row).append(echogates);
-                % Append half delay again
-                self.gateseq(row).append(pulselib.delay(self.delayVector(row)/2));
+                % Append  delay
+                self.gateseq(row).append(pulselib.delay(self.delayVector(row)));
+                
                 % Append qubit gates again
                 for col = 1:length(self.qubitGates)
                     endgates(col) = self.pulseCal.(self.qubitGates{col});
-                    endgates(col).amplitude = -endgates(col).amplitude;
+                    endgates(col).amplitude = endgates(col).amplitude;
                     endgates(col).azimuth = azimuthVector(row);
                 end
                 self.gateseq(row).append(endgates);
@@ -77,43 +70,39 @@ classdef Echo < measlib.SmartSweep
             self.Normalize();
             figure(fignum);
             subplot(2, 1, 1);
-            if self.numfringes
-                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
-            else
-                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampInt);
-                t2 = fitresult.lambda;
-            end
-            %% This code snippet is added on 03/16 not yet put on github - Pranav
-            %to return fit parameter t2
-            self.result.Ampt2=t2;
-            %% code snippet ends
+            [freq,mse,amp,freqErr] = funclib.CosFit(self.result.rowAxis/1e-6, self.result.ampInt, self.fringefreq/1e6);
+            self.result.AmpAmp=amp;
+            self.result.Ampfreq=freq;
+            self.result.AmpMSE=mse;
+            self.result.AmpfreqErr=freqErr;
             if self.normalization
                 ylabel('Normalized readout amplitude');
             else
                 ylabel('Readout amplitude');
             end
-            title(sprintf('T_2^E = %.2f \\mus', t2));
+            title(sprintf('Amplitude: Freq = %.3f \\pm %.3f MHz', freq,freqErr));
             axis tight;
             subplot(2, 1, 2);
-            if self.numfringes
-                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-            else
-                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-                t2 = fitresult.lambda;
-            end
-            %% This code snippet is added on 03/16 not yet put on github - Pranav
-            %to return fit parameter t2
-            self.result.Phaset2=t2;
-            %% code snippet ends
+            [freq,mse,amp,freqErr] = funclib.CosFit(self.result.rowAxis/1e-6, self.result.phaseInt, self.fringefreq/1e6);
+            self.result.PhaseAmp=amp;  
+            self.result.Phasefreq=freq;
+            self.result.PhaseMSE=mse;
+            self.result.PhasefreqErr=freqErr;
             if self.normalization
                 ylabel('Normalized readout amplitude');
             else
                 ylabel('Readout amplitude');
             end
-            title(sprintf('T_2^E = %.2f \\mus', t2));
-            xlabel('Delay (\mus)');
-            axis tight;  
-
+            title(sprintf('Phase: Freq = %.3f \\pm %.3f MHz', freq,freqErr));
+            xlabel('Delay (ns)');
+            axis tight;
+            if self.result.AmpMSE < self.result.PhaseMSE
+                self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
+                                      - self.result.Ampfreq*1e6;
+            else
+                self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
+                                      - self.result.Phasefreq*1e6;
+            end
         end
     end
 end

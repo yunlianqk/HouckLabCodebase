@@ -1,4 +1,5 @@
 % Initialize instruments
+% this is a test
 run(['.', filesep(), 'setpath.m']);
 % Turn off 32bit IVI-COM warning
 warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');

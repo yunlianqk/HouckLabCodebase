@@ -14,9 +14,6 @@ classdef CrossRamsey < measlib.SmartSweep
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
             self.pulseCal2 = pulseCal2;
-            self.speccw = 0;
-            self.rfcw = 0;   
-            self.spec2cw = 0;
         end
         
         function SetUp(self)
@@ -61,7 +58,6 @@ classdef CrossRamsey < measlib.SmartSweep
                 self.fluxseq(row).append(pulselib.delay(delay+2*sum(gates.totalDuration)));
                 self.fluxseq(row).append(X180);
             end
-            self.measpulse = self.pulseCal.measurement();
             self.result.rowAxis = self.delayVector;
             SetUp@measlib.SmartSweep(self);
         end
