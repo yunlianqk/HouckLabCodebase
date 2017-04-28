@@ -36,8 +36,6 @@ classdef RepeatGates < measlib.SmartSweep
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
             self.normalization = 1;
-            self.speccw = 0;
-            self.rfcw = 0;
         end
         
         function SetUp(self)
