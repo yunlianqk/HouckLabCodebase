@@ -12,7 +12,7 @@ See also [single qubit gate calibration and randomized benchmarking procedure](.
         - [Setting digitizer](#setting-digitizer)
         - [Running measurement](#running-measurement)
         - [Plotting data](#plotting-data)
-        - [Saving data](#saving-data)
+        - [Saving/loading data](#saving-loading-data)
     - [For developers](#for-developers)
         - [Pulse timing and generation](#pulse-timing-and-generation)
         - [Setting up sweeps](#setting-up-sweeps)
@@ -20,7 +20,7 @@ See also [single qubit gate calibration and randomized benchmarking procedure](.
 - [API specifications](#api-specifications)
 
 ## Hardware configuration
-The figure below shows the wiring of vector/analogue generators, AWG and acquisition card. The name of matlabs object for each equipment is shown in blue.The AWG **channels** connect to **wideband I/Q input** ports at the back of E8267D generators. The AWG **markers** connect to **gate/pulse/trigger input** ports at the front of E8267D generators. **Marker 1 of pulsegen1** connects to the trigger input of acquistion card.
+The figure below shows the wiring of vector/analogue generators, AWG and acquisition card. The name of matlabs object for each equipment is shown in blue.The AWG **channel 1/2** connects to **wideband I/Q input** ports at the back of E8267D generators. The AWG **marker 2/4** connects to **gate/pulse/trigger input** ports at the front of E8267D generators. **Marker 1 of pulsegen1** connects to the trigger input of acquistion card.
 
 ![HardwareConfig](./SmartSweepInstrConfig.png)
 
@@ -30,20 +30,24 @@ See [M9330A AWG document](../@M9330AWG/README.md#multiple-module-synchronization
 [`SmartSweep`](#class-smartsweep--handle) is an attempt to provide a generic, extensible interface for measurements using E8267D microwave generators and M9330A AWG.
 
 ### For users
-For pre-defined measurements such as `TransSweep`, `SpecSweep`, `Rabi`, `T1`, etc., see [example code](../ExampleCode/ExampleCode_measlib.m).
+For pre-defined measurements such as `TransSweep`, `SpecSweep`, `Rabi`, `T1`, etc., see [example code](../ExampleCode/ExampleCode_measlib.m). 
 
 To customize your own measurement:
 - For CW measurement, set up the parameters you want to sweep (see discussion below).
-- For pulsed measurement, provide `gateseq` and `measpulse` (and `fluxpulse` if there is any).
+- For pulsed measurement, provide `gateseq` and `measseq` (and `fluxpulse` if there is any).
 - Currently supported equipments are listed below.
 
 |Class|Object name|Sweepable parameter|
 |-----|-----------|-------------------|
 |<br><br>E8267DGenerator<br><br>|rfgen<br>specgen<br>logen<br>fluxgen<br>specgen2|rffreq, rfpower, rfphase<br>specfreq, specpower, specphase<br>lofreq (automatically sweeps with rffreq)<br>fluxfreq, fluxpower, fluxphase<br>spec2freq, spec2power, spec2phase|
 |YOKOGS200<br>YOKO7651|yoko1<br>yoko2|yoko1volt<br>yoko2volt|
-|<br>M9330AWG<br>|pulsegen1<br>pulsegen2<br>|gateseq (for pulsegen1.waveform1 and waveform2)<br>measpulse (for pulsegen2.waveform1, **NON sweepable**)<br>fluxseq (for pulsegen2.waveform2)|
+|<br>M9330AWG<br>|pulsegen1<br>pulsegen2<br>|gateseq (for pulsegen1.waveform1 and waveform2)<br>measseq (for pulsegen2.waveform1)<br>fluxseq (for pulsegen2.waveform2)|
 
-The objects for instruments **must be named** as listed in the second column above. For E8267D generators and YOKOGAWA voltage sources, sweeping paramters can be scalar, row vector, column vector, or 2D array (see next section for details). For M9330A AWG's, `gateseq` and `fluxseq` can be an object array of [`pulsegen.gateSequence`](../+pulselib/README.md#class-pulselibgatesequence--handle); `measpulse` can only be a single object of [`pulsegen.measPulse`](../+pulselib/README.md#class-pulselibmeaspulse--handle).
+The objects for instruments **must be named** as listed in the second column above.
+
+For E8267D generators and YOKOGAWA voltage sources, sweeping paramters can be scalar, row vector, column vector, or 2D array (see next section for details).
+
+For M9330A AWG's, `gateseq`, `measseq` and `fluxseq` can be an object, or object array of [`pulsegen`](../+pulselib/README.md#contents) classes.
 
 #### Setting parameters
 The parameters can be scalar, row vector, column vector or 2D array. The result is shown in the code and table below.
@@ -63,14 +67,31 @@ x.specpower = [-10, -5, 0; ...
 |2|rfpower = -30<br>rffreq = 5e9<br>specfreq = 4e9<br>specpower = -20|rfpower = -30<br>rffreq = 5.5e9<br>specfreq = 4e9<br>specpower = -15|rfpower = -30<br>rffreq = 6e9<br>specfreq = 4e9<br>specpower = -10|
 |3|rfpower = -30<br>rffreq = 5e9<br>specfreq = 5e9<br>specpower = -30|rfpower = -30<br>rffreq = 5.5e9<br>specfreq = 5e9<br>specpower = -25|rfpower = -30<br>rffreq = 6e9<br>specfreq = 5e9<br>specpower = -20|
 
-In the experiment, the sweep will go from one row to the next and the parameters will be looped accordingly.
+In the experiment, each column in a row will be swept in the inner loop, and each row will be swept in the outer loop.
+
+#### Setting common configurations
+A *struct* `config` can be passed when initializing a measurement:
+```matlab
+config.cardacqtime = pulseCal.measDuration;
+config.cardavg = 65536;
+config.carddelayoffset = 0.5e-6;
+config.waittime = 0.2;
+config.plotsweep1 = 0;
+config.plotsweep2 = 1;
+config.plotupdate = 10;
+config.normalization = 0;
+config.autosave = 0;
+
+x = measlib.TransSweep(config);
+```
+`config` can contain any properties in `SmartSweep` class and will update those properties in `x`. This is convenient will several different measurements share a same set of parameters.
 
 #### Pulse sequence
-Currently `SmartSweep` only supports pulsed measurements with a **single measurement pulse** and **multiple gateseq and/or fluxseq**. The waveforms of `gateseq` and `fluxseq` are aligned to their **end time**, as shown in the figure below. To adjust the timing of each sequence, add [`pulselib.delay`](../+pulselib/README.md#class-pulselibdelay--handle) objects when needed.  
+Typical pulsed measurements have a **single measseq** and **multiple gateseq and/or fluxseq**. The waveforms of `gateseq` and `fluxseq` are aligned to their **end time**, as shown in the figure below. To adjust the timing of each sequence, add [`pulselib.delay`](../+pulselib/README.md#class-pulselibdelay--handle) objects when needed.  
 ![gateseq](./gateseq.png)  
 The parameters `startBuffer`, `measBuffer` and `endBuffer` can be used to adjust pulse timing, as illustrated in the figure below.  
 ![waveforms](./waveforms.png)  
-The duration of each pulse sequence is therefore `startBuffer + max([gateseq.totalDuration]) + measBuffer + measpulse.totalDuration + endBuffer`.
+The duration of each pulse sequence is therefore `startBuffer + max([gateseq.totalDuration]) + measBuffer + measseq.totalDuration + endBuffer`.
 
 #### Setting digitizer
 - `cardavg` specifies the number of averages for the digitizer.
@@ -90,8 +111,8 @@ During the measurement the data will be plotted and updated.
 - `intrange` sets the start and stop time for integrating raw data. For example, the following figure shows a T1 measurement with `intrange = [62e-6, 66e-6]` (dashed lines). Changing `intrange` and rerunning `Plot()` will calculate and plot the updated data.  
   ![intrange](./intrange.png)
   
-#### Saving data
-The measured data is stored in a *struct* `result`, which contains the following fields:
+#### Saving/loading data
+For a measurement object `x`, the measured data is stored in a *struct* `x.result`, which contains the following fields:
 - `dataI` (*2D array*): raw data for I channel
 - `dataQ`(*2D array*): raw data for Q channel
 - `ampInt` (*1D array*): demodulated and integrated amplitude
@@ -102,17 +123,21 @@ The measured data is stored in a *struct* `result`, which contains the following
 - `intFreq` (*float*): intermediate frequency
 - `sampleinterval` (*float*): sampling rate for digitizer
 
-Most of the fields will be automatically filled when the measurement finishes and result can be visualized using `Plot` method. To save data, specify
+To save data, use `x.Save()` and the whole measurement object `x`, including `x.result`, will be saved into a .mat file. `x` and `x.pulseCal` will be converted into *structs* so that they do not rely on the definition of classes.
+
+The following properties can be customized for data saving:
 - `savepath` (*string*): path for saving data. When left empty, path will be `C:\Data\`.
 - `savefile` (*string*): file name for saving data. When left empty, file name will be the name of the class and a timestamp, e.g., `T1_20170205151747.mat`.
-- `autosave` (*1/0*): turns on/off auto saving.
+- `autosave` (*1/0*): turns on/off auto saving.  
+
+To load data from a .mat file, use `x = measlib.SmartSweep.Load(filename)`.
 
 ### For developers
 See [pulselib](../+pulselib/README.md) and [pulseCal](../+paramlib/README.md#class-paramlibpulsecal) documents to get familiar with the classes that generates pulse sequences. In short, [`paramlib.pulseCal`](../+paramlib/README.md#class-paramlibpulsecal) provides an interface between gate parameters and gate objects, and [`pulselib.gateSequence`](../+pulselib/README.md#class-pulselibgatesequence--handle) provides an interface between gate objects and AWG waveforms.
 
 The main method is `SetUp`, which is further divided into
 - `UpdateParams`: updates parameters from `self.pulseCal` if it exists.
-- `SetPulse`: calculates the pulse timing based on `gateseq`, `fluxseq`, `measpulse` and ``startBuffer`, `measBuffer`, `endBuffer`.
+- `SetPulse`: calculates the pulse timing based on `gateseq`, `fluxseq`, `measseq` and `startBuffer`, `measBuffer`, `endBuffer`.
 - `SetSweep`: decides the sweep type of each parameter based on its shape. Then sets up values and function handles for each parameter.
 - `InitInstr`: starts relevant instrument and sets parameters for the first sweep.
 - `SetOutput`: sets up function handles for plotting, background subtraction, waveform generation and fills some fields in `result`.
@@ -128,14 +153,14 @@ catch
 end
 
 try
-    seqDuration = max(seqDuration, ...
-                      max([self.fluxseq.totalDuration]));
+    seqDuration = max(seqDuration, max([self.fluxseq.totalDuration]));
 catch
 end
 
 try
-    measDuration = self.measpulse.totalDuration;
+    measDuration = self.measseq.totalDuration;
 catch
+end
 end
 
 self.seqEndTime = self.startBuffer + seqDuration;
@@ -143,7 +168,7 @@ self.measStartTime = self.seqEndTime + self.measBuffer;
 self.waveformEndTime = self.measStartTime + measDuration + self.endBuffer;
 self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
 ```
-These parameters are then used in [SetSweep](./@SmartSweep/SetSweep.m) and [InitInstr](./@SmartSweep/InitInstr.m) methods when setting up function handles for waveform generation:
+These parameters are then used in [SetSweep](./@SmartSweep/SetSweep.m) method when setting up function handles for waveform generation:
 ```matlab
 % In SetSweep.m
 function setgatewav(gateseq)
@@ -159,12 +184,9 @@ function setfluxwav(fluxseq)
                               self.seqEndTime-fluxseq.totalDuration);
 end
 
-% In InitInstr.m
-% Measurement pulse is not in sweep setup because it is always the same
-% Setting it once when initializing pulsegen2.waveform1 is enough
-if ~isempty(self.measpulse)
+function setmeaswav(measseq)
     [pulsegen2.waveform1, ~] ...
-        = self.measpulse.uwWaveforms(self.awgtaxis, self.measStartTime);
+        = measseq.uwWaveforms(self.awgtaxis, self.measStartime);
 end
 ```
 
@@ -301,7 +323,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     *Pulse generation parameters*
     - **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse paramters
     - **gateseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): qubit pulse sequences
-    - **measpulse** (*[pulselib.measPulse](../+pulselib/README.md#class-pulselibmeaspulse--handle) object*): measurement pulse
+    - **measseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): measurement pulse
     - **fluxseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): addition pulse sequence when needed
 
     *Pulse timing parameters*
@@ -339,8 +361,9 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
         - **intFreq** (*float*): intermediate frequency
         - **sampleinterval** (*float*): sampling rate for digitizer
 - **Methods**:
-    - **x = SmartSweep()**: returns a SmartSweep object `x`
+    - **x = SmartSweep()**: returns a *SmartSweep object* `x`
     - **x.SetUp()**: sets up the measurement
     - **x.Run()**: runs the measurement
     - **x.Plot([fignum])**: plots the measured data. If `fignum` is specified, it plots in the corresponding figure window.
     - **x.Save()**: saves the measured data
+	- **x = SmartSweep.Load(filename)** (*static*): loads data from *string* `filename` into *object* `x`.
