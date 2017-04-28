@@ -39,11 +39,11 @@ function Plot(self, fignum)
     self.Integrate();
     self.Normalize();
     subplot(2, 2, 2);
-    plot(1:numRows, self.result.ampInt);
+    plot(self.result.rowAxis, self.result.ampInt);
     title('Amplitude');
     axis tight;
     subplot(2, 2, 4);
-    plot(1:numRows, self.result.phaseInt);
+    plot(self.result.rowAxis, self.result.phaseInt);
     title('Phase');
     axis tight;
 end

@@ -42,7 +42,8 @@ classdef gateSequence < handle
         end
         
         function value = get.totalSequenceDuration(self)
-            % 'totalSequenceDuration' is deprecated. Use 'totalDuration' instead
+            % Deprecated. Use 'totalDuration' instead
+            warning('''totalSequenceDuration'' is deprecated. Use ''totalDuration'' instead.');
             value = self.totalDuration;
         end
         

@@ -8,11 +8,9 @@ classdef SmartSweep < handle
         rffreq = [];  % rfgen frequency
         rfpower = [];  % rfgen power
         rfphase = [];  % rfgen phase
-        rfcw = 1;  % 1: rfgen in continuous mode; 0: rfgen in modulation mode
         specfreq = [];  % specgen frequency
         specpower = [];  % specgen power
         specphase = [];  % specgen phase
-        speccw = 1;  % 1: specgen in continuous mode; 0: specgen in modulation mode
         intfreq = 0;  % Intermediate frequency between logen and rfgen
         lopower = 11;  % logen power
         lophase = [];  % logen phase
@@ -20,18 +18,16 @@ classdef SmartSweep < handle
         fluxfreq = [];
         fluxpower = [];
         fluxphase = [];
-        fluxcw = [];
         spec2freq = [];
         spec2power = [];
         spec2phase = [];
-        spec2cw = [];
         % Yoko sweep params
         yoko1volt = [];  % yoko1 voltage
         yoko2volt = [];  % yoko2 voltage
         % AWG pulse sequence sweeep params
         pulseCal = [];
         gateseq = [];  % gate sequences for pulsegen1 channel1 and channel 2
-        measpulse = [];  % measurement pulse for pulsegen2 channel1
+        measseq = [];  % measurement pulse for pulsegen2 channel1
         fluxseq = [];  % gate sequences for pulsegen2 channel1
         
         % General pulse timing parameters
@@ -128,5 +124,9 @@ classdef SmartSweep < handle
         Plot(self, fignum);
         Integrate(self);
         Normalize(self);
+    end
+
+    methods (Static)
+        obj = Load(filename);
     end
 end

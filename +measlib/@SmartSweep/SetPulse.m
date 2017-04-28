@@ -7,24 +7,12 @@ function SetPulse(self)
     
     if ~isempty(self.pulseCal)
         self.pulseCal.samplingRate = pulsegen1.samplingrate;
-    end
-
-    if isempty(self.measpulse) && ~isempty(self.pulseCal)
-        self.measpulse = self.pulseCal.measurement();
+        self.measseq = pulselib.gateSequence(self.pulseCal.measurement());
     end
     
-    if ~isempty(self.gateseq) && ~isa(self.gateseq, 'pulselib.gateSequence')
-        % Check data type of gateseq
-        error('gateseq must be a gateSequence object.')
-    end
-    if ~isempty(self.fluxseq) && ~isa(self.fluxseq, 'pulselib.gateSequence')
-        % Check data type of fluxseq
-            error('fluxseq must be a gateSequence object.')
-    end
-    if ~isempty(self.measpulse) && ~isa(self.measpulse, 'pulselib.measPulse');
-        % Check data type of measpulse
-        error('measpulse must be a measPulse object.');
-    end
+    checkpulse(self.gateseq);
+    checkpulse(self.fluxseq);
+    checkpulse(self.measseq);
 
     % Append Identity and X180 as last two sequences for normalization
     if self.normalization
@@ -42,13 +30,12 @@ function SetPulse(self)
     end
     
     try
-        seqDuration = max(seqDuration, ...
-                          max([self.fluxseq.totalDuration]));
+        seqDuration = max(seqDuration, max([self.fluxseq.totalDuration]));
     catch
     end
     
     try
-        measDuration = self.measpulse.totalDuration;
+        measDuration = self.measseq.totalDuration;
     catch
     end
     
@@ -57,22 +44,9 @@ function SetPulse(self)
     self.waveformEndTime = self.measStartTime + measDuration + self.endBuffer;
     self.awgtaxis = 0:1/pulsegen1.samplingrate:self.waveformEndTime;
     
-    % Update generator cw flag
-    if ~isempty(self.measpulse)
-        self.rfcw = 0;
-    elseif ~isempty(self.rffreq)
-        self.rfcw = 1;
-    end
-    
-    if ~isempty(self.gateseq)
-        self.speccw = 0;
-    elseif ~isempty(self.specfreq)
-        self.speccw = 1;
-    end
-    
-    if ~isempty(self.fluxseq)
-        self.fluxcw = 0;
-    elseif ~isempty(self.fluxfreq)
-        self.fluxcw = 1;
+    function checkpulse(sequence)
+         if ~isempty(sequence) && isempty(strfind(class(sequence), 'pulselib'))
+             error([inputname(1), ' must be a pulselib object.']);
+         end
     end
 end
