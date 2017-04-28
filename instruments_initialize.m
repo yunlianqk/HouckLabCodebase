@@ -1,4 +1,5 @@
 % Initialize instruments
+% this is a test
 run(['.', filesep(), 'setpath.m']);
 % Turn off 32bit IVI-COM warning
 warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
@@ -22,15 +23,15 @@ specgen = E8267DGenerator(address.specgen);
 
 global logen;
 logen = E8267DGenerator(address.logen);
-
-global pnax;
-pnax = PNAXAnalyzer(address.pnax);
-
-global yoko1;
-yoko1 = YOKOGS200(address.yoko1);
-
-global yoko2;
-yoko2 = YOKOGS200(address.yoko2);
+% 
+% global pnax;
+% pnax = PNAXAnalyzer(address.pnax);
+% 
+% global yoko1;
+% yoko1 = YOKOGS200(address.yoko1);
+% 
+% global yoko2;
+% yoko2 = YOKOGS200(address.yoko2);
 
 global triggen;
 triggen = AWG33250A(address.triggen);
