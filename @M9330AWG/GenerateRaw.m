@@ -33,22 +33,13 @@ function GenerateRaw(self, waveforms, markers)
     device.Arbitrary.Sequence.ClearAll();
     device.Arbitrary.Waveform.ClearAll();
     device.Arbitrary.Waveform.Predistortion.Enabled = false;
-    segments = size(waveforms, 1)/2;
-    wavehandles = zeros(2, segments);
-    for index = 1:segments
-        % Markers need to be fed as a COLUMN vector
-        wavehandles(1, index) ...
-            = device.Arbitrary.Waveform.CreateRaw(waveforms(index,:), ...
-                                                  markers(index, 1:8:end)');
-        wavehandles(2, index) ...
-            = device.Arbitrary.Waveform.CreateRaw(waveforms(index+segments,:), ...
-                                                  markers(index+segments, 1:8:end)');
-    end
+
     for ch = 1:2
         % Set 'Arbitrary' properties
-        sequence = device.Arbitrary.Sequence.Create ...
-                         (wavehandles(ch,:), ones(1,segments));
-        device.Arbitrary.Sequence.Handle(num2str(ch), sequence);
+        % Markers need to be fed as a COLUMN vector
+        wavehandle = device.Arbitrary.Waveform.CreateRaw(waveforms(ch, :), ...
+                                                         markers(ch, 1:8:end)');
+        device.Arbitrary.Waveform.Handle(num2str(ch), wavehandle);
         device.Output.Configuration(num2str(ch), self.OUTPUTCONFIG);
         switch self.OUTPUTCONFIG
             case 0
@@ -63,22 +54,22 @@ function GenerateRaw(self, waveforms, markers)
         device.Output.OperationMode(num2str(ch), 1); % 0 = continuous
                                                      % 1 = burst based on trigger
         device.Output.FilterEnabled(num2str(ch), false);
-    end
-    % Set 'Trigger' properties
-    for ch = 1:2
+        % Set 'Trigger' properties
         device.Trigger.BurstCount(num2str(ch), 1);  % Number of waveform cycles after receiveing a trigger               
         device.Trigger.Source(num2str(ch), 2^self.TRIGINPORT);
     end
     % Set 'Marker' properties
-    device.Marker.ActiveMarker = num2str(self.TRIGOUTPORT);
-    device.Marker.PulseWidth = 100e-9;
-    device.Marker.Source = 10;
-
-    device.Marker.ActiveMarker = num2str(self.MKR1PORT);
-    device.Marker.Source = 2;
-
-    device.Marker.ActiveMarker = num2str(self.MKR2PORT);
-    device.Marker.Source = 4;
+    device.Marker.ActiveMarker = '1';
+    if self.mkrauto
+        device.Marker.PulseWidth = 100e-9;
+        device.Marker.Source = 10;
+    else
+        device.Marker.Source = 2;
+    end
+    for port = 2:4
+        device.Marker.ActiveMarker = num2str(port);
+        device.Marker.Source = port+1;
+    end
 
     self.instrhandle.InitiateGeneration();
 end
