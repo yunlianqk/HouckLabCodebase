@@ -12,12 +12,22 @@ See also [single qubit gate calibration and randomized benchmarking procedure](.
         - [Setting digitizer](#setting-digitizer)
         - [Running measurement](#running-measurement)
         - [Plotting data](#plotting-data)
-        - [Saving/loading data](#saving-loading-data)
+        - [Saving/loading data](#savingloading-data)
     - [For developers](#for-developers)
         - [Pulse timing and generation](#pulse-timing-and-generation)
         - [Setting up sweeps](#setting-up-sweeps)
         - [Adding new sweeps](#adding-new-sweeps)
 - [API specifications](#api-specifications)
+	- [SmartSweep](#class-smartsweep--handle)
+	- [TransSweep](#class-transsweep--smartsweep)
+	- [SpecSweep](#class-specsweep--smartsweep)
+	- [Rabi](#class-rabi--smartsweep)
+	- [T1](#class-t1--smartsweep)
+	- [Ramsey](#class-ramsey--smartsweep)
+	- [Echo](#class-echo--smartsweep)
+	- [RepeatGates](#class-echo--smartsweep)
+	- [AmpCal](#class-ampcal--repeatgates)
+	- [DragCal](#classs-dragcal--smartsweep)
 
 ## Hardware configuration
 The figure below shows the wiring of vector/analogue generators, AWG and acquisition card. The name of matlabs object for each equipment is shown in blue.The AWG **channel 1/2** connects to **wideband I/Q input** ports at the back of E8267D generators. The AWG **marker 2/4** connects to **gate/pulse/trigger input** ports at the front of E8267D generators. **Marker 1 of pulsegen1** connects to the trigger input of acquistion card.
@@ -316,7 +326,6 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     - **rffreq** (*float*): rfgen frequency
     - **rfpower** (*float*): rfgen power
     - **rfphase** (*float*): rfgen phase
-    - **rfcw** (*0/1*): rfgen cw mode
 
     *similar parameters for specgen, logen, fluxgen, yokos, etc.*...
     
@@ -365,5 +374,88 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     - **x.SetUp()**: sets up the measurement
     - **x.Run()**: runs the measurement
     - **x.Plot([fignum])**: plots the measured data. If `fignum` is specified, it plots in the corresponding figure window.
-    - **x.Save()**: saves the measured data
+    - **x.Save([filename])**: saves the measured data
 	- **x = SmartSweep.Load(filename)** (*static*): loads data from *string* `filename` into *object* `x`.
+
+#### *class* TransSweep < measlib.SmartSweep
+- **Properties**:
+	- **rffreq** (*row vector*): frequency ponits for rfgen
+	- **rfpower** (*float*): power for rfgen. In pulse mode, this will be overwritten by `pulseCal.rfPower`.
+	- **intfreq** (*float*): intermediate frequency (i.e., `logen.freq - rfgen.freq`). In pulse mode, this will be overwritten by `pulseCal.intFreq`.
+	- **lopower** (*float*): power for logen. In pulse mode, this will be overwritten by `pulseCal.loPower`.
+	- **bgsubtraction** (*string*): can be `rfonoff` or []
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object, optional*): pulse parameters (needed for pulse mode only)
+	- **qubitGates** (*cell string, optional*): qubit gates applied before measurement pulse, can be {'X180'}, etc. (Needed for pulse mode only)
+- **Methods**:
+	- **x = TransSweep([config])**: returns a *TransSweep object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+
+#### *class* SpecSweep < measlib.SmartSweep
+- **Properties**:
+	- **specfreq** (*row vector*): frequency ponits for specgen
+	- **specpower** (*float*): power for specgen. In pulse mode, this will be overwritten by `pulseCal.specPower`.
+	- **rffreq** (*float*): frequency for rfgen. In pulse mode, this will be overwritten by `pulseCal.cavityFreq`.
+	- **rfpower** (*float*): power for rfgen. In pulse mode, this will be overwritten by `pulseCal.rfPower`.
+	- **intfreq** (*float*): intermediate frequency (i.e., `logen.freq - rfgen.freq`). In pulse mode, this will be overwritten by `pulseCal.intFreq`.
+	- **lopower** (*float*): power for logen. In pulse mode, this will be overwritten by `pulseCal.loPower`.
+	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object, optional*): pulse parameters (needed for pulse mode only)
+	- **qubitGates** (*cell string, optional*): qubit gates applied before measurement pulse, can be {'X180'}, etc. (Needed for pulse mode only)
+- **Methods**:
+	- **x = SpecSweep([config])**: returns a *SpecSweep object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+
+#### *class* Rabi < measlib.SmartSweep
+- **Properties**:
+	- **qubitGates** (*cell string*): qubit gates, default = {'X180'}
+	- **ampVector** (*row vector*): amplitude points for qubit gates
+	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse parameters
+- **Methods**:
+	- **x = Rabi(pulseCal, [config])**: returns a *Rabi object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+	- **x.Fit([fignum])**: fits the result and plots it
+	
+#### *class* T1 < measlib.SmartSweep
+- **Properties**:
+	- **qubitGates** (*cell string*): qubit gates, default = {'X180'}
+	- **delayVector** (*row vector*): delay points for qubit gates
+	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **normalization** (*0/1*): normalization option for readout
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse parameters
+- **Methods**:
+	- **x = T1(pulseCal, [config])**: returns a *T1 object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+	- **x.Fit([fignum])**: fits the result and plots it
+
+#### *class* Ramsey < measlib.SmartSweep
+- **Properties**:
+	- **qubitGates** (*cell string*): qubit gates, default = {'X90'}
+	- **delayVector** (*row vector*): delay points for qubit gates
+	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **normalization** (*0/1*): normalization option for readout
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse parameters
+- **Methods**:
+	- **x = Ramsey(pulseCal, [config])**: returns a *Ramsey object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+	- **x.Fit([fignum])**: fits the result and plots it
+	
+#### *class* Echo < measlib.SmartSweep
+- **Properties**:
+	- **qubitGates** (*cell string*): qubit gates, default = {'X90'}
+	- **echoGates** (*cell string*): echo gates, default = {'X180'}
+	- **delayVector** (*row vector*): delay points for qubit gates
+	- **numfringes** (*float*): number of artifial Ramsey-like fringes, default = 0
+	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **normalization** (*0/1*): normalization option for readout
+	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse parameters
+- **Methods**:
+	- **x = Echo(pulseCal, [config])**: returns an *Echo object* `x`
+	- **x.SetUp(), x.Run(), x.Plot([fignum]), x.Save([filename])**: same as `SmartSweep`
+	- **x.Fit([fignum])**: fits the result and plots it
+	
+#### *class* RepeatGates < measlib.SmartSweep
+
+#### *class* AmpCal < measlib.RepeatGates
+
+#### *class* DragCal < measlib.SmartSweep

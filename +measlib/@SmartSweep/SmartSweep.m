@@ -120,7 +120,7 @@ classdef SmartSweep < handle
         InitInstr(self);
         SetOutput(self);
         Run(self);
-        Save(self);
+        Save(self, filename);
         Plot(self, fignum);
         Integrate(self);
         Normalize(self);
