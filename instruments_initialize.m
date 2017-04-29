@@ -1,9 +1,10 @@
-% Initialize instruments
-% this is a test
+% This is a template for initializing instruments
+
+% Set path and namespace 
 run(['.', filesep(), 'setpath.m']);
 % Turn off 32bit IVI-COM warning
 warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
-
+% Addresses for equipments
 address = struct('rfgen',       'GPIB0::23::0::INSTR', ...
                  'specgen',     'GPIB0::22::0::INSTR', ...
                  'logen',       'GPIB0::19::0::INSTR', ...
@@ -23,15 +24,15 @@ specgen = E8267DGenerator(address.specgen);
 
 global logen;
 logen = E8267DGenerator(address.logen);
-% 
-% global pnax;
-% pnax = PNAXAnalyzer(address.pnax);
-% 
-% global yoko1;
-% yoko1 = YOKOGS200(address.yoko1);
-% 
-% global yoko2;
-% yoko2 = YOKOGS200(address.yoko2);
+
+global pnax;
+pnax = PNAXAnalyzer(address.pnax);
+
+global yoko1;
+yoko1 = YOKOGS200(address.yoko1);
+
+global yoko2;
+yoko2 = YOKOGS200(address.yoko2);
 
 global triggen;
 triggen = AWG33250A(address.triggen);
