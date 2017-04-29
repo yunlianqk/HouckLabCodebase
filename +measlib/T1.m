@@ -20,7 +20,7 @@ classdef T1 < measlib.SmartSweep
         end
         
         function SetUp(self)
-            % Construct pulse sequence
+            % Construct gates
             gates = pulselib.singleGate();
             self.gateseq = pulselib.gateSequence();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)

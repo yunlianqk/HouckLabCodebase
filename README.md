@@ -16,30 +16,35 @@ Equipment-indepdent programs can then be built with these interfaces.
 Update and maintanence of the code will be done through GitHub.
 
 ## Installation and maintanence
-Please use the HouckLab GitHub account:
+All measurement computers use houcklab GitHub account:
 - Username: houcklab
 - Password: "eletrcon charge"
 - Email: houcklabprinceton@gmail.com
 
-or your own GitHub account to access the repository.
+For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first login as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
 
-To download the code, navigate to your destination folder:
-```bash
+![AddUser](./AddUser.png)
+
+After that, log in using your user account and **fork** the repository.
+
+![Fork](./Fork.png)
+
+You should see *HouckLabMeasurementCode* appearing in your repositories. To download the code, navigate to a destination folder and use `git clone`:
+```
 $ cd YourDestFolder
-$ git clone https://github.com/houcklab/HouckLabMeasurementCode.git
+$ git clone https://github.com/YourAccount/HouckLabMeasurementCode.git
 ```
+Then add the houcklab repository as a remote upstream:
+```
+git remote add houcklab https://github.com/houcklab/HouckLabMeasurementCode.git
+```
+Now you should have `origin` as your own forked repository and `houcklab` as the upstream repository. You can use
+```
+git push origin master
+git pull houcklab master
+```
+and so on to sync with remote nodes.
 
-To sync with the lastest version (assuming `origin` is defined as the above repository):
-```bash
-$ git pull origin master
-```
-
-To upload your changes to the repository:
-```bash
-$ git add --all
-$ git commit -m "Some message"
-$ git push origin master
-```
 Check [git cheat sheet](./Reference/git-cheat-sheet.pdf) or any online tutorial to learn more about git.
 
 ## Usage

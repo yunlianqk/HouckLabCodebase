@@ -73,7 +73,7 @@ classdef GPIBINSTR < handle
                 error([class(self), ' object initialization failed. ', ...
                       'Address: ', address]);
             else
-                display([class(self), ' object created.']);
+                disp([class(self), ' object created.']);
             end
         end
         
@@ -82,7 +82,7 @@ classdef GPIBINSTR < handle
             if strcmp(self.instrhandle.Status, 'open')
                 fclose(self.instrhandle);
             end
-            display([class(self), ' object finalized.']);
+            disp([class(self), ' object finalized.']);
         end
         
         function SendCommand(self, command)

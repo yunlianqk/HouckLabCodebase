@@ -56,5 +56,6 @@ classdef U1082ADigitizer < handle
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
         [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
+        s = Info(self); % Display device information
     end
 end

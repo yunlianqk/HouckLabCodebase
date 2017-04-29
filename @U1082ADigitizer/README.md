@@ -77,6 +77,7 @@ The acquistion will terminate if it is completed, or a timeout is reached, which
   * **card.SetParams(cardparams)**: Sets parameters
   * **cardparams = card.GetParams()**: Gets parameters
   * **[IData, QData] = card.ReadIandQ()**: Reads data. `IData` and `QData` are M × N arrays where M = number of segments and N = number of samples
+  * **s = card.Info()**: Displays and returns *string* `s` for instrument information
   * **card.Finalize()**: Closes the instrument
 
 ## Hardware specifications

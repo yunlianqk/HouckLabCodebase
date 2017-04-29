@@ -7,6 +7,13 @@ function InitInstr(self)
     if ~isempty(self.rffreq)
         rfgen.SetFreq(self.rffreq(1));
         rfgen.PowerOn();
+        if ~isempty(self.measseq)
+            rfgen.ModOn();
+            rfcw = 0;
+        else
+            rfgen.ModOff();
+            rfcw = 1;
+        end
     else
         try
             rfgen.PowerOff();
@@ -21,17 +28,16 @@ function InitInstr(self)
     if ~isempty(self.rfphase)
         rfgen.SetPhase(self.rfphase(1));
     end
-      
-    if self.rfcw == 1
-        rfgen.ModOff();
-    elseif self.rfcw == 0
-        rfgen.ModOn();
-    end
     
     % Init specgen
     if ~isempty(self.specfreq)
         specgen.SetFreq(self.specfreq(1));
         specgen.PowerOn();
+        if ~isempty(self.gateseq)
+            specgen.ModOn();
+        else
+            specgen.ModOff();
+        end
     else
         try
             specgen.PowerOff();
@@ -45,12 +51,6 @@ function InitInstr(self)
     
     if ~isempty(self.specphase)
         specgen.SetPhase(self.specphase(1));
-    end
-    
-    if self.speccw == 1
-        specgen.ModOff();
-    elseif self.speccw == 0
-        specgen.ModOn();
     end
     
     % Init logen
@@ -77,6 +77,11 @@ function InitInstr(self)
     if ~isempty(self.spec2freq)
         specgen2.SetFreq(self.spec2freq(1));
         specgen2.PowerOn();
+        if ~isempty(self.fluxseq)
+            specgen2.ModOn();
+        else
+            specgen2.ModOff();
+        end
     else
         try
             specgen2.PowerOff();
@@ -92,16 +97,15 @@ function InitInstr(self)
         specgen2.SetPhase(self.spec2phase(1));
     end
     
-    if self.spec2cw == 1
-        specgen2.ModOff();
-    elseif self.spec2cw == 0
-        specgen2.ModOn();
-    end
-    
     % Init fluxgen
     if ~isempty(self.fluxfreq)
         fluxgen.SetFreq(self.fluxfreq(1));
         fluxgen.PowerOn();
+        if ~isempty(self.fluxseq)
+            fluxgen.ModOn();
+        else
+            fluxgen.ModOff();
+        end
     else
         try
             fluxgen.PowerOff();
@@ -116,13 +120,7 @@ function InitInstr(self)
     if ~isempty(self.fluxphase)
         fluxgen.SetPhase(self.fluxphase(1));
     end
-    
-    if self.fluxcw == 1
-        fluxgen.ModOff();
-    elseif self.fluxcw == 0
-        fluxgen.ModOn();
-    end
-    
+
     % Init yoko1
     if ~isempty(self.yoko1volt)
         yoko1.SetVoltage(self.yoko1volt(1));
@@ -148,9 +146,9 @@ function InitInstr(self)
             = self.gateseq(1).uwWaveforms(self.awgtaxis, ...
               	self.seqEndTime-self.gateseq(1).totalDuration);
     end
-    if ~isempty(self.measpulse)
+    if ~isempty(self.measseq)
         [pulsegen2.waveform1, ~] ...
-            = self.measpulse.uwWaveforms(self.awgtaxis, self.measStartTime);
+            = self.measseq.uwWaveforms(self.awgtaxis, self.measStartTime);
     end
     if ~isempty(self.fluxseq)
         [pulsegen2.waveform2, ~] ...
@@ -158,16 +156,15 @@ function InitInstr(self)
                 self.seqEndTime-self.fluxseq(1).totalDuration);
     end
     
-    pulsegen1.mkr1offset = -64;
-    pulsegen1.mkr2offset = -64;
-    pulsegen2.mkr2offset = -64;    
+    pulsegen1.mkroffset = -64;
+    pulsegen2.mkroffset = -64;
     pulsegen1.Generate();
     pulsegen2.Generate();
     
     % Init card
     cardparams = card.GetParams();
     % Delay time
-    if self.rfcw
+    if rfcw
         % Default value for CW measurement
         delaytime = self.autocarddelay;
     else
@@ -177,23 +174,23 @@ function InitInstr(self)
     delaytime = delaytime + self.carddelayoffset;
     % Acquisition time
     if strcmp(self.cardacqtime, 'auto')
-        if self.rfcw == 1
+        if rfcw == 1
         % Default value for CW measurement
             acqtime = self.autocardacqtime;
-        elseif self.rfcw == 0
+        elseif rfcw == 0
         % Default value for pulsed measurement
-            acqtime = round(self.measpulse.totalDuration/1e-6)*1e-6 + 1e-6;
+            acqtime = round(self.measseq.totalDuration/1e-6)*1e-6 + 1e-6;
         end
     else
         acqtime = self.cardacqtime;
     end
     % Trigger period
     if strcmp(self.trigperiod, 'auto')
-        if self.rfcw == 1
+        if rfcw == 1
         % Default value for CW measurement
             trigperiod = self.autotrigperiod;
-        elseif self.rfcw == 0
-    % Default value for pulsed measurement
+        elseif rfcw == 0
+        % Default value for pulsed measurement
             trigperiod = max(ceil(self.waveformEndTime/1e-6+1)*1e-6, ...
                              round((delaytime+acqtime)/1e-6)*1e-6+4e-6);
         end
