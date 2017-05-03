@@ -29,17 +29,17 @@ pulsegen1.Generate();
 
 % Plot waveforms and markers
 figure(1);
-subplot(2,1,1);
+subplot(2, 1, 1);
 hold off;
 plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform1);
 hold on;
-plot(pulsegen1.timeaxis/1e-6, pulsegen1.marker1, 'r');
+plot(pulsegen1.timeaxis/1e-6, pulsegen1.marker2, 'r');
 title('Channel 1');
 legend('Waveform', 'Marker');
-subplot(2,1,2);
+subplot(2, 1, 2);
 hold off;
 plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform2/max(abs(pulsegen1.waveform2)));
 hold on;
-plot(pulsegen1.timeaxis/1e-6, pulsegen1.marker2, 'r');
+plot(pulsegen1.timeaxis/1e-6, pulsegen1.marker4, 'r');
 xlabel('Time (\mus)');
 title('Channel 2');
