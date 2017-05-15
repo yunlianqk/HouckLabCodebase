@@ -45,29 +45,33 @@ classdef T1 < measlib.SmartSweep
                 fignum = 103;
             end
             self.Integrate();
-            self.Normalize();
             figure(fignum);
-            subplot(2, 1, 1);
-            fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampInt);
-            t1 = fitresult.lambda;
             if self.normalization
-                ylabel('Normalized readout amplitude');
+                self.Normalize();
+                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, ...
+                                           self.result.normAmp);
+                t1 = fitresult.lambda;
+                xlabel('Delay (\mus)');
+                ylabel('Normalized readout');
+                title(['T_1 = ', num2str(t1), ' \mus']);
+                axis tight;
             else
-                ylabel('Readout amplitude');
-            end
-            title(['T_1 = ', num2str(t1), ' \mus']);
-            axis tight;
-            subplot(2, 1, 2);
-            fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-            t1 = fitresult.lambda;
-            if self.normalization
-                ylabel('Normalized readout phase');
-            else
+                subplot(2, 1, 1);
+                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, ...
+                                           self.result.intI);
+                t1 = fitresult.lambda;
+                ylabel('Readout I');
+                title(['T_1 = ', num2str(t1), ' \mus']);
+                axis tight;
+                subplot(2, 1, 2);
+                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, ...
+                                           self.result.intQ);
+                t1 = fitresult.lambda;
+                xlabel('Delay (\mus)');
                 ylabel('Readout phase');
+                title(['T_1 = ', num2str(t1), ' \mus']);
+                axis tight;
             end
-            title(['T_1 = ', num2str(t1), ' \mus']);
-            xlabel('Delay (\mus)');
-            axis tight;
         end
     end
 end

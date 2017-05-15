@@ -87,42 +87,55 @@ classdef CrossAutoRamsey < measlib.SmartSweep
                 fignum = 105;
             end
             self.Integrate();
-            self.Normalize();
             figure(fignum);
-            subplot(2, 1, 1);
-            [freq,mse,amp,freqErr] = funclib.CosFit(self.result.rowAxis/1e-6, self.result.ampInt, self.fringefreq/1e6);
-            self.result.AmpAmp=amp;
-            self.result.Ampfreq=freq;
-            self.result.AmpMSE=mse;
-            self.result.AmpfreqErr=freqErr;
+            % Fit amplitude data
             if self.normalization
-                ylabel('Normalized readout amplitude');
-            else
-                ylabel('Readout amplitude');
-            end
-            title(sprintf('Amplitude: Freq = %.3f \\pm %.3f MHz', freq,freqErr));
-            axis tight;
-            subplot(2, 1, 2);
-            [freq,mse,amp,freqErr] = funclib.CosFit(self.result.rowAxis/1e-6, self.result.phaseInt, self.fringefreq/1e6);
-            self.result.PhaseAmp=amp;  
-            self.result.Phasefreq=freq;
-            self.result.PhaseMSE=mse;
-            self.result.PhasefreqErr=freqErr;
-            if self.normalization
-                ylabel('Normalized readout amplitude');
-            else
-                ylabel('Readout amplitude');
-            end
-            title(sprintf('Phase: Freq = %.3f \\pm %.3f MHz', freq,freqErr));
-            xlabel('Delay (ns)');
-            axis tight;
-            if self.result.AmpMSE < self.result.PhaseMSE
+                self.Normalize();
+                [t2,freq, mse, t2Err, freqErr] = ...
+                    funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.normAmp);%,self.fringefreq/1e6);
+                self.result.NormAmpt2Err = t2Err;
+                self.result.NormAmpfreq = freq;
+                self.result.NormAmpMSE = mse;
+                self.result.NormAmpfreqErr = freqErr;
+                self.result.NormAmpt2=t2;
+                ylabel('Normalized readout');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                axis tight;
                 self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
-                                      - self.result.Ampfreq*1e6;
+                    - self.result.NormAmpfreq*1e6;
             else
-                self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
-                                      - self.result.Phasefreq*1e6;
-            end
+                subplot(2, 1, 1);
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI);
+                ylabel('Readout I');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                self.result.It2Err = t2Err;
+                self.result.Ifreq = freq;
+                self.result.IMSE = mse;
+                self.result.IfreqErr = freqErr;
+                self.result.It2=t2;
+                axis tight;
+                %
+                subplot(2, 1, 2);
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ);
+                ylabel('Readout Q');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                axis tight;
+                self.result.Qt2Err = t2Err;
+                self.result.Qfreq = freq;
+                self.result.QMSE = mse;
+                self.result.QfreqErr = freqErr;
+                self.result.Qt2=t2;
+                % Choose I or Q by comparing their error
+                if self.result.IMSE < self.result.QMSE
+                    self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
+                        - self.result.Ifreq*1e6;
+                else
+                    self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
+                        - self.result.Qfreq*1e6;
+                end
+            end    
         end
     end
 end

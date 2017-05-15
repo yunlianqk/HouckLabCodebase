@@ -30,7 +30,7 @@ classdef AmpCal < measlib.RepeatGates
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            fitResult = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.ampInt);
+            fitResult = funclib.AmplitudeZigZagFit(self.repeatVector, self.result.normAmp);
             self.result.newAmp = fitResult.updateFactor ...
                                  *self.pulseCal.([self.repeatGates{1}, 'Amplitude']);
             xlabel('Number of gates');

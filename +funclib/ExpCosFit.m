@@ -51,7 +51,7 @@ catch
     mse1=100; % high number
 end
 % repeat with phase offset pi
-beta0(4)=pi;
+beta0(5)=pi;
 try
 %     [coeff,~,~,~,mse] = nlinfit(axis, data, @ExpCos_beta, beta0);
     [coeff2,mse2,resid2,~,~,~,J2]=lsqcurvefit( @ExpCos_beta,beta0,axis, data,lb,ub,options );
