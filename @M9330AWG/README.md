@@ -38,8 +38,8 @@ pulsegen.Generate();
 - If `timeaxis` is not in the sampling rate of the instrument, the waveforms and timeaxis will be interpolated to fit the hardware sampling rate.
 - Zeros will be added to the end of waveforms if the number of points are not multiple of 8.
 - The maximum output voltage (corresponding to waveform value = 1) is determined by the property **OUTPUTCONFIG** (default = 2) and also frequency dependent:
-    - OUTPUTCONFIG = 0: Differential output, max amplitude = 0.34 to 0.5 V
-    - OUTPUTCONFIG = 1: Single-ended output, max amplitude = 0.17 to 0.25 V
+    - OUTPUTCONFIG = 0: Single-ended output, max amplitude = 0.17 to 0.25 V
+    - OUTPUTCONFIG = 1: Differential output, max amplitude = 0.34 to 0.5 V
     - OUTPUTCONFIG = 2: Amplified single-ended output, max amplitude = 0.34 to 0.5 V
  
 ### <a name="sync"/>Multiple Module Synchronization

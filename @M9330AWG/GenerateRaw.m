@@ -43,10 +43,13 @@ function GenerateRaw(self, waveforms, markers)
         device.Output.Configuration(num2str(ch), self.OUTPUTCONFIG);
         switch self.OUTPUTCONFIG
             case 0
-                device.Arbitrary.Gain(num2str(ch), 0.5);
-            case 1
+                % Single-ended output
                 device.Arbitrary.Gain(num2str(ch), 0.25);
+            case 1
+                % Differential output
+                device.Arbitrary.Gain(num2str(ch), 0.5);
             case 2
+                % Amplified single-ended output
                 device.Arbitrary.Gain(num2str(ch), 0.5);    
         end
         % Set 'Output' properties
