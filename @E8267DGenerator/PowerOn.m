@@ -1,4 +1,4 @@
-function PowerOn(gen)
+function PowerOn(self)
 % Turn on power
-    fprintf(gen.instrhandle, 'OUTPut 1');
+    fprintf(self.instrhandle, 'OUTPut 1');
 end

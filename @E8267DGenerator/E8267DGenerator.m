@@ -2,116 +2,165 @@ classdef E8267DGenerator < GPIBINSTR
 % Contains paramaters and methods for E8267D vector generator
 
     properties
-        freq;
-        power;
-        phase;
-        output;
-        modulation;
-        iq;
-        pulse;
-        alc;
+        freq;  % Frequency in Hz
+        power;  % Power in dBm
+        phase;  % Phase in radian
+        output;  % Output on/off
+        modulation;  % Modulation on/off
+        iq;  % IQ modulation on/off
+        iqadjust;  % IQ adjustment on/off
+        ioffset;  % I offset in volts
+        qoffset;  % Q offset in volts
+        pulse;  % Pulse modulation on/off
+        alc;  % ALC on/off
     end
     methods
-        function gen = E8267DGenerator(address)
-            gen = gen@GPIBINSTR(address);
+        function self = E8267DGenerator(address)
+            self = self@GPIBINSTR(address);
         end
-        function set.freq(gen, freq)
-            SetFreq(gen, freq);
+        function set.freq(self, freq)
+            SetFreq(self, freq);
         end
-        function set.power(gen, power)
-            SetPower(gen, power);
+        function set.power(self, power)
+            SetPower(self, power);
         end
-        function set.phase(gen, phase)
-            SetPhase(gen, phase);
+        function set.phase(self, phase)
+            SetPhase(self, phase);
         end
-        function set.output(gen, output)
-            if output
-                gen.PowerOn();
+        function set.output(self, state)
+            if state
+                self.PowerOn();
             else
-                gen.PowerOff();
+                self.PowerOff();
             end
         end
-        function set.modulation(gen, mod)
-            if mod
-                fprintf(gen.instrhandle, 'OUTPut:MODulation 1');
+        function set.modulation(self, state)
+            if state
+                fprintf(self.instrhandle, 'OUTPut:MODulation 1');
             else
-                fprintf(gen.instrhandle, 'OUTPut:MODulation 0');
+                fprintf(self.instrhandle, 'OUTPut:MODulation 0');
             end
         end
-        function set.iq(gen, iq)
-            if strfind(gen.Info(), 'E8267D')
+        function set.iq(self, state)
+            if strfind(self.Info(), 'E8267D')
             % Only E8267D has wideband I/Q modulation
-                if iq
-                    fprintf(gen.instrhandle, 'WDM:STATe 1');
+                if state
+                    fprintf(self.instrhandle, 'WDM:STATe 1');
                 else
-                    fprintf(gen.instrhandle, 'WDM:STATe 0');
+                    fprintf(self.instrhandle, 'WDM:STATe 0');
                 end
             end
         end
-        function set.pulse(gen, pulse)
-            if pulse
-                fprintf(gen.instrhandle, 'PULM:STATe 1');
-            else
-                fprintf(gen.instrhandle, 'PULM:STATe 0');
+        function set.iqadjust(self, state)
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                if state
+                    fprintf(self.instrhandle, 'WDM:IQADjustment 1');
+                else
+                    fprintf(self.instrhandle, 'WDM:IQADjustment 0');
+                end
             end
         end
-        function set.alc(gen, alc)
-            if alc
-                fprintf(gen.instrhandle, 'POWer:ALC 1');
+        function set.ioffset(self, offset)
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                fprintf(self.instrhandle, 'WDM:IQADjustment:IOFFset %f', offset);
+            end
+        end
+        function set.qoffset(self, offset)
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                fprintf(self.instrhandle, 'WDM:IQADjustment:QOFFset %f', offset);
+            end
+        end
+        function set.pulse(self, state)
+            if state
+                fprintf(self.instrhandle, 'PULM:STATe 1');
             else
-                fprintf(gen.instrhandle, 'POWer:ALC 0');
+                fprintf(self.instrhandle, 'PULM:STATe 0');
+            end
+        end
+        function set.alc(self, state)
+            if state
+                fprintf(self.instrhandle, 'POWer:ALC 1');
+            else
+                fprintf(self.instrhandle, 'POWer:ALC 0');
             end
         end
         
-        function freq = get.freq(gen)
-            freq = GetFreq(gen);
+        function freq = get.freq(self)
+            freq = GetFreq(self);
         end
-        function power = get.power(gen)
-            power = GetPower(gen);
+        function power = get.power(self)
+            power = GetPower(self);
         end
-        function phase = get.phase(gen)
-            phase = GetPhase(gen);
+        function phase = get.phase(self)
+            phase = GetPhase(self);
         end
-        function output = get.output(gen)
-            fprintf(gen.instrhandle, 'OUTPut?');
-            output = fscanf(gen.instrhandle, '%d');
+        function state = get.output(self)
+            fprintf(self.instrhandle, 'OUTPut?');
+            state = fscanf(self.instrhandle, '%d');
         end
-        function mod = get.modulation(gen)
-            fprintf(gen.instrhandle, 'OUTPut:MODulation?');
-            mod = fscanf(gen.instrhandle, '%d');
+        function state = get.modulation(self)
+            fprintf(self.instrhandle, 'OUTPut:MODulation?');
+            state = fscanf(self.instrhandle, '%d');
         end
-        function iq = get.iq(gen)
-            iq = 0;
-            if strfind(gen.Info(), 'E8267D')
+        function state = get.iq(self)
+            state = 0;
+            if strfind(self.Info(), 'E8267D')
             % Only E8267D has wideband I/Q modulation
-                fprintf(gen.instrhandle, 'WDM:STATe?');
-                iq = fscanf(gen.instrhandle, '%d');
+                fprintf(self.instrhandle, 'WDM:STATe?');
+                state = fscanf(self.instrhandle, '%d');
             end
         end
-        function pulse = get.pulse(gen)
-            fprintf(gen.instrhandle, 'PULM:STATe?');
-            pulse = fscanf(gen.instrhandle, '%d');
+        function state = get.iqadjust(self)
+            state = 0;
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                fprintf(self.instrhandle, 'WDM:IQADjustment?');
+                state = fscanf(self.instrhandle, '%d');
+            end
         end
-        function alc = get.alc(gen)
-            fprintf(gen.instrhandle, 'POWer:ALC?');
-            alc = fscanf(gen.instrhandle, '%d');
+        function offset = get.ioffset(self)
+            offset = 0;
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                fprintf(self.instrhandle, 'WDM:IQADjustment:IOFFset?');
+                offset = fscanf(self.instrhandle, '%f');
+            end
+        end
+        function offset = get.qoffset(self)
+            offset = 0;
+            if strfind(self.Info(), 'E8267D')
+            % Only E8267D has wideband I/Q modulation
+                fprintf(self.instrhandle, 'WDM:IQADjustment:QOFFset?');
+                offset = fscanf(self.instrhandle, '%f');
+            end
+        end
+        function state = get.pulse(self)
+            fprintf(self.instrhandle, 'PULM:STATe?');
+            state = fscanf(self.instrhandle, '%d');
+        end
+        function state = get.alc(self)
+            fprintf(self.instrhandle, 'POWer:ALC?');
+            state = fscanf(self.instrhandle, '%d');
         end
         % Declaration of all other methods
         % Each method is defined in a separate file        
-        SetFreq(gen, freq);
-        SetPower(gen, power);
-        SetPhase(gen, phase);
+        SetFreq(self, freq);
+        SetPower(self, power);
+        SetPhase(self, phase);
         
-        freq = GetFreq(gen);
-        power = GetPower(gen);
-        phase = GetPhase(gen);
+        freq = GetFreq(self);
+        power = GetPower(self);
+        phase = GetPhase(self);
         
-        PowerOn(gen);
-        PowerOff(gen);
+        PowerOn(self);
+        PowerOff(self);
         
-        ModOn(gen);
-        ModOff(gen);
+        ModOn(self);
+        ModOff(self);
         
-        ShowError(gen);
+        ShowError(self);
     end
 end

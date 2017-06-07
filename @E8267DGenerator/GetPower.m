@@ -1,5 +1,5 @@
-function power = GetPower(gen)
+function power = GetPower(self)
 % Get power
-    fprintf(gen.instrhandle, 'POWer?');
-    power = fscanf(gen.instrhandle, '%f');
+    fprintf(self.instrhandle, 'POWer?');
+    power = fscanf(self.instrhandle, '%f');
 end

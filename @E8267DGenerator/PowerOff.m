@@ -1,4 +1,4 @@
-function PowerOff(gen)
+function PowerOff(self)
 % Turn off power
-    fprintf(gen.instrhandle, 'OUTPut 0');
+    fprintf(self.instrhandle, 'OUTPut 0');
 end
