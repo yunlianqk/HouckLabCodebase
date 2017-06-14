@@ -2,6 +2,8 @@ function genseq = GenStrings_(Gens, Gensstring, Gate, numberofqubits)
 % Find the primitive gate decomposition of a Clifford gate
 % Return a cellstr that contains the names of the decomposition gates
 % This does not scale and there is a better way to do this -- in david's paper
+% The product of the primitive gates and the Clifford gate can differ by a
+% factor of -1
 
     d = 2^numberofqubits;
     inputgate = eye(d);
