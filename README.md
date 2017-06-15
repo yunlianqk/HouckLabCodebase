@@ -21,7 +21,7 @@ All measurement computers use houcklab GitHub account:
 - Password: "eletrcon charge"
 - Email: houcklabprinceton@gmail.com
 
-For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first login as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
+For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first log in as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
 
 ![AddUser](./AddUser.png)
 
@@ -44,6 +44,12 @@ git push origin master
 git pull houcklab master
 ```
 and so on to sync with remote nodes.
+
+When writing **commit messages**, please include your name and a short title, followed by a new line and more detailed information, e.g.
+
+> YourName - Update measlib
+
+> Update +measlib/README.md and ExampleCode/ExampleCode_measlib.m
 
 Check [git cheat sheet](./Reference/git-cheat-sheet.pdf) or any online tutorial to learn more about git.
 

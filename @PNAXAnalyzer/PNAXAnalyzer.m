@@ -79,4 +79,7 @@ classdef PNAXAnalyzer < GPIBINSTR
         UpdatePsweepParams(pnax, oldparams, newparams);
         psweepparams = GetPsweepParams(pnax);
     end
+    methods (Hidden)
+        Explode(~);
+    end
 end

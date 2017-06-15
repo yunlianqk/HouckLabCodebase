@@ -62,6 +62,15 @@ The on-card averaging is set by the parameter `NbrRoundRobins` in the low-level 
 ### Multi segment mode
 Multi segment acquisition can be activated by setting `card.params.segments` to greater than 1. After receiving a trigger, the digitizer will store the data into the next segment. Maximum number of segments is 8191. If `card.params.averages` is non-zero, the on-card averaging will be in "round of robin" mode. Auto software averaging is not implemented for multi segment mode, so maximum average is 65536.
 
+### Synchronizing with trigger/AWG
+In multi segment mode, the digitizer often needs to be synchronized with trigger source or AWG, so that their first segments are the aligned. This can be done using `WaitTrigger` method.
+```matlab
+pulsegen1.Stop();  % Make sure AWG or trigger source is stopped
+card.WaitTrigger();  % Card in "wait trigger" mode
+pulsegen1.Generate();  % Start AWG or trigger source
+[Idata, Qdata] = card.ReadIandQ();  % Fetch data from card
+```
+
 ### Timeout
 The acquistion will terminate if it is completed, or a timeout is reached, whichever happens first. To ensure a normal completion of acquisition, make sure **trigger period > (delaytime + sampleinterval × numsamples)** so that the current acquistion is finished before the next trigger arrives.
 
@@ -76,6 +85,7 @@ The acquistion will terminate if it is completed, or a timeout is reached, which
   * **card = U1082ADigitizer(address)**: Opens the instrument with `address` and returns a `card` object
   * **card.SetParams(cardparams)**: Sets parameters
   * **cardparams = card.GetParams()**: Gets parameters
+  * **card.WaitTrigger()**: Starts the acquisition and waits for the trigger
   * **[IData, QData] = card.ReadIandQ()**: Reads data. `IData` and `QData` are M × N arrays where M = number of segments and N = number of samples
   * **s = card.Info()**: Displays and returns *string* `s` for instrument information
   * **card.Finalize()**: Closes the instrument

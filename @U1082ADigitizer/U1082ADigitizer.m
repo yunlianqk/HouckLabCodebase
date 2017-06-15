@@ -9,7 +9,9 @@ classdef U1082ADigitizer < handle
         params;     % Parameters for digitizer
     end
     properties (Access = private)
-        AqReadParameters;   % Internal struct for ReadIandQ() method
+        AqReadParameters;  % Internal struct for ReadIandQ() method
+        waittrig = 0;  % Set to 1 when waiting for trigger.
+                       % Need this to synchronize multi-segment acquisition
         maxAvg = 65536;  % Maximum on-card averages
         maxSeg = 8191;   % Maximun segments
     end
@@ -55,6 +57,7 @@ classdef U1082ADigitizer < handle
         Finalize(self);	% Close card
         SetParams(self, params);	% Set card parameters
         params = GetParams(self);	% Get card parameters
+        WaitTrigger(self);  % Wait for trigger
         [IData, QData] = ReadIandQ(self);	% Acquire data from two channels
         s = Info(self); % Display device information
     end
