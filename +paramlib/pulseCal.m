@@ -15,7 +15,6 @@ classdef pulseCal
         buffer = 4e-9; % extra time beyond the cutoff to separate gates.  this is the total buffer, so half before and half after.
         % measurement pulse properties
         cavityFreq = 5.81015e9;
-%         cavityFreq = 5.812e9;
         cavityAmplitude = 0.1;
         rfPower = -60;
         intFreq = 0;
@@ -44,11 +43,6 @@ classdef pulseCal
         X180DragAmplitude = 0;
         Xm180Amplitude = 1;
         Xm180DragAmplitude = 0;
-%         YAzimuth = pi/2;
-        X90Azimuth = 0;
-        X180Azimuth = 0;
-        Y90Azimuth = pi/2;
-        Y180Azimuth = pi/2;
         Y90Amplitude = .5;
         Y90DragAmplitude = 0;
         Ym90Amplitude = .5;
@@ -57,6 +51,14 @@ classdef pulseCal
         Y180DragAmplitude = 0;
         Ym180Amplitude = 1;
         Ym180DragAmplitude = 0;
+        X90Azimuth = 0;
+        X180Azimuth = 0;
+        Y90Azimuth = pi/2;
+        Y180Azimuth = pi/2;
+        Xm90Azimuth = pi;
+        Xm180Azimuth = pi;
+        Ym90Azimuth = -pi/2;
+        Ym180Azimuth = -pi/2;
     end
 
     methods
@@ -89,7 +91,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Xm90Amplitude;
             pulseObj.dragAmplitude = obj.Xm90DragAmplitude;
-            pulseObj.azimuth = obj.X90Azimuth+pi;
+            pulseObj.azimuth = obj.Xm90Azimuth;
         end
         function pulseObj = X180(obj)
             pulseObj = pulselib.singleGate('X180');
@@ -107,7 +109,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Xm180Amplitude;
             pulseObj.dragAmplitude = obj.Xm180DragAmplitude;
-            pulseObj.azimuth = obj.X180Azimuth+pi;
+            pulseObj.azimuth = obj.Xm180Azimuth;
         end
         function pulseObj = Y90(obj)
             pulseObj = pulselib.singleGate('Y90');
@@ -125,7 +127,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym90Amplitude;
             pulseObj.dragAmplitude = obj.Ym90DragAmplitude;
-            pulseObj.azimuth = obj.Y90Azimuth+pi;
+            pulseObj.azimuth = obj.Ym90Azimuth;
         end
         function pulseObj = Y180(obj)
             pulseObj = pulselib.singleGate('Y180');
@@ -143,7 +145,7 @@ classdef pulseCal
             pulseObj.buffer = obj.buffer;
             pulseObj.amplitude = obj.Ym180Amplitude;
             pulseObj.dragAmplitude = obj.Ym180DragAmplitude;
-            pulseObj.azimuth = obj.Y180Azimuth+pi;
+            pulseObj.azimuth = obj.Ym180Azimuth;
         end
         function pulseObj = measurement(obj)
             pulseObj = pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
