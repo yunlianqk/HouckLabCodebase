@@ -1,6 +1,13 @@
 # Holzworth HS9000 RF Synthesizers
 ## Usage
 ### Open instrument
+To find the address of the instrument,
+```matlab
+devices = HolzworthHS9000.FindDevices();
+```
+`device` will be a string containing addresses of the currently connected devices.
+
+To open the instrument,
 ```matlab
 address = 'HS9004A-527-1'; % Address format: model-serial-channel
 rfgen = HolzworthHS9000(address);

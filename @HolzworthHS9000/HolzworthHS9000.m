@@ -34,27 +34,14 @@ classdef HolzworthHS9000 < handle
     
     properties (Hidden, SetAccess = private)
         channel; % Channel number
-        lib = 'HolzworthMulti'; % Alias for the loaded library
     end
 
     methods
         function self = HolzworthHS9000(address)
             % Initialize instrument
             self.address = address;
-            % If necessary, load the library
-            % The .dll, .h and HolzworthProto.m files are in ..\drivers\Holzworth
-            if ~libisloaded(self.lib)
-                switch computer()
-                    % The driver supports 32 or 64 bit Windows system
-                    case 'PCWIN64'
-                        libname = 'HolzworthMulti64.dll';
-                    case 'PCWIN'
-                        libname = 'HolzworthMulti32.dll';
-                    otherwise
-                        error('Your platform is not supported')
-                end
-                loadlibrary(libname, @HolzworthProto, 'alias', self.lib);
-            end
+            % Load driver library
+            self.LoadDriver();
             % Try connection
             success = calllib(self.lib, 'openDevice', address);
             if success > 0
@@ -141,7 +128,7 @@ classdef HolzworthHS9000 < handle
         end
         
         function set.modulation(self, mod)
-            switch lower(mod) %put mod in lowercase
+            switch lower(mod) % put mod in lowercase
                 case {1, 'on'}
                     % for now Pulse modulation is hardcoded here
                     % the instrument has AM, FM, Phase modulation options too
@@ -159,9 +146,12 @@ classdef HolzworthHS9000 < handle
         
         function set.alc(~, ~)
             % Not supported by hardware
+            % A place holder to make it compatible with E8267D generator
         end
         
         function alc = get.alc(~)
+            % Not supported by hardware
+            % A place holder to make it compatible with E8267D generator
             alc = 0;
         end
         
@@ -224,11 +214,44 @@ classdef HolzworthHS9000 < handle
         ModOn(self);
         ModOff(self);
     end
-    
+
     methods (Static)
         function devices = FindDevices()
             % Returns a string containing all connected instruments
-            devices = calllib('HolzworthMulti', 'getAttachedDevices');
+            HolzworthHS9000.LoadDriver();
+            devices = calllib(HolzworthHS9000.lib, 'getAttachedDevices');
+        end
+    end
+    
+    methods (Static, Hidden)
+        % Define the alias for the driver library as a static property
+        function lib = lib()
+            lib = 'HolzworthMulti';
+        end
+        
+        function LoadDriver()
+        % Load the drive library if necessary
+        % The .dll, .h and HolzworthProto.m files are in ..\drivers
+        % And added to path in ..\setpath.m
+            if ~libisloaded(HolzworthHS9000.lib)
+                switch computer()
+                    % The driver supports 32 or 64 bit Windows system
+                    case 'PCWIN64'
+                        libname = 'HolzworthMulti64.dll';
+                    case 'PCWIN'
+                        libname = 'HolzworthMulti32.dll';
+                    otherwise
+                        error('Your platform is not supported')
+                end
+            loadlibrary(libname, @HolzworthProto, 'alias', HolzworthHS9000.lib);
+            end
+        end
+        
+        function UnloadDriver()
+            % Unload the driver library
+            if libisloaded(HolzworthHS9000.lib)
+                unloadlibrary(HolzworthHS9000.lib);
+            end
         end
     end
 end

@@ -18,6 +18,11 @@ for index = 1:length(varlist)
     end
 end
 
+% Unload Holzworth driver library
+if ismember('HolzworthHS9000', instrlist)
+    HolzworthHS9000.UnloadDriver();
+end
+
 % Final house keeping
 instrlist = instrfind();
 if (~isempty(instrlist))
