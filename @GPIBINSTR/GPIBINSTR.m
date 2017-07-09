@@ -65,15 +65,15 @@ classdef GPIBINSTR < handle
                 catch
                 end
                 
-                % Tried everything, exit loop with u
+                % Tried everything, exit loop with success = 0
                 break;
             end
             % Display some info
-            if ~success
+            if success
+                disp([class(self), ' object created.']);
+            else
                 error([class(self), ' object initialization failed. ', ...
                       'Address: ', address]);
-            else
-                disp([class(self), ' object created.']);
             end
         end
         
