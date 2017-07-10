@@ -1,14 +1,13 @@
-classdef CrossAutoRamsey < measlib.SmartSweep
+classdef CrossFreqCal < measlib.SmartSweep
     
     properties
         qubitGates = {'X90'};
         fringefreq=50e6;
         delayVector = linspace(0, 100e-9, 101);
-        pulseCal2;
     end
     
     methods
-        function self = CrossAutoRamsey(pulseCal, pulseCal2, config)
+        function self = CrossFreqCal(pulseCal, pulseCal2, config)
             if nargin == 2
                 config = [];
             end
@@ -18,25 +17,11 @@ classdef CrossAutoRamsey < measlib.SmartSweep
         end
         
         function SetUp(self)
-            % Update params from pulseCal
-            % PulseCal is target and PulseCal2 is control
-            self.specfreq = self.pulseCal.qubitFreq;
-            self.specpower = self.pulseCal.specPower;
-            self.spec2freq = self.pulseCal2.qubitFreq;
-            self.spec2power = self.pulseCal2.specPower;
-            self.rffreq = self.pulseCal.cavityFreq;
-            self.rfpower = self.pulseCal.rfPower;
-            self.intfreq = self.pulseCal.intFreq;
-            self.lopower = self.pulseCal.loPower;
-            self.startBuffer = self.pulseCal.startBuffer;
-            self.measBuffer = self.pulseCal.measBuffer;
-            self.endBuffer = self.pulseCal.endBuffer;
-            self.cardavg = self.pulseCal.cardAvg;
-            self.carddelayoffset = self.pulseCal.cardDelayOffset;
+            % Turn off DRAG when calibrating frequency
+            self.pulseCal.([self.qubitGates{1}, 'DragAmplitude']) = 0;
             % Construct qubit gates
             X180 = self.pulseCal2.X180();
-            Id = self.pulseCal.Identity();
-            % Construct qubit gates
+            Id = self.pulseCal2.Identity();
             startgates = pulselib.singleGate();
             endgates = pulselib.singleGate();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
@@ -45,38 +30,33 @@ classdef CrossAutoRamsey < measlib.SmartSweep
             for col = 1:length(self.qubitGates)
                 startgates(col) = self.pulseCal.(self.qubitGates{col});
             end
-             % Vary azimuth angle of the last gates to introduce Ramsey-like fringes
-            if self.fringefreq
-                azimuthVector = linspace(0, 2*pi*self.fringefreq*self.delayVector(end), length(self.delayVector));
-            else
-                azimuthVector = zeros(1, length(self.delayVector));
-            end
-
             % Construct sequences
             self.gateseq = pulselib.gateSequence();
-            self.fluxseq = pulselib.gateSequence();
+            self.gateseq2 = pulselib.gateSequence();
             for row = 1:length(self.delayVector)
                 delay = self.delayVector(row);
-                % Start qubit gates
-                %self.gateseq(row) = pulselib.gateSequence(Id); % what is the purpose of this gate?
+                % Qubit 1 (target) sequence
+                % Append start gates
                 self.gateseq(row) = pulselib.gateSequence(startgates);
                 % Append delay
                 self.gateseq(row).append(pulselib.delay(delay));
-                %self.gateseq(row).append(startgates);
-                %self.gateseq(row).append(Id);
-                
-                % Append qubit gates again
+                % Append end gates with varying azimuth
                 for col = 1:length(self.qubitGates)
                     endgates(col) = self.pulseCal.(self.qubitGates{col});
-                    endgates(col).amplitude = endgates(col).amplitude;
-                    endgates(col).azimuth = azimuthVector(row);
+                    endgates(col).azimuth = 2*pi*self.fringefreq*self.delayVector(row);
                 end
                 self.gateseq(row).append(endgates);
+                % Append pulseCal2.Identity to make timing correct
                 self.gateseq(row).append(Id);
-                
-                self.fluxseq(row) = pulselib.gateSequence(X180);
-                self.fluxseq(row).append(pulselib.delay(delay+sum(startgates.totalDuration)+sum(endgates.totalDuration))); %is this correct?
-                self.fluxseq(row).append(X180);
+                % Qubit 2 (control) sequence
+                % Append pi pulse
+                self.gateseq2(row) = pulselib.gateSequence(X180);
+                % Append delay + duration of (start gates + end gates)
+                self.gateseq2(row).append(pulselib.delay(delay + ...
+                                                         sum(startgates.totalDuration) + ...
+                                                         sum(endgates.totalDuration)));
+                % Append pi pulse
+                self.gateseq2(row).append(X180);
             end
             self.result.rowAxis = self.delayVector;
             SetUp@measlib.SmartSweep(self);
