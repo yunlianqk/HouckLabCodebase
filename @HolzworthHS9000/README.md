@@ -39,7 +39,7 @@ rfgen.ModOn();
 ```
 
 ## Class definition
-#### *class* E8267DGenerator < GPIBINSTR
+#### *class* HolzworthHS9000 < handle
 * **Properties**: 
   * **address** (*string*): Address of the instrument
   * **frequency** (*float*): Frequency (in Hz) of the signal
