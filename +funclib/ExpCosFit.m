@@ -1,6 +1,6 @@
 function  [lambda, freq,mse,lambdaErr,freqErr] = ExpCosFit(axis, data, varargin)
 % Exponentially decaying cosine fit
-
+%this function does not work well when there is only 1 cycle
 % Construct initial guess for parameters
 datamax = max(data);
 datamin = min(data);
@@ -40,8 +40,8 @@ catch
 end    
 beta0 = [amp_guess, lambda_guess, offset_guess, freq_guess, 0];
 % Fit data
-lb=[0.5*amp_guess,0.2,datamin,max(freq_guess-18,0),0]; %lambda in us
-ub=[1.5*amp_guess,40,datamax,freq_guess+18,2*pi];
+lb=[0.5*amp_guess,0.2,datamin,max(freq_guess-8,0),0]; %lambda in us
+ub=[1.5*amp_guess,40,datamax,freq_guess+8,2*pi];
 options = optimoptions('lsqcurvefit','TolFun',1e-6);
 try
 %     [coeff,~,~,~,mse] = nlinfit(axis, data, @ExpCos_beta, beta0);
