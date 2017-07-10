@@ -1,137 +1,55 @@
 function InitInstr(self)
 
-    global rfgen specgen logen specgen2 fluxgen ...
+    global rfgen specgen logen rfgen2 specgen2 logen2 fluxgen ...
            yoko1 yoko2 pulsegen1 pulsegen2 card triggen;
-    
-    % Init rfgen
-    if ~isempty(self.rffreq)
-        rfgen.SetFreq(self.rffreq(1));
-        rfgen.PowerOn();
-        if ~isempty(self.measseq)
-            rfgen.ModOn();
-            rfcw = 0;
-        else
-            rfgen.ModOff();
-            rfcw = 1;
-        end
-    else
-        try
-            rfgen.PowerOff();
-        catch
-        end
-    end
-    
-    if ~isempty(self.rfpower)
-        rfgen.SetPower(self.rfpower(1));
-    end
-    
-    if ~isempty(self.rfphase)
-        rfgen.SetPhase(self.rfphase(1));
-    end
-    
-    % Init specgen
-    if ~isempty(self.specfreq)
-        specgen.SetFreq(self.specfreq(1));
-        specgen.PowerOn();
-        if ~isempty(self.gateseq)
-            specgen.ModOn();
-        else
-            specgen.ModOff();
-        end
-    else
-        try
-            specgen.PowerOff();
-        catch
-        end
-    end
-    
-    if ~isempty(self.specpower)
-        specgen.SetPower(self.specpower(1));
-    end
-    
-    if ~isempty(self.specphase)
-        specgen.SetPhase(self.specphase(1));
-    end
-    
-    % Init logen
-    if ~isempty(self.intfreq)
-        logen.SetFreq(self.rffreq(1)+self.intfreq(1));
-        logen.ModOff();
-        logen.PowerOn();
-    else
-        try
-            logen.PowerOff();
-        catch
-        end
-    end
-    
-    if ~isempty(self.lopower)
-        logen.SetPower(self.lopower(1));
-    end
-    
-    if ~isempty(self.lophase)
-        logen.SetPhase(self.lophase(1));
-    end
 
-    % Init specgen2
-    if ~isempty(self.spec2freq)
-        specgen2.SetFreq(self.spec2freq(1));
-        specgen2.PowerOn();
-        if ~isempty(self.fluxseq)
-            specgen2.ModOn();
+    % Initialize generators
+    gen = {rfgen, specgen, rfgen2, specgen2, fluxgen, logen, logen2};
+    prefix = {'rf', 'spec', 'rf2', 'spec2', 'flux', 'lo', 'lo2'};
+    for index = 1:length(gen)
+        % Set frequency
+        if ~isempty(self.([prefix{index}, 'freq']))
+            gen{index}.SetFreq(self.([prefix{index}, 'freq'])(1));
+            gen{index}.ModOff();
+            gen{index}.PowerOn();
         else
-            specgen2.ModOff();
+            try
+                gen{index}.PowerOff();
+            catch
+            end
         end
-    else
-        try
-            specgen2.PowerOff();
-        catch
+        % Set power
+        if ~isempty(self.([prefix{index}, 'power']))
+            gen{index}.SetPower(self.([prefix{index}, 'power'])(1));
         end
-    end
-    
-    if ~isempty(self.spec2power)
-        specgen2.SetPower(self.spec2power(1));
-    end
-    
-    if ~isempty(self.spec2phase)
-        specgen2.SetPhase(self.spec2phase(1));
-    end
-    
-    % Init fluxgen
-    if ~isempty(self.fluxfreq)
-        fluxgen.SetFreq(self.fluxfreq(1));
-        fluxgen.PowerOn();
-        if ~isempty(self.fluxseq)
-            fluxgen.ModOn();
-        else
-            fluxgen.ModOff();
-        end
-    else
-        try
-            fluxgen.PowerOff();
-        catch
+        % Set phase
+        if ~isempty(self.([prefix{index}, 'phase']))
+            gen{index}.SetPhase(self.([prefix{index}, 'freq'])(1));
         end
     end
     
-    if ~isempty(self.fluxpower)
-        fluxgen.SetPower(self.fluxpower(1));
+    % Set modulation on if pulse sequence exists
+    seq = {self.gateseq, self.gateseq2, self.fluxseq, self.measseq, [], self.measseq2};
+    for index = 1:length(seq)
+        if ~isempty(seq{index})
+            self.generator{index}.ModOn;
+            if strfind(self.awgchannel{index}{1}, 'marker')
+                % If using marker for pulse modulation, turn off wideband IQ
+                self.generator{index}.iq = 0;
+            end
+        end
     end
     
-    if ~isempty(self.fluxphase)
-        fluxgen.SetPhase(self.fluxphase(1));
-    end
-
-    % Init yoko1
-    if ~isempty(self.yoko1volt)
-        yoko1.SetVoltage(self.yoko1volt(1));
-    end
-    
-    % Init yoko2
-    if ~isempty(self.yoko2volt)
-        yoko2.SetVoltage(self.yoko2volt(1));
+    % Initialize yoko's
+    yoko = {yoko1, yoko2};
+    prefix = {'yoko1', 'yoko2'};
+    for index = 1:length(yoko)
+        if ~isempty(self.([prefix{index}, 'volt']))
+            yoko{index}.SetVoltage(self.([prefix{index}, 'volt'])(1));
+        end
     end
     
-    % Init pulsegen1 and pulsegen2
+    % Initialize pulsegen1 and pulsegen2
     if ~isempty(self.awgtaxis)
         pulsegen1.timeaxis = self.awgtaxis;
         pulsegen2.timeaxis = self.awgtaxis;
@@ -140,31 +58,45 @@ function InitInstr(self)
         pulsegen2.waveform1 = zeros(1, length(self.awgtaxis));
         pulsegen2.waveform2 = zeros(1, length(self.awgtaxis));
     end
-    
-    if ~isempty(self.gateseq)
-        [pulsegen1.waveform1, pulsegen1.waveform2] ...
-            = self.gateseq(1).uwWaveforms(self.awgtaxis, ...
-              	self.seqEndTime-self.gateseq(1).totalDuration);
+    % Pass waveforms to AWG channels according to channel routing
+    seq = {self.gateseq, self.gateseq2, self.fluxseq, self.measseq, self.measseq2};
+    for index = 1:length(seq)
+        if ~isempty(seq{index})
+            % Generate waveforms
+            if index < 4
+                % Gate pulses
+                [waveform1, waveform2] ...
+                    = seq{index}(1).uwWaveforms(self.awgtaxis, ...
+                                                self.seqEndTime - seq{index}(1).totalDuration);
+            else
+                % Measurement pulses
+                [waveform1, waveform2] ...
+                    = seq{index}(1).uwWaveforms(self.awgtaxis, self.measStartTime);
+            end
+            % Load waveforms to AWG
+            if length(self.awgchannel{index}) == 2
+                % I and Q => channel 1 and 2
+                self.awg{index}.(self.awgchannel{index}{1}) = waveform1;
+                self.awg{index}.(self.awgchannel{index}{2}) = waveform2;
+            else
+                if strfind(self.awgchannel{index}{1}, 'marker')
+                    % I => marker 
+                    self.awg{index}.(self.awgchannel{index}{1}) = double(waveform1 ~= 0);
+                else
+                    % I => single channel
+                    self.awg{index}.(self.awgchannel{index}{1}) = waveform1;
+                end
+            end
+        end
     end
-    if ~isempty(self.measseq)
-        [pulsegen2.waveform1, ~] ...
-            = self.measseq.uwWaveforms(self.awgtaxis, self.measStartTime);
-    end
-    if ~isempty(self.fluxseq)
-        [pulsegen2.waveform2, ~] ...
-            = self.fluxseq(1).uwWaveforms(self.awgtaxis, ...
-                self.seqEndTime-self.fluxseq(1).totalDuration);
-    end
-    
-    pulsegen1.mkroffset = -64;
-    pulsegen2.mkroffset = -64;
+    % Turn on AWGs
     pulsegen1.Generate();
     pulsegen2.Generate();
-    
-    % Init card
+
+    % Initialize card
     cardparams = card.GetParams();
     % Delay time
-    if rfcw
+    if isempty(self.measseq)
         % Default value for CW measurement
         delaytime = self.autocarddelay;
     else
@@ -174,10 +106,10 @@ function InitInstr(self)
     delaytime = delaytime + self.carddelayoffset;
     % Acquisition time
     if strcmp(self.cardacqtime, 'auto')
-        if rfcw == 1
+        if isempty(self.measseq)
         % Default value for CW measurement
             acqtime = self.autocardacqtime;
-        elseif rfcw == 0
+        else
         % Default value for pulsed measurement
             acqtime = round(self.measseq.totalDuration/1e-6)*1e-6 + 1e-6;
         end
@@ -186,25 +118,28 @@ function InitInstr(self)
     end
     % Trigger period
     if strcmp(self.trigperiod, 'auto')
-        if rfcw == 1
+        if isempty(self.measseq)
         % Default value for CW measurement
             trigperiod = self.autotrigperiod;
-        elseif rfcw == 0
+        else
         % Default value for pulsed measurement
             trigperiod = max(ceil(self.waveformEndTime/1e-6+1)*1e-6, ...
                              round((delaytime+acqtime)/1e-6)*1e-6+4e-6);
         end
     else
         trigperiod = self.trigperiod;
+        if trigperiod < self.waveformEndTime
+            disp('Warning: Trigger period is shorter than pulse length.');
+        end
     end
     cardparams.averages = self.cardavg;
-    cardparams.segments = 1;
+    cardparams.segments = self.cardseg;
     cardparams.delaytime = delaytime;
     cardparams.samples = round(acqtime/cardparams.sampleinterval);
     cardparams.trigPeriod = trigperiod;
     card.SetParams(cardparams);
     
-    % Init triggen
+    % Initialize triggen
     triggen.SetPeriod(trigperiod);
     triggen.PowerOn();
 end

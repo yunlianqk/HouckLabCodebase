@@ -31,8 +31,8 @@ classdef Echo < measlib.SmartSweep
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
                 self.qubitGates = cellstr(self.qubitGates);
             end
-            if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
-                self.endGates = cellstr(self.endGates);
+            if ~isempty(self.echoGates) && ~iscell(self.echoGates)
+                self.echoGates = cellstr(self.echoGates);
             end
             % Construct qubit gates
             for col = 1:length(self.qubitGates)
@@ -57,7 +57,7 @@ classdef Echo < measlib.SmartSweep
                 self.gateseq(row).append(echogates);
                 % Append half delay again
                 self.gateseq(row).append(pulselib.delay(self.delayVector(row)/2));
-                % Append qubit gates again
+                % Append qubit gates, with varing azimuth
                 for col = 1:length(self.qubitGates)
                     endgates(col) = self.pulseCal.(self.qubitGates{col});
                     endgates(col).amplitude = -endgates(col).amplitude;

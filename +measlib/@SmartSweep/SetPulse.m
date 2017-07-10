@@ -10,30 +10,45 @@ function SetPulse(self)
         self.measseq = pulselib.gateSequence(self.pulseCal.measurement());
     end
     
+    if ~isempty(self.pulseCal2)
+        self.pulseCal2.samplingRate = pulsegen1.samplingrate;
+    end
+    
     checkpulse(self.gateseq);
+    checkpulse(self.gateseq2);
     checkpulse(self.fluxseq);
+    checkpulse(self.measseq);
     checkpulse(self.measseq);
 
     % Append Identity and X180 as last two sequences for normalization
     if self.normalization
         self.gateseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
         self.gateseq(end+1) = pulselib.gateSequence(self.pulseCal.X180());
+        if ~isempty(self.gateseq2)
+            self.gateseq2(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
+            self.gateseq2(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
+        end
         if ~isempty(self.fluxseq)
             self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
             self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
         end
     end
-    
+    % Get the duration of he longest pulse
     try
         seqDuration = max([self.gateseq.totalDuration]);
     catch
     end
     
     try
+        seqDuration = max(seqDuration, max([self.gateseq2.totalDuration]));
+    catch
+    end
+        
+    try
         seqDuration = max(seqDuration, max([self.fluxseq.totalDuration]));
     catch
     end
-    
+    % Get the duration of measurement pulse
     try
         measDuration = self.measseq.totalDuration;
     catch

@@ -9,6 +9,7 @@ classdef CrossResonance < measlib.SmartSweep
         controlstate = 0;
         targetfreq;
         echo = 0;
+        CRmeas=0; % for simultaneous 2qubit calib with 6 gen
     end
     
     methods
@@ -130,11 +131,12 @@ classdef CrossResonance < measlib.SmartSweep
                 ylabel('Normalized readout');
                 title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
                 axis tight;
-                self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
-                    - self.result.NormAmpfreq*1e6;
+
             else
                 subplot(2, 1, 1);
-                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI);
+                %multliplying intI with 1000 so that the amplitude of the
+                %signal + noise is high
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI*1e3);
                 ylabel('Readout I');
                 title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
                 xlabel('Delay (\mus)');
@@ -146,7 +148,9 @@ classdef CrossResonance < measlib.SmartSweep
                 axis tight;
                 %
                 subplot(2, 1, 2);
-                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ);
+                %multliplying intI with 1000 so that the amplitude of the
+                %signal + noise is high
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ*1e3);
                 ylabel('Readout Q');
                 title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
                 xlabel('Delay (\mus)');
@@ -156,14 +160,7 @@ classdef CrossResonance < measlib.SmartSweep
                 self.result.QMSE = mse;
                 self.result.QfreqErr = freqErr;
                 self.result.Qt2=t2;
-                % Choose I or Q by comparing their error
-                if self.result.IMSE < self.result.QMSE
-                    self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
-                        - self.result.Ifreq*1e6;
-                else
-                    self.result.newFreq = self.pulseCal.qubitFreq + self.fringefreq ...
-                        - self.result.Qfreq*1e6;
-                end
+
             end    
         end
         

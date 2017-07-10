@@ -1,9 +1,14 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 rfgen specgen specgen2 card fluxgen;
+    global pulsegen1 pulsegen2 rfgen specgen specgen2 logen logen2 card fluxgen;
 
     % Set up signal and background acquisition function handles
-    self.acqsigfunc = @card.ReadIandQ;
+    if self.histogram
+        self.acqsigfunc = @AcqHist;
+    else
+        self.acqsigfunc = @AcqData;
+    end
+
     if isempty(self.bgsubtraction)
         self.acqbgfunc = @ZeroBackground;
     else
@@ -20,17 +25,32 @@ function SetOutput(self)
                 error('Unknown background subtraction type.');
         end
     end
-    
+
     % Pre-allocate output data
     cardparams = card.GetParams();
     self.result.tAxis = cardparams.delaytime + ...
                         cardparams.sampleinterval*(0:cardparams.samples-1);
     self.result.sampleinterval = cardparams.sampleinterval;
-    self.result.intRange = [];
-    self.result.intFreq = self.intfreq;
+    self.result.intRange = self.intrange;
+    switch self.generator{5}
+        case logen
+            self.result.intFreq = self.intfreq;
+        case logen2
+            self.result.intFreq = self.int2freq;
+        otherwise
+    end
     self.result.dataI = zeros(self.numSweep2, cardparams.samples);
     self.result.dataQ = zeros(self.numSweep2, cardparams.samples);
-    
+    if isempty(self.result.rowAxis)
+        self.result.rowAxis = 1:self.numSweep2;
+    end
+    if self.histogram
+        self.result.intI = zeros(self.numSweep2, cardparams.segments*self.histrepeat);
+        self.result.intQ = zeros(self.numSweep2, cardparams.segments*self.histrepeat);
+    else
+        self.result.intI = zeros(self.numSweep1, self.numSweep2);
+        self.result.intQ = zeros(self.numSweep1, self.numSweep2);
+    end
     % Set up plot function handles
     if self.plotsweep1
         self.plot1func = @PlotSweep1;
@@ -43,15 +63,17 @@ function SetOutput(self)
         self.plot2func = @DoNothing;
     end    
     % Estimate total measurement time
-    totaltime = (cardparams.trigPeriod*cardparams.averages+self.waittime) ...
-                 *self.numSweep1*self.numSweep2;
+    totaltime = (cardparams.trigPeriod*cardparams.averages ...
+                 *cardparams.segments*self.histrepeat + self.waittime) ...
+                *self.numSweep1*self.numSweep2;
     if ~isempty(self.bgsubtraction)
         totaltime = totaltime*2;
     end
     display(['Estimated measurement time: ', num2str(totaltime), ' seconds.']);
     
 %=================functions whose handles are used above===================
-    function PlotSweep2(dataI, dataQ)
+    % Plot function
+    function PlotSweep2(ind)
         figure(100);
         subplot(2, 2, 1);
         plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform1, ...
@@ -68,35 +90,39 @@ function SetOutput(self)
         title('AWG 2');
         xlabel('Time (\mus)');
         subplot(2, 2, 2);
-        imagesc(self.result.tAxis/1e-6, 1:size(dataI, 1), dataI);
+        imagesc(self.result.tAxis/1e-6, 1:ind, self.result.dataI(1:ind, :));
         title('I data');
         subplot(2, 2, 4);
-        imagesc(self.result.tAxis/1e-6, 1:size(dataQ, 1), dataQ);
+        imagesc(self.result.tAxis/1e-6, 1:ind, self.result.dataQ(1:ind, :));
         title('Q data');
         xlabel('Time (\mus)');
         drawnow;
     end
-    function PlotSweep1(amp, phase)
+    function PlotSweep1(ind)
         figure(101);
         subplot(2, 1, 1);
-        if size(amp, 1) == 1 || size(amp, 2) == 1
-            plot(amp);
-        else
-            imagesc(amp);
-        end
-        title('Amplitude');
+        imagesc(self.result.intI(1:ind, :));
+        title('Integrated I');
         subplot(2, 1, 2);
-        if size(phase, 1) == 1 || size(phase, 2) == 1
-            plot(phase);
-        else
-            imagesc(phase);
-        end
-        title('Phase');
+        imagesc(self.result.intQ(1:ind, :));
+        title('Integrated Q');
         drawnow;
+    end
+    % Acquisition function
+    function AcqData(ind)
+        [self.result.dataI(ind, :), self.result.dataQ(ind, :)] = card.ReadIandQ();
+    end
+    function AcqHist(ind)
+        for seg = 1:self.histrepeat
+            [self.result.dataI, self.result.dataQ] = card.ReadIandQ();
+            [self.result.intI(ind, (seg-1)*cardparams.segments+1:seg*cardparams.segments), ...
+             self.result.intQ(ind, (seg-1)*cardparams.segments+1:seg*cardparams.segments)] ...
+                = self.Integrate();
+        end
     end
     function DoNothing(varargin)
     end    
-    % Set background substraction function
+    % Background substraction function
     function [Ibg, Qbg] = ZeroBackground()
         Ibg = 0;
         Qbg = 0;

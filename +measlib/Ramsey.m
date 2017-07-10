@@ -56,6 +56,11 @@ classdef Ramsey < measlib.SmartSweep
                 ylabel('Normalized readout');
                 title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
                 axis tight;
+                self.result.NormAmpt2Err = t2Err;
+                self.result.NormAmpfreq = freq;
+                self.result.NormAmpMSE = mse;
+                self.result.NormAmpfreqErr = freqErr;
+                self.result.NormAmpt2=t2;
             else
                 subplot(2, 1, 1);
                 [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI);

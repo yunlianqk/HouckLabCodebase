@@ -40,7 +40,6 @@ classdef Rabi < measlib.SmartSweep
                 % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
             end
-            
             self.result.rowAxis = self.ampVector;
             SetUp@measlib.SmartSweep(self);
         end

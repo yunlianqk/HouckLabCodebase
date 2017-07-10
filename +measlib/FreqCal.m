@@ -22,38 +22,28 @@ classdef FreqCal < measlib.SmartSweep
         end
         
         function SetUp(self)
-            % Construct pulse sequence
+            % Turn off DRAG when calibrating frequency
+            self.pulseCal.([self.qubitGates{1}, 'DragAmplitude']) = 0;
+            % Construct qubit gates
             startgates = pulselib.singleGate();
             endgates = pulselib.singleGate();
-            self.gateseq = pulselib.gateSequence();
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
                 self.qubitGates = cellstr(self.qubitGates);
             end
-            if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
-                self.endGates = cellstr(self.endGates);
-            end
-            % Construct qubit gates
             for col = 1:length(self.qubitGates)
                 startgates(col) = self.pulseCal.(self.qubitGates{col});
             end
-            
-            % Vary azimuth angle of the last gates to introduce Ramsey-like fringes
-            if self.fringefreq
-                azimuthVector = linspace(0, 2*pi*self.fringefreq*self.delayVector(end), length(self.delayVector));
-            else
-                azimuthVector = zeros(1, length(self.delayVector));
-            end
             % Construct sequences
+            self.gateseq = pulselib.gateSequence();
             for row = 1:length(self.delayVector)
-                % Append qubit gates
+                % Append start gates
                 self.gateseq(row) = pulselib.gateSequence(startgates);
                 % Append  delay
                 self.gateseq(row).append(pulselib.delay(self.delayVector(row)));
-                % Append qubit gates again
+                % Append end gates with varying azimuth
                 for col = 1:length(self.qubitGates)
                     endgates(col) = self.pulseCal.(self.qubitGates{col});
-                    endgates(col).amplitude = endgates(col).amplitude;
-                    endgates(col).azimuth = azimuthVector(row);
+                    endgates(col).azimuth = 2*pi*self.fringefreq*self.delayVector(row);
                 end
                 self.gateseq(row).append(endgates);
             end
@@ -63,7 +53,7 @@ classdef FreqCal < measlib.SmartSweep
         
         function Fit(self, fignum)
             if nargin == 1
-                fignum = 105;
+                fignum = 106;
             end
             self.Integrate();
             
@@ -116,9 +106,6 @@ classdef FreqCal < measlib.SmartSweep
                         - self.result.Qfreq*1e6;
                 end
             end
-            
-            
-            
         end
     end
 end
