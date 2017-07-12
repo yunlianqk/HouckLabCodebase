@@ -2,6 +2,7 @@ classdef delay < handle
     % Time delay that can be used in T1 experiment, etc.
     
     properties
+        name = 'delay';
         duration = 0;
     end
     
