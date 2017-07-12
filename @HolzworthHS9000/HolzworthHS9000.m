@@ -32,6 +32,10 @@ classdef HolzworthHS9000 < handle
         ref = '10MHz' % (internal 100MHz) 'int', (external) '10MHz', or (external) '100MHz'
     end
     
+    properties (SetAccess = private)
+        temperature; % Temperature
+    end
+    
     properties (Hidden, SetAccess = private)
         channel; % Channel number
     end
@@ -198,6 +202,10 @@ classdef HolzworthHS9000 < handle
             out = self.write(':REF:STATUS?');
         end
         
+        function temp = get.temperature(self)
+            % Get temperature
+            temp = sscanf(self.write(':TEMP?'), 'Temp = %s');
+        end
         % Declaration of all other methods
         % Each method is defined in a separate file        
         SetFreq(self, freq);
