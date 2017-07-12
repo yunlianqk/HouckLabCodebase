@@ -1,5 +1,5 @@
-classdef RBExperiment < measlib.SmartSweep
-    % Randomized benchmarking experiment for single qubit
+classdef SimultaneousRB < measlib.SmartSweep
+    % Simultaneous RB for two qubits
     
     % 'sequenceLengths' is an array that contains the number of Clifford
     % gates in each RB sequence
@@ -37,19 +37,25 @@ classdef RBExperiment < measlib.SmartSweep
     properties (Hidden)
         % Pre-calculated waveforms to speed up pulse generation
         gatedict = struct();
+        gatedict2 = struct();
     end
         
     methods
-        function self = RBExperiment(pulseCal, config)
-            if nargin == 1
+        function self = SimultaneousRB(pulseCal, pulseCal2, config)
+            if nargin == 2
                 config = [];
             end
             self = self@measlib.SmartSweep(config);
             self.pulseCal = pulseCal;
+            self.pulseCal2 = pulseCal2;
             self.normalization = 1;
             self.cliffords = pulselib.RB.SingleQubitCliffords();
+
             for gate = {'Identity', 'X180', 'X90', 'Xm90', 'Y180', 'Y90', 'Ym90'}
                 self.gatedict.(gate{1}) = self.pulseCal.(gate{1})();
+            end
+            for gate = {'Identity', 'X180', 'X90', 'Xm90', 'Y180', 'Y90', 'Ym90'}
+                self.gatedict2.(gate{1}) = self.pulseCal2.(gate{1})();
             end
         end
         
@@ -70,15 +76,18 @@ classdef RBExperiment < measlib.SmartSweep
                     self.sequenceIndices(ind, :) = randi(length(self.cliffords), [1, max(s)]);
                 end
                 self.gateseq = pulselib.gateSequence();
+                self.gateseq2 = pulselib.gateSequence();
                 self.rbsequences = pulselib.RB.rbSequence(1, self.cliffords);
                 % Construct rbsequences and gateseq
                 for row = 1:length(s)
                     self.rbsequences(row) ...
                         = pulselib.RB.rbSequence(self.sequenceIndices(ind, 1:s(row)), self.cliffords);
                     self.gateseq(row) = pulselib.gateSequence();
+                    self.gateseq2(row) = pulselib.gateSequence();
                     for clifford = self.rbsequences(row).pulses
                         for prim = clifford.primDecomp
                             self.gateseq(row).append(self.gatedict.(prim{1}));
+                            self.gateseq2(row).append(self.gatedict2.(prim{1}));
                         end
                     end
                 end
@@ -90,7 +99,7 @@ classdef RBExperiment < measlib.SmartSweep
                 result.intI(ind, :) = self.result.intI;
                 result.intQ(ind, :) = self.result.intQ;
                 % Plot and fit results
-                figure(144);
+                figure(145);
                 subplot(1, 2, 1);
                 imagesc(result.normAmp(1:ind, :));
                 title([self.name, ' ', num2str(ind), ' of ', num2str(self.repeat)]);
@@ -103,10 +112,10 @@ classdef RBExperiment < measlib.SmartSweep
             xlabel('# of Cliffords');
             ylabel('Sequence');
             title(self.name);
+            colorbar;
             subplot(1, 2, 2);
             xlabel('# of Cliffords');
             ylabel('P(|0>)');
-            colorbar;
             self.result.normAmp = result.normAmp;
             self.result.intI = result.intI;
             self.result.intQ = result.intQ;
@@ -117,7 +126,7 @@ classdef RBExperiment < measlib.SmartSweep
 
         function Plot(self, fignum)
             if nargin == 1
-                fignum = 144;
+                fignum = 145;
             end
             figure(fignum);
             subplot(1, 2, 1);

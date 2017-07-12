@@ -4,11 +4,22 @@ function InitInstr(self)
            yoko1 yoko2 pulsegen1 pulsegen2 card triggen;
 
     % Initialize generators
+    function tf = isused(gen)
+        % Determine if gen is in self.generator
+        tf = 0;
+        for ii = 1:length(self.generator)
+            if gen == self.generator{ii}
+                tf = 1;
+                return;
+            end
+        end
+    end
+
     gen = {rfgen, specgen, rfgen2, specgen2, fluxgen, logen, logen2};
     prefix = {'rf', 'spec', 'rf2', 'spec2', 'flux', 'lo', 'lo2'};
     for index = 1:length(gen)
         % Set frequency
-        if ~isempty(self.([prefix{index}, 'freq']))
+        if ~isempty(self.([prefix{index}, 'freq'])) && isused(gen{index})
             gen{index}.SetFreq(self.([prefix{index}, 'freq'])(1));
             gen{index}.ModOff();
             gen{index}.PowerOn();
@@ -19,21 +30,24 @@ function InitInstr(self)
             end
         end
         % Set power
-        if ~isempty(self.([prefix{index}, 'power']))
+        if ~isempty(self.([prefix{index}, 'power'])) && isused(gen{index})
             gen{index}.SetPower(self.([prefix{index}, 'power'])(1));
         end
         % Set phase
-        if ~isempty(self.([prefix{index}, 'phase']))
+        if ~isempty(self.([prefix{index}, 'phase'])) && isused(gen{index})
             gen{index}.SetPhase(self.([prefix{index}, 'freq'])(1));
         end
     end
     
     % Set modulation on if pulse sequence exists
+    % Leave index == 6 as empty because self.generator{6} corresponds to logen
+    % which is always in CW
     seq = {self.gateseq, self.gateseq2, self.fluxseq, self.measseq, [], self.measseq2};
+    awgchannel = {self.awgchannel{1:4}, [], self.awgchannel{5}};
     for index = 1:length(seq)
-        if ~isempty(seq{index})
-            self.generator{index}.ModOn;
-            if strfind(self.awgchannel{index}{1}, 'marker')
+        if ~isempty(seq{index}) && ~isempty(self.generator{index})
+            self.generator{index}.ModOn();
+            if strfind(awgchannel{index}{1}, 'marker')
                 % If using marker for pulse modulation, turn off wideband IQ
                 self.generator{index}.iq = 0;
             end
@@ -96,7 +110,7 @@ function InitInstr(self)
     % Initialize card
     cardparams = card.GetParams();
     % Delay time
-    if isempty(self.measseq)
+    if isempty(self.measseq) && isempty(self.measseq2)
         % Default value for CW measurement
         delaytime = self.autocarddelay;
     else

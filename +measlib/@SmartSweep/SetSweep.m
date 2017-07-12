@@ -86,18 +86,20 @@ function SetSweep(self)
         end
     end
 
-    % Add function handles for outputing AWG waveforms
+    % Add function handles for regenerating AWG waveforms
     sweepawg = zeros(1, 2);
     seq = {self.gateseq, self.gateseq2, self.fluxseq};
     for index = 1:length(seq)
         if numel(seq{index}) > 1
-            if self.awg{index} == pulsegen1 && ~sweepawg(1)
+            if (~isempty(self.awg{index})) && (self.awg{index} == pulsegen1) ...
+               && ~sweepawg(1)
                 sweepawg(1) = 1;
                 self.sweep2data{jj} = zeros(1, self.numSweep2);
                 self.sweep2func{jj} = @startawg1;
                 jj = jj + 1;
             end
-            if self.awg{index} == pulsegen2 && ~sweepawg(2)
+            if (~isempty(self.awg{index})) && (self.awg{index} == pulsegen2) ...
+               && ~sweepawg(2)
                 sweepawg(2) = 1;
                 self.sweep2data{jj} = zeros(1, self.numSweep2);
                 self.sweep2func{jj} = @startawg2;
@@ -127,44 +129,59 @@ function SetSweep(self)
                 = self.gatedict2.(gateName{1}).uwWaveforms(tGate, 0);
         end
     end
+    
+    if isprop(self, 'fluxdict')
+        iFluxWaveforms = struct();
+        qFluxWaveforms = struct();
+        for gateName = fieldnames(self.fluxdict)'
+            tGate = 0:1/self.pulseCal.samplingRate:self.fluxdict.(gateName{1}).totalDuration;
+            [iFluxWaveforms.(gateName{1}), qFluxWaveforms.(gateName{1})] ...
+                = self.fluxdict.(gateName{1}).uwWaveforms(tGate, 0);
+        end
+    end
     %=================functions whose handles are used above===================
     % Set AWG waveforms
     function setgatewav(gateseq)
         if isprop(self, 'gatedict')
             % Use pre-calculated baseband waveforms if possible
-            self.awg{1}.waveform1 = zeros(1, length(self.awgtaxis));
-            self.awg{1}.waveform2 = zeros(1, length(self.awgtaxis));
+            waveform1 = zeros(1, length(self.awgtaxis));
+            waveform2 = zeros(1, length(self.awgtaxis));
             start = find(self.awgtaxis >= (self.seqEndTime - gateseq.totalDuration), 1);
             for col = 1:len(gateseq)
                 % For each gate in the current sequence
-                gate = gateseq.gateArray{col}.name;
-                % Find pre-calculated baseband waveform by its name
-                itemp = iGateWaveforms.(gate);
-                qtemp = qGateWaveforms.(gate);
-                % Update the corresponding segment in the waveform
-                stop = start + length(itemp) - 1;
-                self.awg{1}.waveform1(start:stop) = itemp;
-                self.awg{1}.waveform2(start:stop) = qtemp;
-                % Go to next gate
-                start = stop;
+                gate = gateseq.gateArray{col};
+                if strcmp(gate.name, 'delay')
+                    % If delay gate, skip to the start of next gate
+                    start = start + length(0:1/self.pulseCal.samplingRate:gate.totalDuration) - 1;
+                else
+                    % Otherwise find pre-calculated baseband waveform by gate name
+                    itemp = iGateWaveforms.(gate.name);
+                    qtemp = qGateWaveforms.(gate.name);
+                    % Update the corresponding segment in the waveform
+                    stop = start + length(itemp) - 1;
+                    waveform1(start:stop) = itemp;
+                    waveform2(start:stop) = qtemp;
+                    % Go to next gate
+                    start = stop;
+                end
             end
         else
             % Otherwise calculate waveforms from gateSequence object
             [waveform1, waveform2] ...
                 = gateseq.uwWaveforms(self.awgtaxis, ...
                                       self.seqEndTime - gateseq.totalDuration);
-            if length(self.awgchannel{1}) == 2
-                % I and Q => dual channel
-                self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
-                self.awg{1}.(self.awgchannel{1}{2}) = waveform2;
+        end
+        if length(self.awgchannel{1}) == 2
+            % I and Q => dual channel
+            self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
+            self.awg{1}.(self.awgchannel{1}{2}) = waveform2;
+        else
+            if strfind(self.awgchannel{1}{1}, 'marker')
+                % I => marker 
+                self.awg{1}.(self.awgchannel{1}{1}) = double(waveform1 ~= 0);
             else
-                if strfind(self.awgchannel{1}{1}, 'marker')
-                    % I => marker 
-                    self.awg{1}.(self.awgchannel{1}{1}) = double(waveform1 ~= 0);
-                else
-                    % I => single channel
-                    self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
-                end
+                % I => single channel
+                self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
             end
         end
     end
@@ -172,46 +189,76 @@ function SetSweep(self)
     function setgatewav2(gateseq2)
         if isprop(self, 'gatedict2')
             % Use pre-calculated baseband waveforms if possible
-            self.awg{2}.waveform1 = zeros(1, length(self.awgtaxis));
-            self.awg{2}.waveform2 = zeros(1, length(self.awgtaxis));
+            waveform1 = zeros(1, length(self.awgtaxis));
+            waveform2 = zeros(1, length(self.awgtaxis));
             start = find(self.awgtaxis >= (self.seqEndTime - gateseq2.totalDuration), 1);
             for col = 1:len(gateseq2)
                 % For each gate in the current sequence
-                gate = gateseq2.gateArray{col}.name;
-                % Find pre-calculated baseband waveform by its name
-                itemp = iGateWaveforms2.(gate);
-                qtemp = qGateWaveforms2.(gate);
-                % Update the corresponding segment in the waveform
-                stop = start + length(itemp) - 1;
-                self.awg{2}.waveform1(start:stop) = itemp;
-                self.awg{2}.waveform2(start:stop) = qtemp;
-                % Go to next gate
-                start = stop;
+                gate = gateseq2.gateArray{col};
+                if strcmp(gate.name, 'delay')
+                    % If delay gate, skip to the start of next gate
+                    start = start + length(0:1/self.pulseCal.samplingRate:gate.totalDuration) - 1;
+                else
+                    % Otherwise find pre-calculated baseband waveform by gate name
+                    itemp = iGateWaveforms2.(gate.name);
+                    qtemp = qGateWaveforms2.(gate.name);
+                    % Update the corresponding segment in the waveform
+                    stop = start + length(itemp) - 1;
+                    waveform1(start:stop) = itemp;
+                    waveform2(start:stop) = qtemp;
+                    % Go to next gate
+                    start = stop;
+                end
             end
         else
             [waveform1, waveform2] ...
                 = gateseq2.uwWaveforms(self.awgtaxis, ...
                                        self.seqEndTime - gateseq2.totalDuration);
-            if length(self.awgchannel{2}) == 2
-                % Set dual channel with I and Q
-                self.awg{2}.(self.awgchannel{2}{1}) = waveform1;
-                self.awg{2}.(self.awgchannel{2}{2}) = waveform2; 
+        end
+        if length(self.awgchannel{2}) == 2
+            % Set dual channel with I and Q
+            self.awg{2}.(self.awgchannel{2}{1}) = waveform1;
+            self.awg{2}.(self.awgchannel{2}{2}) = waveform2; 
+        else
+            if strfind(self.awgchannel{2}{1}, 'marker')
+                % I => marker 
+                self.awg{2}.(self.awgchannel{2}{1}) = double(waveform1 ~= 0);
             else
-                if strfind(self.awgchannel{2}{1}, 'marker')
-                    % I => marker 
-                    self.awg{1}.(self.awgchannel{2}{1}) = double(waveform1 ~= 0);
-                else
-                    % I => single channel
-                    self.awg{1}.(self.awgchannel{2}{1}) = waveform1;
-                end
+                % I => single channel
+                self.awg{2}.(self.awgchannel{2}{1}) = waveform1;
             end
         end
     end
     
     function setfluxwav(fluxseq)
-        [waveform1, waveform2] ...
-            = fluxseq.uwWaveforms(self.awgtaxis, ...
-                                  self.seqEndTime - fluxseq.totalDuration);
+        if isprop(self, 'fluxdict')
+            % Use pre-calculated baseband waveforms if possible
+            waveform1 = zeros(1, length(self.awgtaxis));
+            waveform2 = zeros(1, length(self.awgtaxis));
+            start = find(self.awgtaxis >= (self.seqEndTime - fluxseq.totalDuration), 1);
+            for col = 1:len(fluxseq)
+                % For each gate in the current sequence
+                gate = fluxseq.gateArray{col};
+                if strcmp(gate.name, 'delay')
+                    % If delay gate, skip to the start of next gate
+                    start = start + length(0:1/self.pulseCal.samplingRate:gate.totalDuration) - 1;
+                else
+                    % Otherwise find pre-calculated baseband waveform by gate name
+                    itemp = iFluxWaveforms.(gate.name);
+                    qtemp = qFluxWaveforms.(gate.name);
+                    % Update the corresponding segment in the waveform
+                    stop = start + length(itemp) - 1;
+                    waveform1(start:stop) = itemp;
+                    waveform2(start:stop) = qtemp;
+                    % Go to next gate
+                    start = stop;
+                end
+            end
+        else
+            [waveform1, waveform2] ...
+                = fluxseq.uwWaveforms(self.awgtaxis, ...
+                                      self.seqEndTime - fluxseq.totalDuration);
+        end
         if length(self.awgchannel{3}) == 2
             % Set dual channel with I and Q
             self.awg{3}.(self.awgchannel{3}{1}) = waveform1;

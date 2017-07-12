@@ -30,6 +30,11 @@ function UpdateParams(self, config)
                 otherwise
             end
         end
+        if ~isempty(self.generator{3})
+        % Update generator parameters for fluxseq
+            self.fluxfreq = config.fluxFreq;
+            self.fluxpower = config.fluxPower;
+        end 
         if ~isempty(self.generator{4})
         % Update generator parameters for measseq
             switch self.generator{4}
@@ -77,11 +82,11 @@ function UpdateParams(self, config)
             % Update generator parameters for measseq2
                 switch self.generator{6}
                     case rfgen
-                        self.rffreq = config.cavityFreq;
-                        self.rfpower = config.rfPower;
+                        self.rffreq = self.pulseCal2.cavityFreq;
+                        self.rfpower = self.pulseCal2.rfPower;
                     case rfgen2
-                        self.rf2freq = config.cavityFreq;
-                        self.rf2power = config.rfPower;
+                        self.rf2freq = self.pulseCal2.cavityFreq;
+                        self.rf2power = self.pulseCal2.rfPower;
                     otherwise
                 end
             end
@@ -89,11 +94,11 @@ function UpdateParams(self, config)
             % Update LO parameters for measseq2
                 switch self.generator{7}
                     case logen
-                        self.intfreq = config.intFreq;
-                        self.lopower = config.loPower;
+                        self.intfreq = self.pulseCal2.intFreq;
+                        self.lopower = self.pulseCal2.loPower;
                     case logen2
-                        self.int2freq = config.intFreq;
-                        self.lo2power = config.loPower;
+                        self.int2freq = self.pulseCal2.intFreq;
+                        self.lo2power = self.pulseCal2.loPower;
                     otherwise
                 end
             end
