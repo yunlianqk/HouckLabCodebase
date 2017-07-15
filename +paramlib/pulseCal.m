@@ -1,5 +1,5 @@
 classdef pulseCal
-    % Pulse calibrations object. Holds calibrations for gates, measurement 
+    % Pulse calibrations object. Holds calibrations for gates, measurement
     % pulse, and acquisition window, gets updated by calibration routines.
     % NOTE: pulseCal objects are VALUE objects not HANDLE objects
     % NOTE: pulseCal has methods to generate a new pulse object on request,
@@ -21,13 +21,16 @@ classdef pulseCal
         loPower = 11;
         loAmplitude = 1;
         measDuration = 10e-6; % length of measurement pulse
+        % flux pulse properties
+        fluxFreq = [];
+        fluxPower = [];
         % waveform properties
         startBuffer = 5e-6; % delay after start before qubit pulses can occur
         measBuffer = 10e-9; % delay btw final qubit pulse and measurement pulse
         endBuffer = 5e-6; % buffer after measurement pulse
-		% awg properties
+        % awg properties
         samplingRate = 32e9;
-		fullscale = 1.0;
+        fullscale = 1.0;
         % acquisition properties
         integrationStartIndex = 1; % start point for integration of acquisition card data
         integrationStopIndex = 4000; % stoppoint for integration of acquisition card data
@@ -35,6 +38,11 @@ classdef pulseCal
         % USAGE: cardparams.delaytime = experimentObject.measStartTime + pulseCal.cardDelayOffset;
         cardAvg = 30000;
         % gate specific properties
+        iSWAPDuration = 100e-9;
+        iSWAPAmplitude = 1;
+        iSWAPsigma = 10e-9;
+        iSWAPcutoff = 40e-9;
+        iSWAPbuffer = 50e-9;
         X90Amplitude = .5;
         X90DragAmplitude = 0;
         Xm90Amplitude = .5;
@@ -60,14 +68,11 @@ classdef pulseCal
         Ym90Azimuth = -pi/2;
         Ym180Azimuth = -pi/2;
     end
-
+    
     methods
         % methods to generate each type of pulse
-        function pulseObj = Delay(obj,delay)
-            pulseObj = pulselib.singleGate('Identity');
-            pulseObj.sigma = obj.sigma;
-            pulseObj.cutoff = delay;
-            pulseObj.buffer = 0;
+        function pulseObj = Delay(~, delay)
+            pulseObj = pulselib.delay(delay);
         end
         function pulseObj = Identity(obj)
             pulseObj = pulselib.singleGate('Identity');
@@ -151,6 +156,13 @@ classdef pulseCal
             pulseObj = pulselib.measPulse(obj.measDuration,obj.cavityAmplitude);
             pulseObj.cutoff = 4*pulseObj.sigma;
             pulseObj.buffer = obj.buffer;
+        end
+        
+        function pulseObj = iSWAP(obj)
+            pulseObj = pulselib.measPulse(obj.iSWAPDuration,obj.iSWAPAmplitude);
+            pulseObj.cutoff = obj.iSWAPcutoff;
+            pulseObj.buffer = obj.iSWAPbuffer;
+            pulseObj.sigma = obj.iSWAPsigma;
         end
         function s = toStruct(obj)
             s = funclib.obj2struct(obj);
