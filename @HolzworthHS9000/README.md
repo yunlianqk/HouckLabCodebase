@@ -5,7 +5,7 @@ To find the address of the instrument,
 ```matlab
 devices = HolzworthHS9000.FindDevices();
 ```
-`device` will be a string containing addresses of the currently connected devices.
+`device` will be a string containing addresses of the currently connected devices. The address should be in the format of `model-serial-channel`.
 
 To open the instrument,
 ```matlab
@@ -45,9 +45,9 @@ rfgen.ModOn();
   * **frequency** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
   * **phase** (*float*): Phase (in radians) of the signal
-  * **output** (*1/0*): output on/off
-  * **modulation** (*1/0*): modulation on/off
-
+  * **output** (*1/0*): Output on/off
+  * **modulation** (*1/0*): Modulation on/off
+  * **temperature** (*string, read-only*): Temperature of the instruement
 * **Methods**:
   * **gen = HolzworthHS9000(address)**: Opens the instrument with `address` and creates an object `gen`
   * **gen.Finalize()**: Closes the instrument
@@ -61,3 +61,4 @@ rfgen.ModOn();
   * **gen.PowerOff()**: Turns off power
   * **gen.ModOn()**: Turns on modulation, pulse and I/Q, turns off ALC
   * **gen.ModOff()**: Turns off modulation, pulse and I/Q, turns on ALC
+  * **devices = HolzworthHS9000.FindDevices()**: Returns a string that contains the addresses of the connected instruments.

@@ -8,6 +8,7 @@ classdef measPulse < handle
         sigma = 5e-9; % sigma for Gaussian ramp-up
         cutoff = 30e-9;
         buffer = 2e-9;
+        unitary = eye(2);
     end
 
     properties (Dependent, SetAccess = private)
