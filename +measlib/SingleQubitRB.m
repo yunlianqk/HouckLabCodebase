@@ -25,7 +25,7 @@ classdef SingleQubitRB < measlib.SmartSweep
     properties
         sequenceLengths = unique(round(logspace(log10(1), log10(1000), 25)));
         sequenceIndices = [];
-        rbsequences;
+        rbsequences = struct('indices', [], 'inverse', []);
         repeat = 1;
     end
     
@@ -37,6 +37,8 @@ classdef SingleQubitRB < measlib.SmartSweep
     properties (Hidden)
         % Pre-calculated waveforms to speed up pulse generation
         gatedict = struct();
+        % Index for current repeat
+        irepeat;
     end
         
     methods
@@ -48,42 +50,58 @@ classdef SingleQubitRB < measlib.SmartSweep
             self.pulseCal = pulseCal;
             self.normalization = 1;
             self.cliffords = pulselib.RB.SingleQubitCliffords();
-            for gate = {'Identity', 'X180', 'X90', 'Xm90', 'Y180', 'Y90', 'Ym90'}
-                self.gatedict.(gate{1}) = self.pulseCal.(gate{1})();
+            for gate = {'Identity', 'X180', 'X90','Xm180', 'Xm90', ...
+                        'Y180', 'Y90','Ym180', 'Ym90'}
+                self.gatedict.(gate{1}) = self.pulseCal.(gate{1});
             end
         end
         
-        function Run(self)
+        function SetUp(self)
             s = self.sequenceLengths;
+            ind = self.irepeat;
+            % If sequence indices are not specified, generate indices randomly
+            if size(self.sequenceIndices, 1) < ind
+                rng('default');
+                rng('shuffle');
+                self.sequenceIndices(ind, :) = randi(length(self.cliffords), [1, max(s)]);
+            end
+            self.gateseq = pulselib.gateSequence();
+
+            % Set the first gate to be identity
+            % This fixes the error when sequenceLengths(1) = 0
+            self.rbsequences(1).indices(1) = 1;
+            % Construct rbsequences and feed into gateseq
+            for row = 1:length(s)
+                % Pass indices to rbsequence
+                self.rbsequences(row).indices = self.sequenceIndices(ind, 1:s(row));
+                % Find the inverse Clifford gate for rbsequence
+                self.FindInverse(row);
+                % Convert Clifford indices into prime decomposition
+                % and update the awg sequences
+                self.gateseq(row) = pulselib.gateSequence();
+                for C1index = self.rbsequences(row).indices
+                    self.C1gate2Seq(C1index ,row);
+                end
+                % Append inverse gate to end of sequence
+                self.C1gate2Seq(self.rbsequences(row).inverse, row);
+            end
+            SetUp@measlib.SmartSweep(self);
+        end
+
+        function Run(self)
+            % Construct result struct
             result = struct();
             result.normAmp = zeros(self.repeat, length(self.sequenceLengths));
             result.intI = zeros(self.repeat, length(self.sequenceLengths)+2);
             result.intQ = zeros(self.repeat, length(self.sequenceLengths)+2);
+            % Set save file name
             self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
 
             for ind = 1:self.repeat
-                fprintf('RB sequence %d of %d running\n', ind, self.repeat);
-                % If  sequence indices are not specified, generate indices randomly
-                if size(self.sequenceIndices, 1) < ind
-                    rng('default');
-                    rng('shuffle');
-                    self.sequenceIndices(ind, :) = randi(length(self.cliffords), [1, max(s)]);
-                end
-                self.gateseq = pulselib.gateSequence();
-                self.rbsequences = pulselib.RB.rbSequence(1, self.cliffords);
-                % Construct rbsequences and gateseq
-                for row = 1:length(s)
-                    self.rbsequences(row) ...
-                        = pulselib.RB.rbSequence(self.sequenceIndices(ind, 1:s(row)), self.cliffords);
-                    self.gateseq(row) = pulselib.gateSequence();
-                    for clifford = self.rbsequences(row).pulses
-                        for prim = clifford.primDecomp
-                            self.gateseq(row).append(self.gatedict.(prim{1}));
-                        end
-                    end
-                end
+                self.irepeat = ind;
                 % Run experiment
-                SetUp(self);
+                self.SetUp();
+                fprintf('RB sequence %d of %d running\n', ind, self.repeat);
                 Run@measlib.SmartSweep(self);
                 % Update results
                 result.normAmp(ind, :) = self.result.normAmp;
@@ -131,6 +149,68 @@ classdef SingleQubitRB < measlib.SmartSweep
             xlabel('# of Cliffords');
             ylabel('P(|0>)');
 			drawnow;
+        end
+    end
+
+    methods (Access = protected)
+        function FindInverse(self, row)
+            % Find the inverse Clifford for rbsequence(row)
+
+            % Calculate unitary
+            unitary = eye(2);
+            for ii = self.rbsequences(row).indices
+                unitary = self.cliffords(ii).unitary*unitary;
+            end
+
+            % Find inverse
+            tol = 2e-6;
+            for ii = 1:length(self.cliffords)
+                if abs(trace(unitary*self.cliffords(ii).unitary)) >= (2-tol)
+                    self.rbsequences(row).inverse = ii;
+                    break;
+                end
+            end
+        end
+
+        function C1gate2Seq(self, C1index, row)
+            % Takes in single qubit clifford gate index,
+            % updates gateseq
+            C1PrimString = self.GetPrimString(C1index);
+            for ii = 1:length(C1PrimString)
+                self.gateseq(row).append(self.gatedict.(C1PrimString{ii}));
+            end
+        end
+
+        function primString = GetPrimString(self, C1index)
+            % Return the namestrings for primary decomposition of
+            % single-qubit Clifford gate
+
+            % Randomly choose a primary gate decomposition
+            primDecomp = randsample(self.cliffords(C1index).primDecomp, 1);
+            % Randomly choose between +180 and -180 X/Y rotation and map
+            % the atomic clifford indices to their names
+            for ii = 1:length(primDecomp{1})
+                switch primDecomp{1}(ii)
+                    case 1
+                        primString{ii} = 'Identity';
+                    case 2
+                        primString{ii} = 'X90';
+                    case 4
+                        primString{ii} = 'Xm90';
+                    case 5
+                        primString{ii} = 'Y90';
+                    case 7
+                        primString{ii} = 'Ym90';
+                    case 3
+                        % randsample returns a cell,
+                        % so using '()' instead of '{}' here
+                        primString(ii) = randsample({'X180', 'Xm180'}, 1);
+                    case 6
+                        primString(ii) = randsample({'Y180', 'Ym180'}, 1);
+                    otherwise
+                        disp('Pulse number should be between 1-7');
+                end
+            end
         end
     end
 end

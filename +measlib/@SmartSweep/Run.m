@@ -1,7 +1,7 @@
 function Run(self)
    
     % Generate filename for saving data
-    if ~ismember(self.name, {'OneQubitRB', 'SimRB', 'TwoQubitRB'})
+    if ~ismember(self.name, {'OneQubitRB', 'SimultaneousRB', 'TwoQubitRB'})
         self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
     end
 

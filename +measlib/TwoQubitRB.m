@@ -1,4 +1,4 @@
-classdef TwoQubitRB < measlib.SmartSweep
+ classdef TwoQubitRB < measlib.SmartSweep
     % Randomized benchmarking experiment for two qubits
     
     % 'sequenceLengths' is an array that contains the number of Clifford
@@ -25,13 +25,14 @@ classdef TwoQubitRB < measlib.SmartSweep
     properties
         sequenceLengths = unique(round(logspace(log10(1), log10(1000), 25)));
         sequenceIndices = [];
-        rbsequences;
+        rbsequences = struct('indices', [], 'inverse', []);
         repeat = 1;
     end
     
-    properties (SetAccess = public)
-        % Store all 24 Clifford gates
+    properties (SetAccess = private)
+        % Store all 24 single-qubit Clifford gates
         cliffords1;
+        % Store all 11520 two-qubit Clifford gates
         cliffords2;
     end
     
@@ -40,10 +41,6 @@ classdef TwoQubitRB < measlib.SmartSweep
         gatedict = struct();
         gatedict2 = struct();
         fluxdict = struct();
-        iGateWaveforms = struct();
-        qGateWaveforms = struct();
-        iGateWaveforms2 = struct();
-        qGateWaveforms2 = struct();
     end
     
     methods
@@ -55,10 +52,12 @@ classdef TwoQubitRB < measlib.SmartSweep
             self.pulseCal = pulseCal;
             self.pulseCal2 = pulseCal2;
             self.normalization = 1;
-            [self.cliffords1, self.cliffords2] = pulselib.RB.TwoQubitCliffords();
-            for gate = {'Identity', 'X180', 'X90','Xm180', 'Xm90', 'Y180', 'Y90','Ym180', 'Ym90'}
-                self.gatedict.(gate{1}) = self.pulseCal.(gate{1})();
-                self.gatedict2.(gate{1}) = self.pulseCal2.(gate{1})();
+            self.cliffords1 = pulselib.RB.SingleQubitCliffords();
+            self.cliffords2 = pulselib.RB.TwoQubitCliffords();
+            for gate = {'Identity', 'X180', 'X90','Xm180', 'Xm90', ...
+                        'Y180', 'Y90','Ym180', 'Ym90'}
+                self.gatedict.(gate{1}) = self.pulseCal.(gate{1});
+                self.gatedict2.(gate{1}) = self.pulseCal2.(gate{1});
             end
             self.fluxdict.iSWAP = self.pulseCal.iSWAP;
             self.fluxdict.Identity = self.gatedict.Identity;
@@ -71,9 +70,8 @@ classdef TwoQubitRB < measlib.SmartSweep
             result.intI = zeros(self.repeat, length(self.sequenceLengths)+2);
             result.intQ = zeros(self.repeat, length(self.sequenceLengths)+2);
             self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
-            
+
             for ind = 1:self.repeat
-                fprintf('RB sequence %d of %d running\n', ind, self.repeat);
                 % If  sequence indices are not specified, generate indices randomly
                 if size(self.sequenceIndices, 1) < ind
                     rng('default');
@@ -83,48 +81,30 @@ classdef TwoQubitRB < measlib.SmartSweep
                 self.gateseq = pulselib.gateSequence();
                 self.gateseq2 = pulselib.gateSequence();
                 self.fluxseq = pulselib.gateSequence();
-                
-                % Construct rbsequences and feed in  gateseq,gateseq2 and fluxseq
+
+                % Set the first gate to be identity
+                % This fixes the error when sequenceLengths(1) = 0
+                self.rbsequences(1).indices(1) = 1;
+                % Construct rbsequences and feed into gateseq, gateseq2 and fluxseq
                 for row = 1:length(s)
-                    self.rbsequences(row).pulses = self.sequenceIndices(ind, 1:s(row));
-                    % Find final unitary matrix
-                    unitaryFinal=1;
-                    for ii = 1:s(row)
-                        index=self.sequenceIndices(ind, ii);
-                        unitaryFinal=self.cliffords2(index).unitary*unitaryFinal;
-                    end
-                    
-                    % Find inverse clifford
-                    for  ii = 1: length(self.cliffords2)
-                        tol=2e-6;
-                        if abs(trace(unitaryFinal*self.cliffords2(ii).unitary))>=(length(unitaryFinal)-tol)
-                            self.rbsequences(row).inverse=ii;
-                            break;
-                        end
-                    end
-                    
-                    % Convert 2 qubit clifford indices into prime
-                    % decomposition of atomic single qubit cliffords
+                    % Pass indices to rbsequence
+                    self.rbsequences(row).indices = self.sequenceIndices(ind, 1:s(row));
+                    % Find the inverse Clifford gate for rbsequence
+                    self.FindInverse(row);
+                    % Convert Clifford indices into prime decomposition
                     % and update the awg sequences
                     self.gateseq(row) = pulselib.gateSequence();
                     self.gateseq2(row) = pulselib.gateSequence();
                     self.fluxseq(row) = pulselib.gateSequence();
-                    if s(row)==0
-                        rbseq(self, 1, row); % Just put identity on all the sequences
-                    else    
-                        for ii = 1:s(row)
-
-                            Clifford2index=self.rbsequences(row).pulses(ii);
-                            rbseq(self,Clifford2index,row);
-                            if ii==s(row)
-                                Clifford2index=self.rbsequences(row).inverse;
-                                rbseq(self,Clifford2index,row);
-                            end    
-                        end
-                    end     
+                    for C2index = self.rbsequences(row).indices
+                        self.C2gate2Seq(C2index ,row);
+                    end
+                    % Append inverse gate to end of sequence
+                    self.C2gate2Seq(self.rbsequences(row).inverse, row);
                 end
                 % Run experiment
-                SetUp(self);
+                self.SetUp();
+                fprintf('RB sequence %d of %d running\n', ind, self.repeat);
                 Run@measlib.SmartSweep(self);
                 % Update results
                 result.normAmp(ind, :) = self.result.normAmp;
@@ -155,119 +135,7 @@ classdef TwoQubitRB < measlib.SmartSweep
                 self.Save();
             end
         end
-        
-        function rbseq(self, Clifford2index, row)
-            % takes in index of clifford2 and updates gateseq,gateseq2 and
-            % fluxseq accordingly
-            
-            % Append pre C-gates
-            C1 = self.cliffords2(Clifford2index).primDecomp{1}(1); % Qubit1 clifford
-            C2 = self.cliffords2(Clifford2index).primDecomp{1}(2); % Qubit2 clifford
-            % Append decomposition of C1/C2 to gateseq/gateseq2
-            self.clf1gen(C1, C2, row);
-            % Append entangling gate
-            if self.cliffords2(Clifford2index).primDecomp{2}
-                for e = self.entangling_seq(self.cliffords2(Clifford2index).primDecomp{2});
-                    if strcmp('iSWAP', e)
-                        % Append iSWAP to fluxseq
-                        self.fluxseq(row).append(self.fluxdict.iSWAP);
-                        % Append delay to gateseq and gateseq2
-                        self.gateseq(row).append(self.pulseCal.Delay(self.fluxdict.iSWAP.totalDuration));
-                        self.gateseq2(row).append(self.pulseCal2.Delay(self.fluxdict.iSWAP.totalDuration));
-                    else
-                        % Append identity to fluxseq
-                        self.fluxseq(row).append(self.gatedict.('Identity'));
-                        % Append single qubit gates to gateseq and gateseq2
-                        self.gateseq(row).append(self.gatedict.(e{1}{1}));
-                        self.gateseq2(row).append(self.gatedict2.(e{1}{2}));
-                    end
-                end
-            end
-            % Append post S-gates
-            if self.cliffords2(Clifford2index).primDecomp{3}
-                S1 = self.cliffords2(Clifford2index).primDecomp{3}(1);
-                S2 = self.cliffords2(Clifford2index).primDecomp{3}(2);
-                % Append decomposition of S1/S2 to gateseq/gateseq2
-                self.clf1gen(S1, S2, row);
-            end
-        end
-        
-        function clf1gen(self, C1, C2, row)
-            % Takes in single qubit clifford gates and updates the generator
-            % pulse sequence appropriately
-            C1decom = self.singleClifford(C1);
-            C2decom = self.singleClifford(C2);
-            for counter = 1:max(length(C2decom), length(C1decom))
-                self.fluxseq(row).append(self.gatedict.('Identity'));
-                if counter > length(C1decom)
-                    % Add extra identity gates on qubit1
-                    self.gateseq(row).append(self.gatedict.('Identity'));
-                else
-                    self.gateseq(row).append(self.gatedict.(C1decom{counter}));
-                end
-                if counter > length(C2decom)
-                    % Add extra identity gates on qubit2
-                    self.gateseq2(row).append(self.gatedict2.('Identity'));
-                else
-                    self.gateseq2(row).append(self.gatedict2.(C2decom{counter}));
-                end
-            end
-        end
-        
-        function AtomDecom = singleClifford(self, ind)
-            % Function to generate randomly chosen atomic clifford decomp
-            % for the given gate
-            % ind is an index of cliffords1
-            
-            % Randomly choose which atomic cliffords are used to generate
-            % this single qubit clifford
-            DecInd = randsample(self.cliffords1(ind).primDecomp, 1);
-            % Randomly choose between +180 and -180 X/Y rotation and map
-            % the atomic clifford indices to their names
-            for ii = 1:length(DecInd{1})
-                %                 disp(DecInd{ii});
-                switch DecInd{1}(ii)
-                    case 1
-                        AtomDecom{ii} = 'Identity';
-                    case 2
-                        AtomDecom{ii} = 'X90';
-                    case 4
-                        AtomDecom{ii} = 'Xm90';
-                    case 5
-                        AtomDecom{ii} = 'Y90';
-                    case 7
-                        AtomDecom{ii} = 'Ym90';
-                    case 3
-                        % randsample returns a cell, so using '()' instead
-                        % of '{}' here
-                        AtomDecom(ii) = randsample({'X180', 'Xm180'}, 1);
-                    case 6
-                        AtomDecom(ii) = randsample({'Y180', 'Ym180'}, 1);
-                    otherwise
-                        disp('Pulse number should be between 1-7');
-                end
-            end
-        end
-        
-        function EntgateSeq = entangling_seq(~, gate)
-            % Helper function to create entangling gate seq in terms of iSWAP
-            % Decomposition taken from N. Schuch and J. Siewert, Phys. Rev. A 67, 032301 (2003).
-            % Ignoring all single qubit gates in the start and end of the
-            % entangling gate
-            switch gate
-                case 'CNOT'
-                % put X90 gate on the control qubit
-                    EntgateSeq = {'iSWAP', {'X90','Identity'}, 'iSWAP'};
-                case 'iSWAP'
-                    EntgateSeq = {'iSWAP'};
-                case 'SWAP'
-                    EntgateSeq = {'iSWAP', {'Xm90', 'Identity'}, ...
-                                  'iSWAP', {'Identity', 'Xm90'}, 'iSWAP'};
-                otherwise
-                    disp('Only CNOT, iSWAP or SWAP allowed');
-            end
-        end
-        
+
         function Plot(self, fignum)
             if nargin == 1
                 fignum = 146;
@@ -284,6 +152,133 @@ classdef TwoQubitRB < measlib.SmartSweep
             xlabel('# of Cliffords');
             ylabel('P(|0>)');
             drawnow;
+        end
+    end
+
+    methods (Access = protected)
+        function FindInverse(self, row)
+            % Find the inverse Clifford for rbsequence(row)
+            
+            % Calculate unitary
+            unitary = eye(4);
+            for ii = self.rbsequences(row).indices
+                unitary = self.cliffords2(ii).unitary*unitary;
+            end
+
+            % Find inverse clifford
+            tol = 2e-6;
+            for ii = 1:length(self.cliffords2)
+                if abs(trace(unitary*self.cliffords2(ii).unitary)) >= (4-tol)
+                    self.rbsequences(row).inverse = ii;
+                    break;
+                end
+            end
+        end
+
+        function C2gate2Seq(self, C2index, row)
+            % Takes in two-qubit gate indexed by C2index
+            % updates gateseq, gateseq2 and fluxseq
+
+            % Pre C-gates
+            C1 = self.cliffords2(C2index).primDecomp{1}(1);
+            C2 = self.cliffords2(C2index).primDecomp{1}(2);
+            self.C1gate2Seq(C1, C2, row);
+            % Mid E-gate
+            if ~isempty(self.cliffords2(C2index).primDecomp{2})
+                E =  self.cliffords2(C2index).primDecomp{2};
+                self.Egate2Seq(E, row);
+            end
+            % Post S-gates
+            if ~isempty(self.cliffords2(C2index).primDecomp{3})
+                S1 = self.cliffords2(C2index).primDecomp{3}(1);
+                S2 = self.cliffords2(C2index).primDecomp{3}(2);
+                self.C1gate2Seq(S1, S2, row);
+            end
+        end
+
+        function C1gate2Seq(self, C1, C2, row)
+            % Takes in single qubit clifford gates indexed by C1 and C2,
+            % updates gatesewq, gateseq2 and fluxseq
+            C1PrimString = self.GetPrimString(C1);
+            C2PrimString = self.GetPrimString(C2);
+            for ii = 1:max(length(C2PrimString), length(C1PrimString))
+                self.fluxseq(row).append(self.gatedict.Identity);
+                if ii > length(C1PrimString)
+                    % Add extra identity gates on qubit1
+                    self.gateseq(row).append(self.gatedict.Identity);
+                else
+                    self.gateseq(row).append(self.gatedict.(C1PrimString{ii}));
+                end
+                if ii > length(C2PrimString)
+                    % Add extra identity gates on qubit2
+                    self.gateseq2(row).append(self.gatedict2.Identity);
+                else
+                    self.gateseq2(row).append(self.gatedict2.(C2PrimString{ii}));
+                end
+            end
+        end
+
+        function Egate2Seq(self, Egate, row)
+            % Takes in entangle gate Egate,
+            % updates gateseq, gateseq2, fluxseq
+            switch Egate
+                case 'CNOT'
+                    gateSeq = {'iSWAP', {'X90', 'Identity'}, 'iSWAP'};
+                case 'iSWAP'
+                    gateSeq = {'iSWAP'};
+                case 'SWAP'
+                    gateSeq = {'iSWAP', {'Xm90', 'Identity'}, ...
+                               'iSWAP', {'Identity', 'Xm90'}, 'iSWAP'};
+                otherwise
+                    disp('Only CNOT, iSWAP or SWAP allowed');
+            end
+            for gate = gateSeq
+                if strcmp(gate{1}, 'iSWAP')
+                    % Append iSWAP to fluxseq
+                    self.fluxseq(row).append(self.fluxdict.iSWAP);
+                    % Append delay to gateseq and gateseq2
+                    self.gateseq(row).append(self.pulseCal.Delay(self.fluxdict.iSWAP.totalDuration));
+                    self.gateseq2(row).append(self.pulseCal2.Delay(self.fluxdict.iSWAP.totalDuration));
+                else
+                    % Append identity to fluxseq
+                    self.fluxseq(row).append(self.gatedict.Identity);
+                    % Append single qubit gates to gateseq and gateseq2
+                    self.gateseq(row).append(self.gatedict.(gate{1}{1}));
+                    self.gateseq2(row).append(self.gatedict2.(gate{1}{2}));
+                end
+            end
+        end
+
+        function primString = GetPrimString(self, C1index)
+            % Return the namestrings for primary decomposition of
+            % single-qubit Clifford gate
+            
+            % Randomly choose a primary gate decomposition
+            primDecomp = randsample(self.cliffords1(C1index).primDecomp, 1);
+            % Randomly choose between +180 and -180 X/Y rotation and map
+            % the atomic clifford indices to their names
+            for ii = 1:length(primDecomp{1})
+                switch primDecomp{1}(ii)
+                    case 1
+                        primString{ii} = 'Identity';
+                    case 2
+                        primString{ii} = 'X90';
+                    case 4
+                        primString{ii} = 'Xm90';
+                    case 5
+                        primString{ii} = 'Y90';
+                    case 7
+                        primString{ii} = 'Ym90';
+                    case 3
+                        % randsample returns a cell,
+                        % so using '()' instead of '{}' here
+                        primString(ii) = randsample({'X180', 'Xm180'}, 1);
+                    case 6
+                        primString(ii) = randsample({'Y180', 'Ym180'}, 1);
+                    otherwise
+                        disp('Pulse number should be between 1-7');
+                end
+            end
         end
     end
 end

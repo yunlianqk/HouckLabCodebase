@@ -163,6 +163,10 @@ classdef pulseCal
             pulseObj.cutoff = obj.iSWAPcutoff;
             pulseObj.buffer = obj.iSWAPbuffer;
             pulseObj.sigma = obj.iSWAPsigma;
+            pulseObj.unitary = [1, 0, 0, 0;...
+                                0, 0, 1j, 0;...
+                                0, 1j, 0, 0;...
+                                0, 0, 0, 1];
         end
         function s = toStruct(obj)
             s = funclib.obj2struct(obj);
