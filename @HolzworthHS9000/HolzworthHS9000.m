@@ -176,11 +176,10 @@ classdef HolzworthHS9000 < handle
         function pulse = get.pulse(self)
             % Same as modulation
             switch self.modulation
-                case 'ON'
-                    pulse = 1;
                 case 'OFF'
                     pulse = 0;
                 otherwise
+                    pulse = 1;
             end
         end
 

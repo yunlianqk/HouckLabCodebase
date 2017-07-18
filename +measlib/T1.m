@@ -68,7 +68,7 @@ classdef T1 < measlib.SmartSweep
                                            self.result.intQ);
                 t1 = fitresult.lambda;
                 xlabel('Delay (\mus)');
-                ylabel('Readout phase');
+                ylabel('Readout Q');
                 title(['T_1 = ', num2str(t1), ' \mus']);
                 axis tight;
             end

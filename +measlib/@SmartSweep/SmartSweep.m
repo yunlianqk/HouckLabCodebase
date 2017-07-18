@@ -56,7 +56,7 @@ classdef SmartSweep < handle
         cardacqtime = 'auto';  % Duration of acquistion
         cardavg = 10000;  % Averaging
         cardseg = 1;  % Segment
-        cardchannel = {'dataI', 'dataQ'};
+        cardchannel = {'dataIQ'};  % Single/dual channel acquisition
         histogram = 0;  % Histogram
         histrepeat = 1;  % Repeat aquisition for more histogram data
         histbins = 20;  % Number of bins for histogram
@@ -83,7 +83,10 @@ classdef SmartSweep < handle
                         'rowAxis', [], ... % rows axis for rawdata
                         'intRange', [], ... % start and stop time for integration
                         'intFreq', [], ... % intermediate frequency
-                        'sampleinterval', []);
+                        'sampleinterval', [], ... % sample interval
+                        'cardchannel', [], ...  % single/dual channel acquisition
+                        'normalization', [], ... % normalization
+                        'histogram', []); ... % histogram
     end
     
     properties (Access = private)
@@ -133,7 +136,7 @@ classdef SmartSweep < handle
             self.InitInstr();
             self.SetOutput();
         end
-        
+
         UpdateParams(self, config);
         SetPulse(self);
         SetSweep(self);

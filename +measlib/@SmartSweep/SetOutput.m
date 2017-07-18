@@ -32,6 +32,12 @@ function SetOutput(self)
     self.result.sampleinterval = cardparams.sampleinterval;
     % Integration range is read from self.intrange
     self.result.intRange = self.intrange;
+    % Channel setting is read from self.cardchannel
+    self.result.cardchannel = self.cardchannel;
+    % Normalization is read from self.normalization
+    self.result.normalization = self.normalization;
+    % Histogram is read from self.histogram
+    self.result.histogram = self.histogram;
     % Intermediate frequency is read from self.intfreq or self.int2freq
     if ~isempty(self.generator{5})
         switch self.generator{5}

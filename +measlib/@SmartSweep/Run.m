@@ -1,6 +1,7 @@
 function Run(self)
    
     % Generate filename for saving data
+    % For RB experiments, do not refresh filename for each repeat
     if ~ismember(self.name, {'OneQubitRB', 'SimultaneousRB', 'TwoQubitRB'})
         self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
     end
