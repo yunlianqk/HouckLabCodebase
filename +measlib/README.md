@@ -39,7 +39,7 @@ See [M9330A AWG document](../@M9330AWG/README.md#multiple-module-synchronization
 
 For experiments that require different hardware wiring, see [hardware wiring](#hardware-wiring).
 ## SmartSweep class
-[`SmartSweep`](#class-smartsweep--handle) is an attempt to provide a generic, extensible interface for measurements using E8267D microwave generators and M9330A AWG.
+[`SmartSweep`](#class-smartsweep--handle) is an attempt to provide a generic, extensible interface for measurements using E8267D microwave generators and M9330A AWG. In the following, the `SmartSweep` object will be named as `x`.
 
 ### For users
 For pre-defined measurements such as [`TransSweep`](#class-transsweep--smartsweep), [`SpecSweep`](#class-specsweep--smartsweep), [`Rabi`](#class-rabi--smartsweep), [`T1`](#class-t1--smartsweep), etc., see [example code](../ExampleCode/ExampleCode_measlib.m).
@@ -62,7 +62,7 @@ For E8267D generators and YOKOGAWA voltage sources, sweeping paramters can be sc
 For M9330A AWG's, `gateseq`, `measseq` and `fluxseq` can be an object, or object array of [`pulsegen`](../+pulselib/README.md#contents) classes.
 
 #### Setting parameters
-The parameters can be scalar, row vector, column vector or 2D array. The result is shown in the code and table below.
+The sweeping parameters can be scalar, row vector, column vector or 2D array. The result is shown in the code and table below.
 
 ```matlab
 x = measlib.SmartSweep();
@@ -80,6 +80,8 @@ x.specpower = [-10, -5, 0; ...
 |3|rfpower = -30<br>rffreq = 5e9<br>specfreq = 5e9<br>specpower = -30|rfpower = -30<br>rffreq = 5.5e9<br>specfreq = 5e9<br>specpower = -25|rfpower = -30<br>rffreq = 6e9<br>specfreq = 5e9<br>specpower = -20|
 
 In the experiment, each column in a row will be swept in the inner loop, and each row will be swept in the outer loop.
+
+To see the full list of parameters, go to [API specifications](#api-specifications).
 
 #### Setting common configurations
 A *struct* `config` can be passed when initializing a measurement. For example,
@@ -106,6 +108,11 @@ The parameters `startBuffer`, `measBuffer` and `endBuffer` can be used to adjust
 The duration of each pulse sequence is therefore `startBuffer + max([gateseq.totalDuration]) + measBuffer + measseq.totalDuration + endBuffer`.
 
 #### Setting digitizer
+- `cardchannel` specifies which channels are used for data acquisition. It cann take one of the four values below:  
+  {'dataI'}: Uses channel 1  
+  {'dataQ'}: Uses channel 2  
+  {'dataIQ'}: Uses both channels for I and Q of one qubit readout  
+  {'dataI', 'dataQ'}: Uses both channels for simultaenous readout of two qubits
 - `cardavg` specifies the number of averages for the digitizer.
 - `trigperiod` and `cardacqtime` can be set to `'auto'` or manually specified. When set to `'auto'`, trigger period will be slightly longer than the full pulse sequence, and acquisition time will be slightly longer than the measurement pulse duration.
 - `carddelayoffset` can be used to fine tune the delay time for the digitizer. When set to zero, acquisition should start roughly at the beginning of the measurement pulse. `carddelayoffset` specifies the **additional** delay (can be positive or negative) with respect to that value.
@@ -113,9 +120,9 @@ The duration of each pulse sequence is therefore `startBuffer + max([gateseq.tot
 #### Hardware wiring
 The wiring of AWG channels and microwave generators are specified by properties `awg`, `awgchannel` and `generator`. The default configuration is (see [figure](#hardware-configuration)):
 ```matlab
-self.generator = {specgen, [], fluxgen, rfgen, logen, [], []};
-self.awg = {pulsegen1, [], pulsegen2, pulsegen2, []};
-self.awgchannel = {{'waveform1', 'waveform2'}, [], {'waveform2'}, {'waveform1'}, []};
+x.generator = {specgen, [], fluxgen, rfgen, logen, [], []};
+x.awg = {pulsegen1, [], pulsegen2, pulsegen2, []};
+x.awgchannel = {{'waveform1', 'waveform2'}, [], {'waveform2'}, {'waveform1'}, []};
 ```
 The correspondance between pulse sequences, AWGs and generators is listed in the table below.
 
@@ -129,18 +136,20 @@ The correspondance between pulse sequences, AWGs and generators is listed in the
 
 For example, the following configuration can be used for two-qubit measurement (requires 6 generators):
 ```matlab
-self.awg = {pulsegen1, pulsegen2, [], pulsegen1, puslegen2};
-self.awgchannel = {{'waveform1', 'waveform2'}, {'waveform1', 'waveform2'}, ...
+x.awg = {pulsegen1, pulsegen2, [], pulsegen1, puslegen2};
+x.awgchannel = {{'waveform1', 'waveform2'}, {'waveform1', 'waveform2'}, ...
                    [], {'marker3'}, {'marker3'}};
-self.generator = {specgen, specgen2, [], rfgen, logen, rfgen2, logen2};
+x.generator = {specgen, specgen2, [], rfgen, logen, rfgen2, logen2};
 ```
 For qubit 1, `pulsegen1` generates baseband I/Q waveforms in channel 1/2, and modulates `specgen`; For readout cavity 1, `pulsegen1.marker3` is used for gating `rfgen` and `logen` mixes with the output.  
 For qubit 2, `pulsegen2` generates baseband I/Q waveforms in channel 1/2, and modulates `specgen2`; For readout cavity 2, `pulsegen2.marker3` is used for gating `rfgen2` and `logen2` mixes with the output.
 
 #### Running measurement
-- `SetUp` method handles pulse timing, generates waveforms for AWG's and sets up relevant instruments.
-- `bgsubtraction` property can be set to `[]`, `'speconoff'`, `'rfonoff'`, `'fluxonoff'`, `'pulseonoff'` for background subtraction.
-- `Run` method starts the measurement and stores the measured data.
+```matlab
+x.SetUp();  % Set up parameters and instruments
+x.Run();  % Run experiment and store result
+```
+The result will be stored in `x.result`.
 
 #### Plotting data
 During the measurement the data will be plotted and updated.
@@ -197,22 +206,30 @@ Pulse timing parameters are calculated in [SetPulse](./@SmartSweep/SetPulse.m) m
 ```matlab
 seqDuration = 0;
 measDuration = 0;
+...
+% Get the duration of the longest sequence
 try
     seqDuration = max([self.gateseq.totalDuration]);
 catch
 end
-
+try
+    seqDuration = max(seqDuration, max([self.gateseq2.totalDuration]));
+catch
+end
 try
     seqDuration = max(seqDuration, max([self.fluxseq.totalDuration]));
 catch
 end
-
+% Get the duration of measurement pulse
 try
     measDuration = self.measseq.totalDuration;
 catch
 end
+try
+    measDuration = max(measDuration, self.measseq2.totalDuration);
+catch
 end
-
+% Calculate the timing parameters
 self.seqEndTime = self.startBuffer + seqDuration;
 self.measStartTime = self.seqEndTime + self.measBuffer;
 self.waveformEndTime = self.measStartTime + measDuration + self.endBuffer;
@@ -223,21 +240,25 @@ These parameters are then used in [SetSweep](./@SmartSweep/SetSweep.m) method wh
 % In SetSweep.m
 function setgatewav(gateseq)
     ...
-    [pulsegen1.waveform1, pulsegen1.waveform2] ...
-        = gateseq.uwWaveforms(self.awgtaxis, self.seqEndTime-gateseq.totalDuration);
-    ...
-end
+    [waveform1, waveform2] ...
+        = gateseq.uwWaveforms(self.awgtaxis, ...
+                              self.seqEndTime - gateseq.totalDuration);
 
-function setfluxwav(fluxseq)
-    [pulsegen2.waveform2, ~] ...
-        = fluxseq.uwWaveforms(self.awgtaxis, ...
-                              self.seqEndTime-fluxseq.totalDuration);
+    if length(self.awgchannel{1}) == 2
+        % I and Q => dual channel
+        self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
+        self.awg{1}.(self.awgchannel{1}{2}) = waveform2;
+    else
+        if strfind(self.awgchannel{1}{1}, 'marker')
+            % I => marker 
+            self.awg{1}.(self.awgchannel{1}{1}) = double(waveform1 ~= 0);
+        else
+            % I => single channel
+            self.awg{1}.(self.awgchannel{1}{1}) = waveform1;
+        end
+    end
 end
-
-function setmeaswav(measseq)
-    [pulsegen2.waveform1, ~] ...
-        = measseq.uwWaveforms(self.awgtaxis, self.measStartime);
-end
+...
 ```
 
 #### Setting up sweeps
@@ -332,6 +353,8 @@ for row = 1:self.numSweep1
         ...
     end
 ```
+#### Initializing instruments
+
 
 #### Adding new sweeps
 To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in the example below) to `SmartSweep`,
@@ -370,9 +393,12 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     *similar parameters for specgen, logen, fluxgen, yokos, etc.*...
     
     *Pulse generation parameters*
-    - **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): pulse paramters
+    - **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): qubit pulse paramters
+    - **pulseCal2** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object*): qubit 2 pulse paramters
     - **gateseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): qubit pulse sequences
+    - **gateseq2** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): qubit 2 pulse sequences
     - **measseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): measurement pulse
+    - **measseq2** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): measurement 2 pulse
     - **fluxseq** (*[pulselib.gateSequence](../+pulselib/README.md#class-pulselibgatesequence--handle) object*): addition pulse sequence when needed
 
     *Pulse timing parameters*
@@ -381,14 +407,26 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     - **endBuffer** (*float*): buffer after measurement pulse
 
     *Acquisition and trigger parameters*
+    - **cardchannel** (*cell string*): digitizer channel for acquiring data. Current options are {'dataIQ'}, {'dataI'}, {'dataQ'} and {'dataI', 'dataQ'}.
     - **waittime** (*float*): wait time for instrument to stablize
     - **trigperiod** (*float or 'auto'*): trigger period
     - **carddelayoffset** (*float*): compensation for automatic acquisition delay
     - **cardacqtime** (*float or 'auto'*): duration of acquistion
     - **cardavg** (*integer*): number of averages
-    - **bgsubtraction** (*string*): background subtraction. Current options are 'speconoff', 'rfonoff', 'fluxonoff', 'pulseonoff'.
+    - **bgsubtraction** (*string*): background subtraction. Current options are 'speconoff', 'rfonoff' and 'fluxonoff'.
     - **normalization** (*0/1*): append zero and pi gate to gate sequence for readout normalization
     - **intrange** (*2-element array*): start and stop time for integrating rawdata
+
+    *Histogram parameters*
+    - **histogram** (*1/0*): histogram on/off
+    - **cardseg** (*integer*): number of card segments for histogram
+    - **histrepeat** (*integer*): number of software averages for histogram
+    - **histbins** (*integer*): number of bins for histogram
+
+    *Hardware wiring parameters*
+    - **awg** (*cell array*): AWG handles for pulse generation
+    - **awgchannel** (*cell string*): AWG channels for pulse generation
+    - **generator** (*cell array*): Generator handles for pulse generation
 
     *Plotting parameters*
     - **plotsweep1** (*0/1*): plot on/off for outer loop
@@ -424,7 +462,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
 	- **rfpower** (*float*): power for rfgen. In pulse mode, this will be overwritten by `pulseCal.rfPower`.
 	- **intfreq** (*float*): intermediate frequency (i.e., `logen.freq - rfgen.freq`). In pulse mode, this will be overwritten by `pulseCal.intFreq`.
 	- **lopower** (*float*): power for logen. In pulse mode, this will be overwritten by `pulseCal.loPower`.
-	- **bgsubtraction** (*string*): can be `rfonoff` or []
+	- **bgsubtraction** (*string*): can be 'rfonoff' or []
 	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object, optional*): pulse parameters (needed for pulse mode only)
 	- **qubitGates** (*cell string, optional*): qubit gates applied before measurement pulse, can be {'X180'}, etc. (Needed for pulse mode only)
 - **Methods**:
@@ -439,7 +477,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
 	- **rfpower** (*float*): power for rfgen. In pulse mode, this will be overwritten by `pulseCal.rfPower`.
 	- **intfreq** (*float*): intermediate frequency (i.e., `logen.freq - rfgen.freq`). In pulse mode, this will be overwritten by `pulseCal.intFreq`.
 	- **lopower** (*float*): power for logen. In pulse mode, this will be overwritten by `pulseCal.loPower`.
-	- **bgsubtraction** (*string*): can be `speconoff` or []
+	- **bgsubtraction** (*string*): can be 'speconoff' or []
 	- **pulseCal** (*[paramlib.pulseCal](../+paramlib/README.md#class-paramlibpulsecal) object, optional*): pulse parameters (needed for pulse mode only)
 	- **qubitGates** (*cell string, optional*): qubit gates applied before measurement pulse, can be {'X180'}, etc. (Needed for pulse mode only)
 - **Methods**:

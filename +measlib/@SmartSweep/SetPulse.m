@@ -38,7 +38,7 @@ function SetPulse(self)
             self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
         end
     end
-    % Get the duration of he longest pulse
+    % Get the duration of the longest sequence
     try
         seqDuration = max([self.gateseq.totalDuration]);
     catch

@@ -17,21 +17,20 @@ classdef GPIBINSTR < handle
             instrID = sscanf(address, 'GPIB0::%d');
 
             while (~success)
-                % If device is gpib handle and already open
+                % If device is visa handle and already open
                 self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID), '-0'], ...
                                              'Status', 'open');
                 if ~isempty(self.instrhandle)
                     success = 1;
                     break;
                 end
-                
-                % If device is visa handle and already open
                 self.instrhandle = instrfind('Name', ['VISA-GPIB0-', num2str(instrID)], ...
                                              'Status', 'open');
                 if ~isempty(self.instrhandle)
                     success = 1;
                     break;
                 end
+                % If device is gpib handle and already open
                 self.instrhandle = instrfind('Name', ['GPIB0-', num2str(instrID)], 'Status', 'open');
                 if ~isempty(self.instrhandle)
                     success = 1;

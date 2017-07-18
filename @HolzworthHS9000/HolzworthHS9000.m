@@ -25,11 +25,8 @@ classdef HolzworthHS9000 < handle
         freq; % in Hz
         power; % in dBm
         phase; % in radians
-        modulation = 0; % 0/1
-        alc = 0;
-        pulse = 0;
-        iq = 0;
-        ref = '10MHz' % (internal 100MHz) 'int', (external) '10MHz', or (external) '100MHz'
+        modulation; % 0/1
+        ref; % (internal 100MHz) 'int', (external) '10MHz', or (external) '100MHz'
     end
     
     properties (SetAccess = private)
@@ -38,6 +35,12 @@ classdef HolzworthHS9000 < handle
     
     properties (Hidden, SetAccess = private)
         channel; % Channel number
+        % The following properties are not supported by hardware
+        % They are kept here as placeholder to make the interface
+        % consistent with E8267D class
+        alc = 0;
+        pulse = 0;
+        iq = 0;
     end
 
     methods
@@ -58,7 +61,9 @@ classdef HolzworthHS9000 < handle
             tempstr = strsplit(address, '-');
             self.channel = str2double(tempstr{3});
             % Set reference clock
-            self.ref = '10MHz';            
+            self.ref = '10MHz';
+            % Turn off modulation
+            self.modulation = 0;
         end
         
         function Finalize(self)
