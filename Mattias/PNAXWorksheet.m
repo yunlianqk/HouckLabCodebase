@@ -58,13 +58,12 @@ savefig([filename '.fig'] )
 
 %% Yoko Scan
 
-
 transCh1 = paramlib.pnax.trans();
 % transCh1.start = 5.72428e9;
 % transCh1.stop = 6.49351e9;
 
-transCh1.start = 3.5e9;
-transCh1.stop = 7.85e9;
+transCh1.start = 3.7e9;
+transCh1.stop = 7.0e9;
 transCh1.points = 1201;
 transCh1.averages = 70;
 transCh1.ifbandwidth = 1000;
@@ -80,9 +79,9 @@ pnax.PowerOn();
 pnax.TrigContinuous();
 % Yoko Scan 
 % params.yoko2vect = linspace(0,0.4,50);
-params.yoko1vect = linspace(0,-8,40);
+params.yoko1vect = linspace(-1,-3.5,200);
 
-params.WaitTime = 20;
+params.WaitTime = 60;
 S21amp = zeros(length(params.yoko1vect), transCh1.points);
 
 for i = 1:length(params.yoko1vect)
@@ -114,13 +113,79 @@ for i = 1:length(params.yoko1vect)
 end
 
 saveDirectory = 'D:\Users\Mattias\QUASIwQ\';
-dataFolder = 'yokoScans_042717';
+dataFolder = 'specScans_042817';
 mkdir([saveDirectory dataFolder]); 
 cd([saveDirectory dataFolder])
 save( [filename '.mat'], 'params', 'S21amp', 'S21freqvector', 'transCh1');
 savefig([filename '.fig'] )
 % cd('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\Mattias')
+%%
+yoko1.SetVoltage(0);
 
+%% Power Scan
+
+transCh1 = paramlib.pnax.trans();
+pnax.SetActiveTrace(1);
+% transCh1.start = 5.72428e9;
+% transCh1.stop = 6.49351e9;
+transCh1.channel = 1;
+transCh1.trace = 1;
+transCh1.start =  3.85e9;
+transCh1.stop = 7.25e9;
+transCh1.points = 1201;
+transCh1.averages = 120;
+transCh1.ifbandwidth = 1000;
+transCh1.meastype = 'S21';
+transCh1.format = 'MLOG';
+
+pnax.SetParams(transCh1);
+
+pnax.AvgOn();
+pnax.PowerOn();
+pnax.TrigContinuous();
+
+yoko1.SetVoltage(-2);
+
+params.powerVec = linspace(-80,5,24);
+
+params.WaitTime = 30;
+S21amp = zeros(length(params.powerVec), transCh1.points);
+
+for i = 1:length(params.powerVec)
+    if i == 1
+        tStart = tic;
+        time = clock;
+        filename=['powerScan_' num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+    end
+    
+    pnax.params.power = params.powerVec(i);
+    pnax.AvgClear();
+    pause(params.WaitTime);
+    S21amp(i,:) = pnax.Read();
+    S21freqvector = pnax.ReadAxis();
+    % Plot data
+    figure(71);
+    imagesc(S21freqvector/1e9, params.powerVec(1:i), S21amp(1:i,:));
+    xlabel('Frequency [GHz]');
+    ylabel('PNAX Power [dBm]');
+    title(filename);
+    set(gca, 'YDir', 'normal');
+    
+    if i == 1;
+        deltaT = toc(tStart);
+        disp(['Estimated Time is ',...
+            num2str(length(params.powerVec)*deltaT/60),' mins or ', ...
+            num2str(length(params.powerVec)*deltaT/3600),' hrs']);
+    end
+    
+end
+
+saveDirectory = 'D:\Users\Mattias\QUASIwQ\';
+dataFolder = 'powerScans_042717';
+mkdir([saveDirectory dataFolder]); 
+cd([saveDirectory dataFolder])
+save( [filename '.mat'], 'params', 'S21amp', 'S21freqvector', 'transCh1');
+savefig([filename '.fig'] )
 
 %% Set channel 1 parameters for transmission S21
 
