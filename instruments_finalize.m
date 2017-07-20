@@ -1,6 +1,7 @@
 % Close existing instruments
 instrlist = {};
 filelist = dir('.');
+% Find all class folders in the directory
 for file = filelist'
     if file.name(1) == '@'
         instrlist = [instrlist, file.name(2:end)];
@@ -17,10 +18,16 @@ for index = 1:length(varlist)
     end
 end
 
+% Unload Holzworth driver library
+if ismember('HolzworthHS9000', instrlist)
+    HolzworthHS9000.UnloadDriver();
+end
+
 % Final house keeping
-if (~isempty(instrfind))
-    fclose(instrfind);
-    delete(instrfind);
+instrlist = instrfind();
+if (~isempty(instrlist))
+    fclose(instrlist);
+    delete(instrlist);
 end
 
 run(['.', filesep(), 'unsetpath.m']);

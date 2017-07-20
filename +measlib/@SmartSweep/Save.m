@@ -1,6 +1,8 @@
 function Save(self, filename)
     global card;
     
+    warning('off', 'M9330A:getmkraddwidth');
+    
     % If savepath is empty, use default path
     if isempty(self.savepath)
         self.savepath = 'C:\Data\';
@@ -20,9 +22,7 @@ function Save(self, filename)
     % If filename is not specified, use default name
     if nargin == 1
         filename = self.savefile;
-    end
-    % If filename is specified as input, set path to pwd
-    if nargin == 2
+    elseif nargin == 2
         path = [pwd(), filesep()];
     end
     
@@ -30,6 +30,11 @@ function Save(self, filename)
     if isprop(self, 'pulseCal')
         temppulseCal = self.pulseCal;
         self.pulseCal = funclib.obj2struct(self.pulseCal);
+    end
+    
+    if isprop(self, 'pulseCal2')
+        temppulseCal2 = self.pulseCal2;
+        self.pulseCal2 = funclib.obj2struct(self.pulseCal2);
     end
     % Convert x to struct
     x = funclib.obj2struct(self);
@@ -45,5 +50,8 @@ function Save(self, filename)
     % Recover pulseCal object
     if isprop(self, 'pulseCal')
         self.pulseCal = temppulseCal;
+    end
+    if isprop(self, 'pulseCal2')
+        self.pulseCal2 = temppulseCal2;
     end
 end

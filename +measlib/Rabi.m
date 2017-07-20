@@ -40,7 +40,6 @@ classdef Rabi < measlib.SmartSweep
                 % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
             end
-            
             self.result.rowAxis = self.ampVector;
             SetUp@measlib.SmartSweep(self);
         end
@@ -50,19 +49,36 @@ classdef Rabi < measlib.SmartSweep
                 fignum = 102;
             end
             self.Integrate();
-            self.Normalize();
             figure(fignum);
+
             subplot(2, 1, 1);
             try
                 piamp = funclib.RabiFit(self.result.rowAxis, self.result.ampInt);
             catch 
                 piamp = 1;
             end
+
             if self.normalization
-                ylabel('Normalized readout amplitude');
+                self.Normalize();
+                piamp = funclib.RabiFit(self.result.rowAxis, self.result.normAmp);
+                xlabel('Drive amplitude');
+                ylabel('Normalized readout');
+                title(['\pi amplitude = ', num2str(piamp)]);
+                axis tight;
             else
-                ylabel('Readout amplitude');
+                subplot(2, 1, 1);
+                piamp = funclib.RabiFit(self.result.rowAxis, self.result.intI);
+                ylabel('Readout I');
+                title(['\pi amplitude = ', num2str(piamp)]);
+                axis tight;
+                subplot(2, 1, 2);
+                piamp = funclib.RabiFit(self.result.rowAxis, self.result.intQ);
+                ylabel('Readout Q');
+                xlabel('Drive amplitude');
+                title(['\pi amplitude = ', num2str(piamp)]);
+                axis tight;
             end
+
             title(['\pi amplitude = ', num2str(piamp)]);
             axis tight;
             subplot(2, 1, 2);

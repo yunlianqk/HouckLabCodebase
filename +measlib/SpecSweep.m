@@ -38,18 +38,18 @@ classdef SpecSweep < measlib.SmartSweep
         end
        
         function Plot(self, fignum)
+            self.result.intAmp = sqrt(self.result.intI.^2 + self.result.intQ.^2);
+            self.result.intPhase = atan2(self.result.intQ, self.result.intI);
             if nargin == 1
                 fignum = 112;
             end
-            Plot@measlib.SmartSweep(self, fignum);
-
-            subplot(2, 2, 2);
-            plot(self.specfreq/1e9, self.result.ampInt);
+            figure(fignum);
+            subplot(2, 1, 1);
+            plot(self.specfreq/1e9, self.result.intAmp);
             title('Amplitude');
             axis tight;
-            subplot(2, 2, 4);
-            plot(self.specfreq/1e9, self.result.phaseInt);
-            axis tight;
+            subplot(2, 1, 2);
+            plot(self.specfreq/1e9, self.result.intPhase);
             title('Phase');
             xlabel('Frequency (GHz)');
             axis tight;

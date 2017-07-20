@@ -10,7 +10,7 @@ function  newAmplitude = RabiFit(axis, data, varargin)
     [dip, diploc] = findpeaks(-data, axis);
     dip = -dip;
     % Remove extrema due to noise in data
-    peakloc = peakloc(peak > datamax -  amp_guess/10);
+    peakloc = peakloc(peak > datamax - amp_guess/10);
     diploc = diploc(dip < datamin + amp_guess/10);
     % Guess offset
     if data(1) > (datamax + datamin)/2
@@ -23,11 +23,9 @@ function  newAmplitude = RabiFit(axis, data, varargin)
     freq_guess = pi/2/abs(peakloc(1)- diploc(1));
     % Fit data
     beta0 = [amp_guess, freq_guess, offset_guess];
-    Lbound = [min(0.5*amp_guess, 1.5*amp_guess), ...
-              0.5*freq_guess, ...
+    Lbound = [min(0.5*amp_guess, 1.5*amp_guess), 0.5*freq_guess, ...
               offset_guess-0.2*abs(amp_guess)];
-    Ubound = [max(0.5*amp_guess, 1.5*amp_guess), ...
-              1.5*freq_guess, ...
+    Ubound = [max(0.5*amp_guess, 1.5*amp_guess), 1.5*freq_guess, ...
               offset_guess+0.2*abs(amp_guess)];
     opts = optimset('Display', 'off'); % suppress fit message 
     coeff = lsqcurvefit(@rabi, beta0, axis, data, Lbound, Ubound, opts);

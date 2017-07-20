@@ -45,10 +45,13 @@ rfgen.alc = 0;
   * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
   * **frequency** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
-  * **phase** (*float*): Phase (in deg) of the signal
+  * **phase** (*float*): Phase (in radians) of the signal
   * **output** (*1/0*): output on/off
   * **modulation** (*1/0*): modulation on/off
   * **iq** (*1/0*): Wideband digital modulation on/off (only available in E8267D models)
+  * **iqadjust** (*1/0*): I/Q adjustment on/off (only available in E8267D models)
+  * **ioffset** (*float*): I offset (in volts) for I/Q adjustment (only available in E8267D models)
+  * **qoffset** (*float*): Q offset (in volts) for I/Q adjustment (only available in E8267D models)
   * **pulse** (*1/0*): Pulse modulation on/off
   * **alc** (*1/0*): ALC (automatic leveling control) on/off
 * **Methods**:

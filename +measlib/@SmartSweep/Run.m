@@ -1,7 +1,9 @@
 function Run(self)
     
     % Generate filename for saving data
-    self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
+    if ~ismember(self.name, {'RBExperiment', 'SimRB'})
+        self.savefile = [self.name, '_', datestr(now(), 'yyyymmddHHMMSS'), '.mat'];
+    end
 
     % Run sweep
     for row = 1:self.numSweep1
@@ -16,23 +18,28 @@ function Run(self)
                 feval(self.sweep3func{idx3}, self.sweep3data{idx3}(row, col));
             end
             pause(self.waittime);
-            [self.result.dataI(col, :), self.result.dataQ(col, :)] ...
-                = self.acqsigfunc();
+            self.acqsigfunc(col);
             [bgI, bgQ] = self.acqbgfunc();
             self.result.dataI(col, :) = self.result.dataI(col, :) - bgI;
             self.result.dataQ(col, :) = self.result.dataQ(col, :) - bgQ;
             if mod(col-1, self.plotupdate) == 0
-                self.plot2func(self.result.dataI(1:col, :), ...
-                               self.result.dataQ(1:col, :));
+                self.plot2func(col);
             end
         end
-        self.plot2func(self.result.dataI, self.result.dataQ);
-        self.Integrate();
-        self.plot1func(self.result.ampInt(1:row, :), self.result.phaseInt(1:row, :));
+        self.plot2func(col);
+        if length(self.cardchannel) == 1
+            switch self.cardchannel{:}
+                case 'dataI'
+                    self.result.dataQ = self.result.dataI;
+                case 'dataQ'
+                    self.result.dataI = self.result.dataQ;
+                otherwise
+            end
+        end
+        self.Integrate(row);
+        self.Normalize();
+        self.plot1func(row);
     end
-
-    self.plot1func(self.result.ampInt, self.result.phaseInt);
-    self.Normalize();
     if self.autosave
         self.Save();
     end

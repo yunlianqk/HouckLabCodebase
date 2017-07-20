@@ -47,27 +47,36 @@ classdef Ramsey < measlib.SmartSweep
                 fignum = 104;
             end
             self.Integrate();
-            self.Normalize();
+            
             figure(fignum);
-            subplot(2, 1, 1);
-            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
+            
             if self.normalization
-                ylabel('Normalized readout amplitude');
+                self.Normalize();
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.normAmp);
+                ylabel('Normalized readout');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                axis tight;
+                self.result.NormAmpt2Err = t2Err;
+                self.result.NormAmpfreq = freq;
+                self.result.NormAmpMSE = mse;
+                self.result.NormAmpfreqErr = freqErr;
+                self.result.NormAmpt2=t2;
             else
-                ylabel('Readout amplitude');
+                subplot(2, 1, 1);
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI);
+                ylabel('Readout I');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                
+                axis tight;
+                subplot(2, 1, 2);
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ);
+                ylabel('Readout Q');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                axis tight;
+                
             end
-            title(sprintf('T_2^* = %.2f \\mus, detuning = \\pm %.2f MHz', t2, detuning));
-            axis tight;
-            subplot(2, 1, 2);
-            [t2, detuning] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-            if self.normalization
-                ylabel('Normalized readout phase');
-            else
-                ylabel('Readout phase');
-            end
-            title(sprintf('T_2^* = %.2f \\mus, detuning = \\pm %.2f MHz', t2, detuning));
-            xlabel('Delay (\mus)');
-            axis tight;
         end
     end
 end

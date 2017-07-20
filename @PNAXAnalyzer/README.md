@@ -16,7 +16,7 @@ pnax = PNAXAnalyzer(address);
 ### Create measurements
 To set up a transmission scan, first create a [**paramlib.pnax.trans**](../+paramlib/README.md#class-paramlibpnaxtrans) *object* that contains the parameters:
 ```matlab
-transCh1 = paramlib.pnax.trans();  % Use paramlib.pnax.spec() for spectroscopy measurement
+transCh1 = paramlib.pnax.trans();
 transCh1.start = 5e9;
 transCh1.stop = 6e9;
 transCh1.points = 1001;
@@ -83,11 +83,9 @@ to modify multiple parameters.
 ### Read data
 To read data from PNAX, first select the **trace** and then call the `Read` method:
 ```matlab
-trace = 1;
-pnax.SetActiveTrace(trace);
+pnax.SetActiveTrace(1;
 S21amp = pnax.Read();
-trace = 2;
-pnax.SetActiveTrace(trace);
+pnax.SetActiveTrace(2);
 S13phase = pnax.Read();
 pnax.params.format = 'MLOG';
 S13amp = pnax.Read();
@@ -104,7 +102,7 @@ freqvector = pnax.ReadAxis();
 ```
 
 ## Discussion
-- Changing `pnax.params.format` will **not** restart averaging. To 
+- Changing `pnax.params.format` will **not** restart averaging.
 - A **channel** contains several **measurements** that are of the same type. For example, all transmission measurements can (but not necessarily) be in channel 1 and all spectroscopy measurements can be in channel 2, but a trans and a spec cannot be in the same channel.
 - A **measurement** is fed to a **trace** to be displayed in the front panel. To activate an existing measurement, use the corresponding trace number and set it to active. The trace number is **NOT** the "TR#" displayed in the front panel, it is for the purpose of remote control only.
 - <a name="measname"></a>The **naming convention** for a measurement follows the default setting: a measurement in channel X, measuring Sij and fed to trace Y is named `'CHX_Sij_Y'`.

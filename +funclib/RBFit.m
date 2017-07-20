@@ -17,10 +17,13 @@ function  result = RBFit(xaxis, data, varargin)
     p0 = .98;
     beta0 = [offset0, amp0, p0];
     % Fit data
-    coeff = nlinfit(xaxis, ymean, @gateIndFit, beta0);
+    [coeff,resid,J] = nlinfit(xaxis, ymean, @gateIndFit, beta0);
+    ci = nlparci(coeff,resid,'jacobian',J);
     result.offset = coeff(1);
     result.amp = coeff(2);
     result.p = coeff(3);
+    result.pErr=diff(ci(3,:))/2;
+    result.avgCliffordErrorErr = result.pErr/2;
     result.avgCliffordError = 1 - result.p - (1-result.p)/2; % see easwar PRL 106, 180504 (2011)
     result.avgGateError = result.avgCliffordError/1.8750; % avg # primitives per clifford
     result.avgGateFidelity = 1-result.avgGateError;
@@ -35,15 +38,13 @@ function  result = RBFit(xaxis, data, varargin)
         ax = gca;
     end
     
-    plot(xaxis, ydata, '-.', 'color', [.8, .8, .8], 'markersize', 10);
+    plot(xaxis, ydata', '-.', 'color', [.8, .8, .8], 'markersize', 10);
     hold(ax, 'on');
     plot(xaxis, ymean, 'r.', 'markersize', 20);
     plot(xaxis_dense, Y, 'k');
     axis([0, xaxis(end), .4, 1]);
     hold(ax, 'off');
-    title(['Avg. Prim Gate Fidelity: ', num2str(result.avgGateFidelity)]);
-    xlabel('# of Cliffords');
-    ylabel('P(|0>)');
+    title(['Avg. Prim Gate Fidelity: ', num2str(result.avgGateFidelity),'\pm', num2str(result.avgCliffordErrorErr/1.875)]);
 end
 
 function y = gateIndFit(beta, x)

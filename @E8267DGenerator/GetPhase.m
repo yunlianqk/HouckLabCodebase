@@ -1,5 +1,5 @@
-function phase = GetPhase(gen)
-% Get phase (in degrees)
-    fprintf(gen.instrhandle, 'PHASe?');
-    phase = fscanf(gen.instrhandle, '%f')/pi*180;
+function phase = GetPhase(self)
+% Get phase (in radians)
+    fprintf(self.instrhandle, 'PHASe?');
+    phase = fscanf(self.instrhandle, '%f');
 end

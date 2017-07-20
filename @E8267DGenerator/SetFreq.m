@@ -1,4 +1,4 @@
-function SetFreq(gen, freq)
+function SetFreq(self, freq)
 % Set frequency
-    fprintf(gen.instrhandle, 'FREQuency %f', freq);
+    fprintf(self.instrhandle, 'FREQuency %f', freq);
 end

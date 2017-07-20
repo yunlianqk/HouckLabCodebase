@@ -1,7 +1,5 @@
-function [cliffs, cliffsdecom] = SingleQubitCliffords()
-
-    % run this first as it generatrs the decompoistion of matrices for the
-    % clifords and then for each cliford it finds the decomposition.
+function cliffords = SingleQubitCliffords()
+    % Returns all 24 single qubit Clifford gates
 
     % Operators
     sm = [0 1; 0 0];
@@ -9,7 +7,7 @@ function [cliffs, cliffsdecom] = SingleQubitCliffords()
     sx = full(sp+sm);
     sy = full(1i*sp-1i*sm);
 
-    % Pulses %these seven elements can be realized with uw pulses
+    % Primitive gates
     X90 = expm(-1i*sx*pi/4.0);  % these two are real generators of the clifford group
     Y90 = expm(-1i*sy*pi/4.0);  % these two are real generators of the clifford group
     Xm90 = expm(1i*sx*pi/4.0);
@@ -19,15 +17,14 @@ function [cliffs, cliffsdecom] = SingleQubitCliffords()
     Y180 = expm(-1i*sy*pi/2.0);
 
     % getting the cliffords
-    Gens = {X90, Y90};
-    cliffs = pulselib.RB.Cliffords_(Gens, 200, 1);
+    clfmat = pulselib.RB.Cliffords_({X90, Y90}, 200, 1);
 
     % getting the decomposition
     Gens = {X90, Y90, Xm90, Ym90, Id, X180, Y180};
     Gensstring = {'X90', 'Y90', 'Xm90', 'Ym90', 'Identity','X180', 'Y180'};
-    cliffsdecom = {};
-    for p = 1:length(cliffs)
-        temp = pulselib.RB.GenStrings_(Gens, Gensstring, cliffs{p}, 1);
-        cliffsdecom = [cliffsdecom, {temp}];
+    cliffords = pulselib.RB.cliffordGate(1, Id, 'Identity');
+    for ind = 1:length(clfmat)
+        decomp = pulselib.RB.GenStrings_(Gens, Gensstring, clfmat{ind}, 1);
+        cliffords(ind) = pulselib.RB.cliffordGate(ind, clfmat{ind}, decomp);
     end
 end

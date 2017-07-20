@@ -1,14 +1,19 @@
 function Normalize(self)
 % Normalize data
-    if self.normalization
-        ampGnd = self.result.ampInt(end-1);
-        ampEx = self.result.ampInt(end);
-        phaseGnd = self.result.phaseInt(end-1);
-        phaseEx = self.result.phaseInt(end);
-        self.result.ampInt = (self.result.ampInt(1:end-2)-ampGnd) ...
-                           /(ampEx-ampGnd);
-        self.result.phaseInt = (self.result.phaseInt(1:end-2)-phaseGnd) ...
-                             /(phaseEx-phaseGnd);
 
+    % For histogram, do not normalize
+    if self.histogram
+        return;
+    end
+
+    if self.normalization
+        gndI = self.result.intI(end-1);
+        extI = self.result.intI(end);
+        gndQ = self.result.intQ(end-1);
+        extQ = self.result.intQ(end);
+        self.result.normAmp ...
+            = sqrt((self.result.intI(1:end-2)-gndI).^2 ...
+                   + (self.result.intQ(1:end-2)-gndQ).^2) ...
+              / sqrt((extI-gndI)^2+(extQ-gndQ)^2);
     end
 end

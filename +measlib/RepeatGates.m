@@ -24,8 +24,6 @@ classdef RepeatGates < measlib.SmartSweep
     properties (Hidden)
         % Pre-calculated waveforms to speed up pulse generation
         gatedict = struct();
-        iGateWaveforms = struct();
-        qGateWaveforms = struct();
     end
     
     methods
@@ -41,15 +39,10 @@ classdef RepeatGates < measlib.SmartSweep
         function SetUp(self)
             % Construct and store primary gates
             self.gatedict = struct();
-            self.gatedict.Identity = self.pulseCal.Identity();
-            self.gatedict.X180 = self.pulseCal.X180();
-            self.gatedict.Xm180 = self.pulseCal.Xm180();
-            self.gatedict.X90 = self.pulseCal.X90();
-            self.gatedict.Xm90 = self.pulseCal.Xm90();
-            self.gatedict.Y180 = self.pulseCal.Y180();
-            self.gatedict.Ym180 = self.pulseCal.Ym180();
-            self.gatedict.Y90 = self.pulseCal.Y90();
-            self.gatedict.Ym90 = self.pulseCal.Ym90();
+            for gate = {'Identity', 'X180', 'Xm180', 'X90', 'Xm90', ...
+                        'Y180', 'Ym180', 'Y90', 'Ym90'}
+                self.gatedict.(gate{1}) = self.pulseCal.(gate{1})();
+            end
             
             % Construct gate sequences
             if ~isempty(self.initGates) && ~iscell(self.initGates)

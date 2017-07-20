@@ -1,4 +1,4 @@
-function SetPower(gen, power)
+function SetPower(self, power)
 % Set power
-    fprintf(gen.instrhandle, 'POWer %f', power);
+    fprintf(self.instrhandle, 'POWer %f', power);
 end

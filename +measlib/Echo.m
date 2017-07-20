@@ -31,8 +31,8 @@ classdef Echo < measlib.SmartSweep
             if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
                 self.qubitGates = cellstr(self.qubitGates);
             end
-            if ~isempty(self.qubitGates) && ~iscell(self.qubitGates)
-                self.endGates = cellstr(self.endGates);
+            if ~isempty(self.echoGates) && ~iscell(self.echoGates)
+                self.echoGates = cellstr(self.echoGates);
             end
             % Construct qubit gates
             for col = 1:length(self.qubitGates)
@@ -57,7 +57,7 @@ classdef Echo < measlib.SmartSweep
                 self.gateseq(row).append(echogates);
                 % Append half delay again
                 self.gateseq(row).append(pulselib.delay(self.delayVector(row)/2));
-                % Append qubit gates again
+                % Append qubit gates, with varing azimuth
                 for col = 1:length(self.qubitGates)
                     endgates(col) = self.pulseCal.(self.qubitGates{col});
                     endgates(col).amplitude = -endgates(col).amplitude;
@@ -71,48 +71,35 @@ classdef Echo < measlib.SmartSweep
         
         function Fit(self, fignum)
             if nargin == 1
-                fignum = 105;
+                fignum = 104;
             end
             self.Integrate();
-            self.Normalize();
+            
             figure(fignum);
-            subplot(2, 1, 1);
-            if self.numfringes
-                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
-            else
-                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.ampInt);
-                t2 = fitresult.lambda;
-            end
-            %% This code snippet is added on 03/16 not yet put on github - Pranav
-            %to return fit parameter t2
-            self.result.Ampt2=t2;
-            %% code snippet ends
+            
             if self.normalization
-                ylabel('Normalized readout amplitude');
+                self.Normalize();
+                [t2, freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.normAmp);
+                ylabel('Normalized readout');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                axis tight;
             else
-                ylabel('Readout amplitude');
+                subplot(2, 1, 1);
+                [t2, freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI);
+                ylabel('Readout I');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                
+                axis tight;
+                subplot(2, 1, 2);
+                [t2, freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ);
+                ylabel('Readout Q');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                axis tight;
+                
             end
-            title(sprintf('T_2^E = %.2f \\mus', t2));
-            axis tight;
-            subplot(2, 1, 2);
-            if self.numfringes
-                [t2, ~] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-            else
-                fitresult = funclib.ExpFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-                t2 = fitresult.lambda;
-            end
-            %% This code snippet is added on 03/16 not yet put on github - Pranav
-            %to return fit parameter t2
-            self.result.Phaset2=t2;
-            %% code snippet ends
-            if self.normalization
-                ylabel('Normalized readout amplitude');
-            else
-                ylabel('Readout amplitude');
-            end
-            title(sprintf('T_2^E = %.2f \\mus', t2));
-            xlabel('Delay (\mus)');
-            axis tight;  
+
 
         end
     end

@@ -31,15 +31,15 @@ pulsegen.Generate();
 ### Basic usage
 - For basic usage, setting the properties `waveform1`, `waveform2` and `timeaxis` should be enough. They should all be 1 × N row vectors and the pulse duration should be longer than 128/(sampling rate). The waveforms will be generated in channel 1 and 2 every time an external trigger is received.
 - The values of waveforms should be between -1 and 1. If not, they will be normalized. In default setup (OUTPUTCONFIG = 2), waveform value = ± 1 correspond to output voltage = ± 0.5 V (See the discussion of **OUTPUTCONFIG** below for details).
-- When `mkrauto = 1`, **marker 2/4** will be automatically created for non-zero values of **waveform 1/2** and **marker 1** will be a trigger at the start of each waveform. **marker 3** can be customized for your purpose and has to be of the same length as the timeaxis and waveforms. The properties **mkraddwidth** and **mkroffset** are integers in unit of raw samples. Their effect is shown in the figure below.
+- When `mkrauto = 1`, **marker 2/4** will be automatically created for non-zero values of **waveform 1/2** and **marker 1** will be a trigger at the start of each waveform. **marker 3** can be customized for your purpose and has to be of the same length as the timeaxis and waveforms. The properties **mkrbuffer** and **mkroffset** are integers in unit of raw samples. Their effect is shown in the figure below.
     <div style="text-align:center"><img src="./marker.jpg" alt="Marker figure" align="middle"/></div>
-- When `mkrauto = 0`, all markers need to be provided manually and should be row vectors with the same length as `waveform1`. The non-zero values in markers will be considered as marker on.  **mkraddwidth and mkroffset have no effect**.
+- When `mkrauto = 0`, all markers need to be provided manually and should be row vectors with the same length as `waveform1`. The non-zero values in markers will be considered as marker on.  **mkrbuffer and mkroffset have no effect**.
 - Trigger for the AWG needs to be fed to **TRIGINPORT (default = 1)**.
 - If `timeaxis` is not in the sampling rate of the instrument, the waveforms and timeaxis will be interpolated to fit the hardware sampling rate.
 - Zeros will be added to the end of waveforms if the number of points are not multiple of 8.
 - The maximum output voltage (corresponding to waveform value = 1) is determined by the property **OUTPUTCONFIG** (default = 2) and also frequency dependent:
-    - OUTPUTCONFIG = 0: Differential output, max amplitude = 0.34 to 0.5 V
-    - OUTPUTCONFIG = 1: Single-ended output, max amplitude = 0.17 to 0.25 V
+    - OUTPUTCONFIG = 0: Single-ended output, max amplitude = 0.17 to 0.25 V
+    - OUTPUTCONFIG = 1: Differential output, max amplitude = 0.34 to 0.5 V
     - OUTPUTCONFIG = 2: Amplified single-ended output, max amplitude = 0.34 to 0.5 V
  
 ### <a name="sync"/>Multiple Module Synchronization
@@ -60,7 +60,7 @@ The command `pulsegen2.SyncWith(pulsegen1)` synchronizes two M9330A modules by s
   * **marker3** (*float*): Row vector that defines marker 3
   * **marker4** (*float*): Row vector that defines marker 4
   * **mkrauto** (*integer*): Turns on/off automatic marker, default value = 1
-  * **mkraddwidth** (*integer*): Extra width (in unit of raw samples) for markers, default value = 32
+  * **mkrbuffer** (*integer*): Extra width (in unit of raw samples) for markers, default value = 32
   * **mkroffset** (*integer*): Offset (in unit of raw samples) for markers, default value = 0
   * **TRIGINPORT** (*integer*): Port number for trigger input, default value = 1
   * **OUTPUTCONFIG** (*integer*): Output mode, default value = 2

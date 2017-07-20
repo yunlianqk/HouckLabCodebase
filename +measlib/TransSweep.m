@@ -38,20 +38,15 @@ classdef TransSweep < measlib.SmartSweep
         end
        
         function Plot(self, fignum)
+            self.Integrate();
+            self.result.intAmp = sqrt(self.result.intI.^2 + self.result.intQ.^2);
             if nargin == 1
                 fignum = 111;
             end
-            Plot@measlib.SmartSweep(self, fignum);
-
-            subplot(2, 2, 2);
-            plot(self.rffreq/1e9, self.result.ampInt);
-            title('Amplitude');
-            axis tight;
-            subplot(2, 2, 4);
-            plot(self.rffreq/1e9, self.result.phaseInt);
-            axis tight;
-            title('Phase');
+            figure(fignum);
+            plot(self.rffreq/1e9, self.result.intAmp);
             xlabel('Frequency (GHz)');
+            ylabel('Amplitude (V)');
             axis tight;
             end
     end

@@ -4,11 +4,11 @@ classdef AutoRamsey < measlib.SmartSweep
     % 'qubitGates' is a cellstr that contains the names of gates
     % e.g., qubitGates = {'X90'}
     % 'delayVector' is an array that contains delay time between the gates
-    % 'fringefreq' is the freq of the phase of last pi/2 pulse
+    % 'fringefreq' is the frequency of artificial Ramsey fringes
     
     properties
         qubitGates = {'X90'};
-        fringefreq=50e6;
+        fringefreq = 50e6;
         delayVector = linspace(0, 100e-9, 101);
     end
     

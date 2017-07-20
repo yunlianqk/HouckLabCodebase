@@ -1,5 +1,5 @@
-function freq = GetFreq(gen)
+function freq = GetFreq(self)
 % Get frequency
-    fprintf(gen.instrhandle, 'FREQuency?');
-    freq = fscanf(gen.instrhandle, '%f');
+    fprintf(self.instrhandle, 'FREQuency?');
+    freq = fscanf(self.instrhandle, '%f');
 end

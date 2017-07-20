@@ -16,11 +16,14 @@ classdef M9330AWG < handle
         marker4 = zeros(1, 256);
         mkrauto = 1; % Automatic marker option
         mkroffset = 0; % Shift marker with respect to waveform
-        mkraddwidth = 32; % Additional marker width outside waveform
+        mkrbuffer = 32; % Additional marker width outside waveform
         TRIGINPORT = 1;	% Port number for trigger input
         OUTPUTCONFIG = 2;	% 0 = differential, gain can be 0.340 to 0.500
                            	% 1 = single-ended, gain can be 0.170 to 0.250 
                          	% 2 = amplified (single-ended), gain can be 0.340 to 0.500
+    end
+    properties (Hidden)
+        mkraddwidth;
     end
     
     methods
@@ -45,6 +48,13 @@ classdef M9330AWG < handle
             samplingrate = GetSampleRate(self);
         end
         
+        function set.mkraddwidth(self, buffer)
+            SetMkrBuffer(self, buffer);
+        end
+        
+        function buffer = get.mkraddwidth(self)
+            buffer = GetMkrBuffer(self);
+        end
         % Declaration of all methods
         % Each method is defined in a separate file
         Initialize(self);
@@ -61,5 +71,7 @@ classdef M9330AWG < handle
     methods (Hidden)
         % Deprecated methods
         AutoMarker(self);
+        SetMkrBuffer(self, buffer);
+        buffer = GetMkrBuffer(self);
     end
 end

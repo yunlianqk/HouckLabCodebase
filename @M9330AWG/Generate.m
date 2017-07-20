@@ -51,12 +51,12 @@ function Generate(self)
         % Rescale waveforms to fullscale
         waveforms(ch, :) = waveforms(ch, :) * fullscale;
         if self.mkrauto
-            % Increase marker width by 2*mkraddwidth
+            % Increase marker width by 2*mkrbuffer
             for index = find(diff(markers(2*ch,:))) % Find all jumps in marker
                 if (markers(2*ch, index) == 0)    % Rising edge
-                    markers(2*ch, max(1, index-self.mkraddwidth+1):index) = 1;
+                    markers(2*ch, max(1, index-self.mkrbuffer+1):index) = 1;
                 else % Falling edge
-                    markers(2*ch, index+1:min(newlength, index+self.mkraddwidth)) = 1;
+                    markers(2*ch, index+1:min(newlength, index+self.mkrbuffer)) = 1;
                 end
             end
             % Shift marker by mkroffset

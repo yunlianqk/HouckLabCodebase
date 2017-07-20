@@ -44,12 +44,12 @@ classdef DragCal < measlib.SmartSweep
                     % Positive rotation
                     gates(2*col-1) = self.pulseCal.(self.qubitGates{1});
                     % Set drag amplitude
-                    gates(2*col-1).dragAmplitude = self.dragVector(row);
+                    gates(2*col-1).dragAmplitude = self.dragVector(row)*gates(2*col-1).amplitude;
                     % Negative rotation
                     gates(2*col) = self.pulseCal.([self.qubitGates{1}(1), 'm', ...
                                                    self.qubitGates{1}(2:end)]);
                     % Set drag amplitude
-                    gates(2*col).dragAmplitude = self.dragVector(row);
+                    gates(2*col).dragAmplitude = self.dragVector(row)*gates(2*col).amplitude;
                 end
                 % Construct sequences
                 self.gateseq(row) = pulselib.gateSequence(gates);
@@ -65,10 +65,10 @@ classdef DragCal < measlib.SmartSweep
             self.Integrate();
             self.Normalize();
             figure(fignum);
-            self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.ampInt);
-            xlabel('Drag amplitude');
+            self.result.newDragAmp = funclib.DragFit(self.dragVector, self.result.normAmp);
+            xlabel('Drag ratio');
             ylabel('P(|1>)');
-            title(['DRAG amplitude: ', num2str(self.result.newDragAmp)]);
+            title(['DRAG ratio: ', num2str(self.result.newDragAmp)]);
         end
     end
 end        

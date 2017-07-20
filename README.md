@@ -7,6 +7,7 @@
 - [Remarks](#remarks)
 - [Search path and namespace](#search-path-and-namespace)
 - [Documentation](#documentation)
+- [Useful links](#useful-links)
 
 ## Introduction
 This is the MATLAB code for communication with measurement equiqments in Houck Lab. 
@@ -21,7 +22,7 @@ All measurement computers use houcklab GitHub account:
 - Password: "eletrcon charge"
 - Email: houcklabprinceton@gmail.com
 
-For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first login as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
+For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first log in as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
 
 ![AddUser](./AddUser.png)
 
@@ -44,6 +45,12 @@ git push origin master
 git pull houcklab master
 ```
 and so on to sync with remote nodes.
+
+When writing **commit messages**, please include your name and a short title, followed by a new line and more detailed information, e.g.
+
+> YourName - Update measlib
+
+> Update +measlib/README.md and ExampleCode/ExampleCode_measlib.m
 
 Check [git cheat sheet](./Reference/git-cheat-sheet.pdf) or any online tutorial to learn more about git.
 
@@ -190,6 +197,7 @@ Check [markdown cheat sheet](./Reference/markdown-cheat-sheet.pdf) or online tut
 - [M9703A digitizer](./@M9703ADigitizer/README.md)
 - [M9330A arbitrary waveform generator](./@M9330AWG/README.md)
 - [33250A 80 MHz waveform generator](./@AWG33250A/README.md)
+- [Holzworth HS9000 RF synthesizer](./@HolzworthHS9000/README.md)
 
 ### Libraries
 - [measlib](./+measlib/README.md)
@@ -202,3 +210,7 @@ Check [markdown cheat sheet](./Reference/markdown-cheat-sheet.pdf) or online tut
 ### Other documents
 - [Single qubit gate calibration and randomized benchmarking](./+measlib/GateCalib&RB.md)
 
+## Useful links
+- [BBN-Q](https://github.com/BBN-Q/Qlab/tree/develop/common/%2BdeviceDrivers): MATLAB code for hardware
+- [Labber](https://github.com/Labber-software/Drivers): Python code for hardware
+- [SLAB](https://github.com/SchusterLab/slab): Schuster lab code base

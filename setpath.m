@@ -11,3 +11,5 @@ addpath(pwd);
 addpath(genpath([pwd, filesep(), 'drivers', filesep(), 'U10xx_driver']));
 % Add iqtools
 addpath([pwd, filesep(), 'drivers', filesep(), 'iqtools']);
+% Add Holzworth driver
+addpath([pwd, filesep(), 'drivers', filesep(), 'Holzworth_driver']);

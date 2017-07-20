@@ -9,6 +9,7 @@ classdef CrossResonance < measlib.SmartSweep
         controlstate = 0;
         targetfreq;
         echo = 0;
+        CRmeas=0; % for simultaneous 2qubit calib with 6 gen
     end
     
     methods
@@ -94,9 +95,9 @@ classdef CrossResonance < measlib.SmartSweep
                     if self.controlstate == 0
                         self.gateseq(row) = pulselib.gateSequence(Id);
                         self.gateseq(row).append(delaygate);
-                        self.gateseq(row).append(Id);%(X180);
+                        self.gateseq(row).append(X180);
                         self.gateseq(row).append(delaygate);
-                        self.gateseq(row).append(Id);%(X180);
+                        self.gateseq(row).append(X180);
                     else
                         self.gateseq(row) = pulselib.gateSequence(X180);
                         self.gateseq(row).append(delaygate);
@@ -117,40 +118,50 @@ classdef CrossResonance < measlib.SmartSweep
                 fignum = 104;
             end
             self.Integrate();
-            self.Normalize();
-            figure(fignum);
-            subplot(2, 1, 1);
-            
-            [t2, detuning,mse,t2Err,detuningErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.ampInt);
-            self.result.Ampt2=t2;
-            self.result.Ampfreq=detuning;
-            self.result.AmpMSE=mse;
-            self.result.Ampt2Err=t2Err;
-            self.result.AmpfreqErr=detuningErr;
-            if self.normalization
-                ylabel('Normalized readout amplitude');
-            else
-                ylabel('Readout amplitude');
-            end
+           figure(fignum);
+             if self.normalization
+                self.Normalize();
+                [t2,freq, mse, t2Err, freqErr] = ...
+                funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.normAmp);%,self.fringefreq/1e6);
+                self.result.NormAmpt2Err = t2Err;
+                self.result.NormAmpfreq = freq;
+                self.result.NormAmpMSE = mse;
+                self.result.NormAmpfreqErr = freqErr;
+                self.result.NormAmpt2=t2;
+                ylabel('Normalized readout');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                axis tight;
 
-            title(sprintf('T_2^* = %.2f \\pm %.2f \\mus, detuning =  %.2f MHz \\pm %.2f MHz', t2,t2Err, detuning,detuningErr));
-            axis tight;
-            subplot(2, 1, 2);
-            
-            [t2, detuning,mse,t2Err,detuningErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.phaseInt);
-            self.result.Phaset2=t2;
-            self.result.Phasefreq=detuning;
-            self.result.PhaseMSE=mse;
-            self.result.Phaset2Err=t2Err;
-            self.result.PhasefreqErr=detuningErr;
-            if self.normalization
-                ylabel('Normalized readout phase');
             else
-                ylabel('Readout phase');
-            end
-            title(sprintf('T_2^* = %.2f \\pm %.2f \\mus, detuning = %.2f MHz \\pm %.2f MHz', t2, t2Err,detuning,detuningErr));
-            xlabel('Delay (\mus)');
-            axis tight;
+                subplot(2, 1, 1);
+                %multliplying intI with 1000 so that the amplitude of the
+                %signal + noise is high
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intI*1e3);
+                ylabel('Readout I');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                self.result.It2Err = t2Err;
+                self.result.Ifreq = freq;
+                self.result.IMSE = mse;
+                self.result.IfreqErr = freqErr;
+                self.result.It2=t2;
+                axis tight;
+                %
+                subplot(2, 1, 2);
+                %multliplying intI with 1000 so that the amplitude of the
+                %signal + noise is high
+                [t2,freq, mse, t2Err, freqErr] = funclib.ExpCosFit(self.result.rowAxis/1e-6, self.result.intQ*1e3);
+                ylabel('Readout Q');
+                title(sprintf('t2=%.2f \\pm %.2f \\mu s | Freq = %.3f \\pm %.3f MHz', t2,t2Err,freq, freqErr));
+                xlabel('Delay (\mus)');
+                axis tight;
+                self.result.Qt2Err = t2Err;
+                self.result.Qfreq = freq;
+                self.result.QMSE = mse;
+                self.result.QfreqErr = freqErr;
+                self.result.Qt2=t2;
+
+            end    
         end
         
     end

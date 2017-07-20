@@ -11,40 +11,59 @@ classdef SmartSweep < handle
         specfreq = [];  % specgen frequency
         specpower = [];  % specgen power
         specphase = [];  % specgen phase
-        intfreq = 0;  % Intermediate frequency between logen and rfgen
-        lopower = 11;  % logen power
+        intfreq = [];  % Intermediate frequency between logen and rfgen
+        int2freq = [];  % Intermediate frequency between logen2 and rfgen2
+        lopower = [];  % logen power
         lophase = [];  % logen phase
         % Additional generator sweep params
         fluxfreq = [];
         fluxpower = [];
         fluxphase = [];
+        rf2freq = [];
+        rf2power = [];
+        rf2phase = [];
         spec2freq = [];
         spec2power = [];
         spec2phase = [];
+        lo2power = [];
+        lo2phase = [];
         % Yoko sweep params
         yoko1volt = [];  % yoko1 voltage
         yoko2volt = [];  % yoko2 voltage
         % AWG pulse sequence sweeep params
         pulseCal = [];
-        gateseq = [];  % gate sequences for pulsegen1 channel1 and channel 2
-        measseq = [];  % measurement pulse for pulsegen2 channel1
-        fluxseq = [];  % gate sequences for pulsegen2 channel1
-        
+        pulseCal2 = [];
+        gateseq = [];  % qubit drive pulses
+        gateseq2 = []; % qubit 2 drive pulses
+        fluxseq = [];  % flux pulses
+        measseq = [];  % measurement pulse
+        measseq2 = [];  % measurement pulse for qubit 2
+
         % General pulse timing parameters
         startBuffer = 1e-6;  % delay after start before pulses can occur
         measBuffer = 200e-9;  % delay gate pulse and measurement pulse
         endBuffer = 5e-6;  % buffer after measurement pulse
-        
+
+        % AWG and generator wiring parameters
+        awg = {};
+        awgchannel = {};
+        generator = {};
+
         % Acquisition and trigger parameters
         waittime = 0.1;  % Wait time btw instrument setup and acquisition
         trigperiod = 'auto';  % Trigger period
         carddelayoffset = 0;  % Fine tuning of card delay
         cardacqtime = 'auto';  % Duration of acquistion
         cardavg = 10000;  % Averaging
+        cardseg = 1;  % Segment
+        cardchannel = {'dataI', 'dataQ'};
+        histogram = 0;  % Histogram
+        histrepeat = 1;  % Repeat aquisition for more histogram data
+        histbins = 20;  % Number of bins for histogram
         bgsubtraction = [];  % Background subtraction
         normalization = 0;  % Use zero and pi pulse to normalize readout
         intrange = [];   % start and stop time for integration
-        
+
         % Plotting options
         plotsweep1 = 1;  % Plot on/off for inner loop
         plotsweep2 = 1;  % Plot on/off for outer loop
@@ -58,8 +77,8 @@ classdef SmartSweep < handle
         % Measured results
         result = struct('dataI', [], ... % rawdata
                         'dataQ', [], ...
-                        'ampInt', [], ... % integrated/demodulated data
-                        'phaseInt', [], ...
+                        'intI', [], ... % integrated/demodulated data
+                        'intQ', [], ...
                         'tAxis', [], ... % time axis for digitizer
                         'rowAxis', [], ... % rows axis for rawdata
                         'intRange', [], ... % start and stop time for integration
@@ -69,6 +88,7 @@ classdef SmartSweep < handle
     
     properties (Access = private)
         lofreq = [];  % logen frequency, equals rffreq + intfreq
+        lo2freq = [];  % logen2 frequency, equals rf2freq + int2freq
         awgtaxis = [];  % Time axis for pulsegen1 and pulsegen2
         numSweep1 = 1;  % Size of outer loop
         numSweep2 = 1;  % Size of inner loop
@@ -122,7 +142,7 @@ classdef SmartSweep < handle
         Run(self);
         Save(self, filename);
         Plot(self, fignum);
-        Integrate(self);
+        [intI, intQ] = Integrate(self, ind);
         Normalize(self);
     end
 
