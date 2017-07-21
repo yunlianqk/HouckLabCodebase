@@ -59,6 +59,10 @@ classdef pulseCal
         Y180DragAmplitude = 0;
         Ym180Amplitude = 1;
         Ym180DragAmplitude = 0;
+        % rectangular pulse with gaussian tail for cavity displacements
+        rectPulseDuration = 1e-6;
+        rectPulseAmp = 1.0;
+        rectPulseSigma = 100e-9;
         X90Azimuth = 0;
         X180Azimuth = 0;
         Y90Azimuth = pi/2;
@@ -168,6 +172,14 @@ classdef pulseCal
                                 0, 1j, 0, 0;...
                                 0, 0, 0, 1];
         end
+
+        function pulseObj = rectPulse(obj)
+            pulseObj = pulselib.measPulse(obj.rectPulseDuration,obj.rectPulseAmp);
+            pulseObj.sigma = obj.rectPulseSigma;
+            pulseObj.cutoff = 4*pulseObj.sigma;
+            pulseObj.buffer = obj.buffer;
+        end
+        
         function s = toStruct(obj)
             s = funclib.obj2struct(obj);
         end

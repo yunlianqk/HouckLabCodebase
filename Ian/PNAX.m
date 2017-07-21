@@ -14,7 +14,7 @@ pnax.DeleteAll();
 %% Set channel 1 parameters
 pnax.DeleteAll();
 transCh1 = paramlib.pnax.trans();
-transCh1.start = 6e9;
+transCh1.start = 0e9;
 transCh1.stop = 10e9;
 transCh1.points = 4000;
 transCh1.power = -25;
@@ -68,27 +68,6 @@ for i = 1:power_len
     Freq_array = pnax.ReadAxis();
     imagesc(Amp_array);
 end
-%% Transmission vs Yoko voltage
-scanParam.waitTime=30;
-scanParam.yokoVector=linspace(1.5,4,201);
-yoko.rampstep=0.0002;
-yoko.rampinterval=0.02;
-[S21amp, S21phase, S21freqvector]=AV_fluxTransScan(transCh1, pnax, yoko, scanParam);
-yokoVector=scanParam.yokoVector;
-% save('transYokoScan_4.mat','S21amp','S21phase','S21freqvector','yokoVector');
-%%
-yoko.rampstep=0.1;
-yoko.rampinterval=0.02;
-SetVoltage(yoko,2.4)
-
-%%
-figure()
-x_axis = Freq_array;
-y_axis = power;
-imagesc(x_axis, y_axis, Amp_array)
-xlabel('Frequency (Hz)')
-ylabel('Input Power (dB)')
-colorbar
 
 %% Setup channel 2 parameters for spectroscopy
 specCh2=paramlib.pnax.spec();
@@ -134,16 +113,17 @@ SetVoltage(yoko,2.4);
 %% Tunning Yoko while looking at spec channel
 yoko.rampstep=0.0003;
 yoko.rampinterval=0.04;
-yoko_v = linspace(-1,4,601);
-spec_amp = nan(601,3001);
+num_v = 101;
+yoko_v = linspace(-1,4,num_v);
+spec_amp = nan(num_v,3001);
 
-for yoko_ind = 1:601
+for yoko_ind = 1:num_v
     pnax.DeleteAll();
     SetVoltage(yoko,yoko_v(yoko_ind));
     
     specCh2=paramlib.pnax.spec();
-    specCh2.start = 6e9;
-    specCh2.stop = 9e9;
+    specCh2.start = 4.7e9;
+    specCh2.stop = 4.9e9;
     specCh2.points=3001;
     specCh2.power=-15;
     specCh2.averages=10000;
