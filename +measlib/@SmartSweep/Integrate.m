@@ -26,7 +26,7 @@ function [intI, intQ] = Integrate(self, ind)
         end
     end
     % Demodulate and integrate data
-    if (self.result.intFreq == 0)
+    if self.result.intFreq == 0
     % Homodyne
         intI = mean(self.result.dataI(:, sub), 2)';
         intQ = mean(self.result.dataQ(:, sub), 2)';

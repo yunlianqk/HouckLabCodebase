@@ -1,8 +1,6 @@
 function Save(self, filename)
     global card;
     
-    warning('off', 'M9330A:getmkraddwidth');
-    
     % If savepath is empty, use default path
     if isempty(self.savepath)
         self.savepath = 'C:\Data\';
@@ -28,16 +26,24 @@ function Save(self, filename)
     
     % Convert pulseCal to struct
     if isprop(self, 'pulseCal')
-        temppulseCal = self.pulseCal;
+        pulseCal = self.pulseCal;
         self.pulseCal = funclib.obj2struct(self.pulseCal);
     end
     
     if isprop(self, 'pulseCal2')
-        temppulseCal2 = self.pulseCal2;
+        pulseCal2 = self.pulseCal2;
         self.pulseCal2 = funclib.obj2struct(self.pulseCal2);
     end
+    
     % Convert x to struct
     x = funclib.obj2struct(self);
+    
+    % Clear instrument objects as it causes matlab crash
+    awg = x.awg;
+    generator = x.generator;
+    x.awg = [];
+    x.generator = [];
+    
     % Save data
     try
         % Save cardparams if possible
@@ -47,11 +53,14 @@ function Save(self, filename)
         save([path, filename], 'x');
     end
     display(['Data saved to ', path, filename]);
-    % Recover pulseCal object
+    
+    % Recover pulseCal object and instrument objects
     if isprop(self, 'pulseCal')
-        self.pulseCal = temppulseCal;
+        self.pulseCal = pulseCal;
     end
     if isprop(self, 'pulseCal2')
-        self.pulseCal2 = temppulseCal2;
+        self.pulseCal2 = pulseCal2;
     end
+    x.awg = awg;
+    x.generator = generator;
 end

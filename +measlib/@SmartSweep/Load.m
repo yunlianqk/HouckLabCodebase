@@ -1,6 +1,5 @@
 function obj = Load(filename)
-    warning('off');
-
+% Load .mat and return SmartSweep object
     s = load(filename);
     try
         x = s.x;
@@ -21,6 +20,4 @@ function obj = Load(filename)
         error('Cannot load measlib object from file.');
     end
     display(['Data loaded from ', filename]);
-    
-    warning('on');
 end

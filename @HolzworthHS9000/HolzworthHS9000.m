@@ -33,7 +33,7 @@ classdef HolzworthHS9000 < handle
         temperature; % Temperature
     end
     
-    properties (Hidden, SetAccess = private)
+    properties (Hidden)
         channel; % Channel number
         % The following properties are not supported by hardware
         % They are kept here as placeholder to make the interface
