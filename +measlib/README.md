@@ -39,7 +39,7 @@ See [M9330A AWG document](../@M9330AWG/README.md#multiple-module-synchronization
 
 For experiments that require different hardware wiring, see [hardware wiring](#hardware-wiring).
 ## SmartSweep class
-[`SmartSweep`](#class-smartsweep--handle) is an attempt to provide a generic, extensible interface for measurements using E8267D microwave generators and M9330A AWG. In the following, the `SmartSweep` object will be named as `x`.
+[`SmartSweep`](#class-smartsweep--handle) is an attempt to provide a generic interface for measurements using E8267D microwave generators and M9330A AWG. In the following, the `SmartSweep` object will be named as `x`.
 
 ### For users
 For pre-defined measurements such as [`TransSweep`](#class-transsweep--smartsweep), [`SpecSweep`](#class-specsweep--smartsweep), [`Rabi`](#class-rabi--smartsweep), [`T1`](#class-t1--smartsweep), etc., see [example code](../ExampleCode/ExampleCode_measlib.m).
@@ -59,10 +59,10 @@ The objects for instruments **must be declared as global and named** as listed i
 
 For E8267D generators and YOKOGAWA voltage sources, sweeping paramters can be scalar, row vector, column vector, or 2D array (see next section for details).
 
-For M9330A AWG's, `gateseq`, `measseq` and `fluxseq` can be an object, or object array of [`pulsegen`](../+pulselib/README.md#contents) classes.
+For M9330A AWG's, `gateseq`, `gateseq2`, `measseq`, `measseq2` and `fluxseq` can be an object or object array of [`pulselib`](../+pulselib/README.md#contents) classes.
 
 #### Setting parameters
-The sweeping parameters can be scalar, row vector, column vector or 2D array. The result is shown in the code and table below.
+The sweeping parameters can be scalar, row vector, column vector or 2D array. Their usage is shown in the code and table below.
 
 ```matlab
 x = measlib.SmartSweep();
@@ -81,7 +81,7 @@ x.specpower = [-10, -5, 0; ...
 
 In the experiment, each column in a row will be swept in the inner loop, and each row will be swept in the outer loop.
 
-To see the full list of parameters, go to [API specifications](#api-specifications).
+To see the full list of parameters, go to [API specifications](#class-smartsweep--handle).
 
 #### Setting common configurations
 A *struct* `config` can be passed when initializing a measurement. For example,
@@ -98,10 +98,10 @@ config.autosave = 0;
 
 x = measlib.TransSweep(config);
 ```
-`config` can contain any properties in `SmartSweep` class and will update those properties in `x`. This is convenient will several different measurements share a same set of parameters.
+`config` can contain any properties in `SmartSweep` class and will update those properties in `x` during its construction. This is convenient will several different measurements share a same set of parameters.
 
 #### Pulse sequence
-Typical pulsed measurements have a **single measseq** and **multiple gateseq and/or fluxseq**. The waveforms of `gateseq` and `fluxseq` are aligned to their **end time**, as shown in the figure below. To adjust the timing of each sequence, add [`pulselib.delay`](../+pulselib/README.md#class-pulselibdelay--handle) objects when needed.  
+Typical pulsed measurements have a **single measseq** and **multiple gateseq and/or fluxseq**. The waveforms of `gateseq` and `fluxseq` are aligned to their **end time**, as shown in the figure below. To adjust the timing of each sequence, add [`pulselib.delay`](../+pulselib/README.md#class-pulselibdelay--handle) objects (delay can be positive or negative) when needed.  
 ![gateseq](./gateseq.png)  
 The parameters `startBuffer`, `measBuffer` and `endBuffer` can be used to adjust pulse timing, as illustrated in the figure below.  
 ![waveforms](./waveforms.png)  
@@ -157,8 +157,9 @@ During the measurement the data will be plotted and updated.
 - `plotsweep2 = 1/0` turns on/off plotting of inner loop.
 - `plotupdate = n` updates the plot every `n` sweeping points.
 - `intrange` sets the start and stop time for integrating raw data. For example, the following figure shows a T1 measurement with `intrange = [62e-6, 66e-6]` (dashed lines). Changing `intrange` and rerunning `Plot()` will calculate and plot the updated data.  
-  ![intrange](./intrange.png)
-  
+  ![intrange](./intrange.png)  
+- After a measurement finishes, `x.Plot(n)` will plot the result in Figure(n).
+
 #### Saving/loading data
 For a measurement object `x`, the measured data is stored in a *struct* `x.result`, which contains the following fields:
 - `dataI` (*2D array*): raw data for I channel
@@ -194,12 +195,12 @@ To load data from a .mat file, use `x = measlib.SmartSweep.Load(filename)`.
 ### For developers
 See [pulselib](../+pulselib/README.md) and [pulseCal](../+paramlib/README.md#class-paramlibpulsecal) documents to get familiar with the classes that generates pulse sequences. In short, [`paramlib.pulseCal`](../+paramlib/README.md#class-paramlibpulsecal) provides an interface between gate parameters and gate objects, and [`pulselib.gateSequence`](../+pulselib/README.md#class-pulselibgatesequence--handle) provides an interface between gate objects and AWG waveforms.
 
-The main method is `SetUp`, which is further divided into
-- `UpdateParams`: updates parameters from `self.pulseCal` if it exists.
-- `SetPulse`: calculates the pulse timing based on `gateseq`, `fluxseq`, `measseq` and `startBuffer`, `measBuffer`, `endBuffer`.
+The main method is `SetUp`, which is divided into
+- `UpdateParams`: updates parameters from `config`, `self.pulseCal` and `self.pulseCal2` if they exist.
+- `SetPulse`: calculates the pulse timing based on `gateseq`, `gateseq2`, `fluxseq`, `measseq`, `measseq2` and `startBuffer`, `measBuffer`, `endBuffer`.
 - `SetSweep`: decides the sweep type of each parameter based on its shape. Then sets up values and function handles for each parameter.
 - `InitInstr`: starts relevant instrument and sets parameters for the first sweep.
-- `SetOutput`: sets up function handles for plotting, background subtraction, waveform generation and fills some fields in `result`.
+- `SetOutput`: sets up function handles for plotting, background subtraction and fields in `x.result`.
 
 #### Pulse timing and generation
 Pulse timing parameters are calculated in [SetPulse](./@SmartSweep/SetPulse.m) method:
@@ -354,7 +355,7 @@ for row = 1:self.numSweep1
     end
 ```
 #### Initializing instruments
-
+This is done in [`InitInstr`](./@SmartSweep/InitInstr.m) method and initializes generators, AWG's, yoko's, digitizer and trigger source.
 
 #### Adding new sweeps
 To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in the example below) to `SmartSweep`,
@@ -449,7 +450,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
         - **intFreq** (*float*): intermediate frequency
         - **sampleinterval** (*float*): sampling rate for digitizer
 - **Methods**:
-    - **x = SmartSweep()**: returns a *SmartSweep object* `x`
+    - **x = SmartSweep([config])**: returns a *SmartSweep object* `x`
     - **x.SetUp()**: sets up the measurement
     - **x.Run()**: runs the measurement
     - **x.Plot([fignum])**: plots the measured data. If `fignum` is specified, it plots in the corresponding figure window.
