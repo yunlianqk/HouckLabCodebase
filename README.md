@@ -208,7 +208,9 @@ Check [markdown cheat sheet](./Reference/markdown-cheat-sheet.pdf) or online tut
 - plotlib
 
 ### Other documents
-- [Single qubit gate calibration and randomized benchmarking](./+measlib/GateCalib&RB.md)
+- [Qubit gate calibration and randomized benchmarking](./+measlib/GateCalib&RB.md)
+- [Single-qubit Clifford gates](./+measlib/SingleQubitCliffords.pdf)
+- [Two-qubit Clifford gates](./+measlib/TwoQubitCliffords.pdf)
 
 ## Useful links
 - [BBN-Q](https://github.com/BBN-Q/Qlab/tree/develop/common/%2BdeviceDrivers): MATLAB code for hardware
