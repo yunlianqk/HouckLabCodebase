@@ -32,7 +32,6 @@ CM = cal_MAT;
 % f0 = [0; -0.1443; 0.3358 - 0.3333;];  %freq max of right qubit is at zero
 f0 = [0.01; -0.1443; 0.3358 - 0.3333;]; %freq max of right qubit is at zero
 
-% test
 
 % f0 = [0; -.1975; -.348;]; % from reboot before power surge
 % f0 = [0; -.1975; -.1655;];   from before reboot
@@ -50,15 +49,20 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 pnax.SetActiveTrace(1);
 % transWaitTime=7;
 % transWaitTime=20;
-transWaitTime=15;
-pnax.params.start = 5.75e9;
-pnax.params.stop = 5.95e9;
+transWaitTime=200;
+pnax.params.start = 5.7e9;
+pnax.params.stop = 6.0e9;
 % pnax.params.start = 5.80e9;
 % pnax.params.stop = 6.00e9;
 
-pnax.params.points = 3001;
+pnax.params.points = 3201;
 % pnax.params.power = -35;
-pnax.params.power = -40;
+
+powerVec = linspace(-65,-20,8)
+
+for idx=1:length(powerVec)
+
+pnax.params.power = powerVec(idx);
 % pnax.params.power = -35;
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
@@ -92,10 +96,20 @@ clear vtraj ftraj
 %left qubit - coupler
 % fstart=[-3.6 0.0 0.0];
 % fstop=[3.2 0.0 0.0];fsteps=50;
-% fstart=[3.2 0.0 0.0];
-% fstop=[4.0 0.0 0.0];fsteps=20;
-fstart=[-0.1 0.0 0.0];
-fstop=[0.1 0.0 0.0];fsteps=20;
+
+
+fstart=[0.0 -0.7 0.0];
+fstop=[0.0 0.6 0.0];fsteps=44;
+
+% fstart=[0.0 -0.7 0.0];
+% fstop=[0.0 -0.7 0.0];fsteps=44;
+
+
+% fstart=[-0.10 0.0 0.0];
+% fstop=[0.10 0.0 0.0];fsteps=24;
+
+% fstart=[-0.10 0.0 0.0];
+% fstop=[0.0 0.0 0.0];fsteps=12;
 
 % %cheating way to ramp off yokos
 % fstart=f0;
@@ -120,8 +134,8 @@ for index=1:steps
 %         filename=['couplerFit_LeftInput_rightQubit_couplerCrossCal_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
 %         filename=['couplerFit_LeftInput_leftQubit_couplerCrossCal_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
 %         filename=['couplerFit_LeftInput_rightQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-        filename=['couplerFit_LeftInput_leftQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-%         filename=['couplerFit_RightInput_rightQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+%         filename=['couplerFit_LeftInput_leftQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+        filename=['couplerFit_RightInput_rightQubitScan_power' num2str(powerVec(idx)) 'dBm_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
     end
     % update flux/voltage
     fc.currentVoltage=vtraj(:,index);
@@ -137,7 +151,7 @@ for index=1:steps
     transS21AlongTrajectoryAmp(index,:)=data_transS21A;
     transS21AlongTrajectoryPhase(index,:)=data_transS21P;
 %     transS41AlongTrajectoryAmp(index,:)=data_transS41A;
-%     transS41AlongTrajectoryPhase(index,:)=data_transS41P;
+%     transS41AlongTrajectoryPhase(index,:)=data_transS4a1P;
     
     figure(158);
 %     subplot(1,2,1);
@@ -147,7 +161,7 @@ for index=1:steps
     
     if index==1
         deltaT=toc(tStart);
-        estimatedTime=steps*deltaT*3;
+        estimatedTime=steps*deltaT*length(powerVec);
         disp(['Estimated Time is '...
             num2str(estimatedTime/3600),' hrs, or '...
             num2str(estimatedTime/60),' min']);
@@ -156,7 +170,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072117\';
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072217\';
 save([saveFolder filename '.mat'],...
     'CM','f0','fc','transWaitTime','pnaxSettings','ftrans','ftraj','vtraj','time','steps',...
     'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS41AlongTrajectoryAmp','transS41AlongTrajectoryPhase')
@@ -168,5 +182,5 @@ fc.visualizeTrajectories(vtraj,ftraj);
 title([filename '_traj'])
 savefig([saveFolder filename '_traj.fig']);
 toc
-
-% fc.currentVoltage=[0 0 0];
+end
+fc.currentVoltage=[0 0 0];
