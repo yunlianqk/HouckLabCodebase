@@ -49,7 +49,7 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 pnax.SetActiveTrace(1);
 % transWaitTime=7;
 % transWaitTime=20;
-transWaitTime=200;
+transWaitTime=20;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 % pnax.params.start = 5.80e9;
@@ -58,7 +58,7 @@ pnax.params.stop = 6.0e9;
 pnax.params.points = 3201;
 % pnax.params.power = -35;
 
-powerVec = linspace(-65,-20,8)
+powerVec = linspace(-50,-50,1)
 
 for idx=1:length(powerVec)
 
@@ -98,15 +98,15 @@ clear vtraj ftraj
 % fstop=[3.2 0.0 0.0];fsteps=50;
 
 
-fstart=[0.0 -0.7 0.0];
-fstop=[0.0 0.6 0.0];fsteps=44;
+fstart=[0.0 0.275 0.0];
+fstop=[0.0 -0.3159 0.0];fsteps=14;
 
 % fstart=[0.0 -0.7 0.0];
 % fstop=[0.0 -0.7 0.0];fsteps=44;
 
 
 % fstart=[-0.10 0.0 0.0];
-% fstop=[0.10 0.0 0.0];fsteps=24;
+% fstop=[0.10 0.0 0.0];fsteps=14;
 
 % fstart=[-0.10 0.0 0.0];
 % fstop=[0.0 0.0 0.0];fsteps=12;
@@ -170,7 +170,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072217\';
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072317\';
 save([saveFolder filename '.mat'],...
     'CM','f0','fc','transWaitTime','pnaxSettings','ftrans','ftraj','vtraj','time','steps',...
     'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS41AlongTrajectoryAmp','transS41AlongTrajectoryPhase')

@@ -45,8 +45,8 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 
 %%
 
-fstart=[0.13 0.0083 0.0];
-fstop=[0.1 0.0083 0.0];fsteps=5;
+fstart=[0.0 0.0091 0.0];
+fstop=[0.0 0.0091 0.0];fsteps=1;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -77,7 +77,7 @@ else
 end
 
 pnax.params.points = 1201;
-pnax.params.power = -50;
+pnax.params.power = -65;
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 15e3;
 
@@ -109,7 +109,7 @@ pnax.params=paramlib.pnax.spec();
 pnax.SetActiveTrace(3);
 pnax.TrigContinuous;
 specWaitTime = 120;
-pnax.params.cwpower = -50;
+pnax.params.cwpower = -65;
 
 if whichQubit==1
     pnax.params.start = 3.5e9;
