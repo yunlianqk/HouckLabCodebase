@@ -75,65 +75,65 @@ rightDrive.PowerOff();
 
 pxa.AvgClear;
 pause(10)
-measuredEmission_background = pxa.Read();    
+measuredEmission_background = pxa.Read();
 
-% leftDrive.PowerOn();
-rightDrive.PowerOn();
-    
-drive.powerVec = linspace(-10,5,11);
-drive.freqVec=linspace(5.8e9,5.95e9,1400);
+leftDrive.PowerOn();
+% rightDrive.PowerOn();
+
+drive.powerVec = linspace(-15,5,30);
+
+leftDrive.freq = 5.837e9;
 
 % measuredEmission = zeros(length(drive.freqVec),pxa.numPoints);
 % measuredEmissionSubtracted = zeros(length(drive.freqVec),pxa.numPoints);
 
-for pdx = 1:length(drive.powerVec)
-    measuredEmission = zeros(length(drive.freqVec),pxa.numPoints);
-    measuredEmissionSubtracted = zeros(length(drive.freqVec),pxa.numPoints);
-    leftDrive.power = drive.powerVec(pdx);
-    rightDrive.power = drive.powerVec(pdx);
-    for idx=1:length(drive.freqVec)
-        
-        leftDrive.freq = drive.freqVec(idx);
-%         rightDrive.freq = drive.freqVec(idx);
-        rightDrive.freq = 5.9094e9;
-        if idx==1
-            tStart = tic;
-            time = clock;
-%             filename=['dualDrive_PXA_drivePower' num2str(drive.powerVec(pdx)) num2str(time(1)) num2str(time(2)) num2str(time(3))...
-%                 num2str(time(4)) num2str(time(5))];
-            filename=['dualDrive_rightOutput_PXA_rightDriveFixed5.9094GHz_drivePower' num2str(drive.powerVec(pdx)) '_' num2str(time(1)) num2str(time(2)) num2str(time(3))...
-                num2str(time(4)) num2str(time(5))];
-        end
-        
-        pxa.AvgClear;
-        pause(waitTime);
-        measuredEmission(idx,:) = pxa.Read();
-        measuredEmissionSubtracted(idx,:) = measuredEmission(idx,:) - measuredEmission_background;
-        
-        if idx == 1;
-            deltaT=toc(tStart);
-            estimatedTime=deltaT*length(drive.freqVec)*length(drive.powerVec)*2;
-            disp(['Estimated Time is '...a
-                num2str(estimatedTime/3600),' hrs, or '...
-                num2str(estimatedTime/60),' min']);
-            disp(['Scan should finish at ' datestr(addtodate(datenum(time),...
-                round(estimatedTime),'second'))]);
-        end
-        
-        
-        figure(2);
-        imagesc(freqVec/1e9,drive.freqVec(1:idx),measuredEmissionSubtracted(1:idx,:));
-        xlabel('Emission Frequency [GHz]');
-        ylabel('Drive Frequency [GHz]');
-        title([filename]);
-        colorbar();
-        
-        
-        
+
+measuredEmission = zeros(length(drive.powerVec),pxa.numPoints);
+measuredEmissionSubtracted = zeros(length(drive.powerVec),pxa.numPoints);
+
+for idx=1:length(drive.powerVec)
+
+    leftDrive.power = drive.powerVec(idx);
+
+    if idx==1
+        tStart = tic;
+        time = clock;
+        filename=['singleDrive_leftInput_leftOutput_PXA_driveFrequency' num2str(leftDrive.freq/1e9) 'GHz_' num2str(time(1)) num2str(time(2)) num2str(time(3))...
+            num2str(time(4)) num2str(time(5))];
+%         
+%         filename=['singleDrive_leftInput_leftOutput_PXA_driveFrequency' num2str(rightDrive.freq/1e9) 'GHz_' num2str(time(1)) num2str(time(2)) num2str(time(3))...
+%             num2str(time(4)) num2str(time(5))];
     end
+    
+    pxa.AvgClear;
+    pause(waitTime);
+    measuredEmission(idx,:) = pxa.Read();
+    measuredEmissionSubtracted(idx,:) = measuredEmission(idx,:) - measuredEmission_background;
+    
+    if idx == 1;
+        deltaT=toc(tStart);
+        estimatedTime=deltaT*length(drive.powerVec);
+        disp(['Estimated Time is '...a
+            num2str(estimatedTime/3600),' hrs, or '...
+            num2str(estimatedTime/60),' min']);
+        disp(['Scan should finish at ' datestr(addtodate(datenum(time),...
+            round(estimatedTime),'second'))]);
+    end
+    
+    
+    figure(2);
+    imagesc(freqVec/1e9,drive.powerVec(1:idx),measuredEmissionSubtracted(1:idx,:));
+    xlabel('Emission Frequency [GHz]');
+    ylabel('Drive Power [dBm]');
+    title([filename]);
+    colorbar();
+    
+    
+    
+
     saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PXA_Calibrations_072317\';
     save([saveFolder filename '.mat'],...
-        'leftDrive','rightDrive','measuredEmission', 'pxa','freqVec','drive');
+        'leftDrive','rightDrive','measuredEmission', 'pxa','powerVec','drive');
     
     savefig([saveFolder filename '.fig']);
 end
