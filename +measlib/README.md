@@ -416,6 +416,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
     - **cardavg** (*integer*): number of averages
     - **bgsubtraction** (*string*): background subtraction. Current options are 'speconoff', 'rfonoff' and 'fluxonoff'.
     - **normalization** (*0/1*): append zero and pi gate to gate sequence for readout normalization
+	- **tomography** (*0/1*): append Identity, X90 and Y90 gates to gate sequence for tomography.
     - **intrange** (*2-element array*): start and stop time for integrating rawdata
 
     *Histogram parameters*
@@ -459,7 +460,7 @@ To add a new instrument and its parameters (`yoko3` and `yoko3volt` are used in 
 
 #### *class* TransSweep < SmartSweep
 - **Properties**:
-	- **rffreq** (*row vector*): frequency ponits for rfgen
+	- **rffreq** (*row vector*): frequency points for rfgen
 	- **rfpower** (*float*): power for rfgen. In pulse mode, this will be overwritten by `pulseCal.rfPower`.
 	- **intfreq** (*float*): intermediate frequency (i.e., `logen.freq - rfgen.freq`). In pulse mode, this will be overwritten by `pulseCal.intFreq`.
 	- **lopower** (*float*): power for logen. In pulse mode, this will be overwritten by `pulseCal.loPower`.

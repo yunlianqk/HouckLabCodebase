@@ -43,14 +43,26 @@ function SetPulse(self)
         % tomography
     if self.tomography
         if ~isempty(self.gateseq)
-            self.gateseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
-            self.gateseq(end+1) = pulselib.gateSequence(self.pulseCal.X90());
-            self.gateseq(end+1) = pulselib.gateSequence(self.pulseCal.Y90());        
+            self.gateseq(end+1) = pulselib.gateSequence();
+            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
+            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.Identity());
+            self.gateseq(end+1) = pulselib.gateSequence();
+            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
+            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.X90());
+            self.gateseq(end+1) = pulselib.gateSequence();
+            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
+            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.Y90());        
         end
         if ~isempty(self.gateseq2)
-            self.gateseq2(end+1) = pulselib.gateSequence(self.pulseCal2.Identity());
-            self.gateseq2(end+1) = pulselib.gateSequence(self.pulseCal2.X90());
-            self.gateseq2(end+1) = pulselib.gateSequence(self.pulseCal2.Y90());
+            self.gateseq2(end+1) = pulselib.gateSequence();
+            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
+            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.Identity());
+            self.gateseq2(end+1) = pulselib.gateSequence();
+            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
+            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.X90());
+            self.gateseq2(end+1) = pulselib.gateSequence();
+            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
+            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.Y90());
         end
         if ~isempty(self.fluxseq)
             self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
