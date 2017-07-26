@@ -44,19 +44,18 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
-transWaitTime=20;
+transWaitTime=25;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 
-pnax.params.points = 2201;
+pnax.params.points = 3201;
 
-powerVec = linspace(-45,5,20);
-
+powerVec = linspace(-45,10,12);
 
 fResonanceLargeJ=[0.0143 0.275 0.0];
-fResonanceSmallJ=[0.0143 0.275 0.35];
+fResonanceSmallJ=[0.0143 0.275 0.4];
 fDetunedLargeJ=[-0.1 0.0091 0.0];
-fDetunedSmallJ=[-0.1 0.0091 0.35];
+fDetunedSmallJ=[-0.1 0.0091 0.4];
 
 % pnax.params.power = -35;
 pnax.PowerOn()
@@ -65,9 +64,16 @@ pnax.params.ifbandwidth = 10e3;
 pnax.ClearChannelAverages(1);
 ftrans = pnax.ReadAxis();
 
+pnax.params.power = -45;
+
+rfgen.PowerOn()
+rfgen.freq = 5.858e9;
+
+logen.PowerOn()
+logen.freq = 5.858e9;
 %% Transmission power scan
 
-for tdx = 3:4
+for tdx = 3
     
     if tdx==1
         v = fc.calculateVoltagePoint(fResonanceLargeJ);
@@ -83,23 +89,34 @@ for tdx = 3:4
     tic; time=fix(clock);
     transS21AlongTrajectoryAmp = zeros(length(powerVec),length(ftrans));
     transS21AlongTrajectoryPhase = zeros(length(powerVec),length(ftrans));
+    transS21AlongTrajectoryAmp_subtracted = zeros(length(powerVec),length(ftrans));
+    transS21AlongTrajectoryPhase_subtracted = zeros(length(powerVec),length(ftrans));
     for idx=1:length(powerVec)
         if idx==1
             tStart=tic;
             time=clock;
             if tdx==1
-                filename=['PowerScan_rightInput_rightOutput_fResonanceLargeJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+                filename=['PowerScanSecondaryDrive_leftInput_rightOutput_fResonanceLargeJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
             elseif tdx==2
-                filename=['PowerScan_rightInput_rightOutput_fResonanceSmallJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+                filename=['PowerScanSecondaryDrive_leftInput_leftOutput_fResonanceSmallJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
             elseif tdx==3
-                filename=['PowerScan_leftInput_rightOutput_fDetunedLargeJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+                filename=['PowerScanSecondaryDrive_twoDrives_leftInput_leftOutput_fDetunedLargeJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
             elseif tdx ==4
-                filename=['PowerScan_leftInput_rightOutput_fDetunedSmallJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+                filename=['PowerScanSecondaryDrive_leftInput_leftOutput_fDetunedSmallJ_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
             end
-            
+            rfgen.PowerOff()
+            logen.PowerOff()
+            pnax.SetActiveTrace(1);
+            pnax.ClearChannelAverages(1);
+            pause(transWaitTime);
+            pnax.SetActiveTrace(1);
+            [backgroundA backgroundP] = pnax.ReadAmpAndPhase();
+            rfgen.PowerOn()
+            logen.PowerOn()
         end
         % update flux/voltage
-        pnax.params.power = powerVec(idx);
+        rfgen.power = powerVec(idx);
+        logen.power = powerVec(idx);
         % measure S21 and S41
         pnax.SetActiveTrace(1);
         pnax.ClearChannelAverages(1);
@@ -109,9 +126,16 @@ for tdx = 3:4
         
         transS21AlongTrajectoryAmp(idx,:)=data_transS21A;
         transS21AlongTrajectoryPhase(idx,:)=data_transS21P;
+        transS21AlongTrajectoryAmp_subtracted(idx,:)=data_transS21A - backgroundA;
+        transS21AlongTrajectoryAmp_subtracted(idx,:)=data_transS21P - backgroundP;
         
         figure(158);
+        subplot(2,1,1);
         imagesc(ftrans/1e9,powerVec(1:idx),transS21AlongTrajectoryAmp(1:idx,:)); title(filename); ylabel('PNAX Power [dBm]');xlabel('S21 (Cross) Measurement');
+        colorbar();
+        subplot(2,1,2);
+        imagesc(ftrans/1e9,powerVec(1:idx),transS21AlongTrajectoryAmp_subtracted(1:idx,:)); title(filename); ylabel('PNAX Power [dBm]');xlabel('S21 (Cross) Measurement');
+        colorbar();
         
         if idx==1
             deltaT=toc(tStart);
@@ -132,7 +156,7 @@ for tdx = 3:4
     end
     save([saveFolder filename '.mat'],...
         'CM','f0','fc','transWaitTime','pnaxSettings','ftrans','time','powerVec',...
-        'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase')
+        'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS21AlongTrajectoryAmp_subtracted','transS21AlongTrajectoryPhase_subtracted')
     
     title(filename)
     savefig([saveFolder filename '.fig']);

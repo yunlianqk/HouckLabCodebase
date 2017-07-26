@@ -2,9 +2,42 @@
 % Time axis: 0.8 ns sampling interval, 5 us total length
 taxis = 0:0.8e-9:20e-6;
 pulsegen1.timeaxis = taxis;
-% Channel 1: 1 MHz sine wave between 0 and 10 us
-pulsegen1.waveform1 = 1.0*(taxis <= 18e-6) .* (taxis > 1e-6);
+% % Channel 1: 1 MHz sine wave between 0 and 10 us
+% pulsegen1.waveform1 = 1.0*(taxis <= 18e-6) .* (taxis > 1e-6);
+% pulsegen1.waveform2 = 0.*taxis;
+
+up = 0;
+
+%sweep params
+timeStep = 1.6e-9;
+totalTime = 20e-6;
+
+initializeTime = 10e-6;
+rampTime = 100e-9;
+holdTime = 8e-6;
+
+if up == 0
+    startVal = 0;
+else
+    startVal = 1;
+end
+
+%Set AWG parameters for up pulse or down pulse
+% Time axis: 0.8 ns sampling interval, 5 us total length
+taxis = 0:timeStep:totalTime;
+pulsegen1.timeaxis = taxis;
+
+
+rfgen.power = -5;
+%finish the AWG pulse
+Sec1 = startVal*ones(1,initializeTime/timeStep);
+Sec2 = linspace(startVal,0.5,rampTime/timeStep);
+Sec3 = 0.5*ones(1,holdTime/timeStep);
+Remainder = zeros(1,length(taxis)-(length(Sec1)+length(Sec2)+length(Sec3)));
+pulsegen1.waveform1 = [Sec1 Sec2 Sec3 Remainder] ;
 pulsegen1.waveform2 = 0.*taxis;
+
+
 
 %% Generate pulses
 pulsegen1.Generate();
@@ -31,7 +64,7 @@ title('Channel 2');
 %% Set up Generators
 
 rfgen.ModOn();
-rfgen.iq = 0;
+specgen.ModOn();
 
 rfgen.PowerOn()
 logen.PowerOn()
@@ -42,18 +75,18 @@ logen.power = 11.5;
 
 %% Set Up Card Parameters
 
-triggen.period = 30e-6;
+triggen.period = 0e-6;
 
 cardparams = paramlib.acqiris();
 cardparams.fullscale = 1.0;
 cardparams.offset = 0e-6;
 
-timeDuration = 1e-6;
+timeDuration = 12e-6;
 cardparams.sampleinterval = 1e-9;
 cardparams.samples = timeDuration/cardparams.sampleinterval;
-cardparams.averages = 300000;
+cardparams.averages = 1;
 cardparams.segments = 1;
-cardparams.delaytime = 14e-6;
+cardparams.delaytime = 9e-6;
 cardparams.couplemode = 'DC';
 cardparams.trigPeriod = 30e-6;
 
@@ -132,9 +165,9 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 %% Set up Scan
 clear IDataMat QDataMat ampDataMat
 
-
-drive.freqVec = linspace(5.886e9,5.891e9,10);
-for rep = 1:5
+drive.powerVec = linspace(-7,5,60);
+drive.freqVec = linspace(5.887e9,5.89e9,10);
+for rep = 1
     for fdx = 1:length(drive.freqVec)
         
         for up = [0 1]
@@ -142,8 +175,9 @@ for rep = 1:5
             fResonance=[0.0143 0.275 0.0];
             fDetuned=[-0.1 0.0091 0.0];
             
-            f = fDetuned;
+            f = fResonance;
             v=fc.calculateVoltagePoint(f);
+            fc.currentVoltage = v;
             
             drive.freq = drive.freqVec(fdx);
             
@@ -155,33 +189,35 @@ for rep = 1:5
             totalTime = 20e-6;
             
             initializeTime = 10e-6;
-            rampTime = 100e-9;
+            rampTime = 200e-9;
             holdTime = 8e-6;
             
-            maxVal = 2.0;
-            minVal = 1.0;
-            
-            maxValLinear = 10^((maxVal-30)/10);
-            minValLinear = 10^((minVal-30)/10);
-            maxMinRatio = minValLinear/maxValLinear;
-            
+%             maxVal = 0.0;
+%             minVal = -20.0;
+%             
+%             maxValLinear = 10^((maxVal-30)/10);
+%             minValLinear = 10^((minVal-30)/10);
+%             maxMinRatio = minValLinear/maxValLinear;
+%             
             if up == 0
                 startVal = 0;
             else
-                startVal = maxVal;
+                startVal = 1;
             end
-            drive.power = maxVal;
-            rfgen.power = drive.power;
+            
+
             
             
-            %     endvalVec = linspace(2.0,1.0,120);
-            endvalVec = linspace(maxMinRatio,1,56);
-            endvalPowers = linspace(minVal,maxVal,length(endvalVec));
+%             %     endvalVec = linspace(2.0,1.0,120);
+%             endvalVec = linspace(maxMinRatio,1,56);
+%             endvalPowers = linspace(minVal,maxVal,length(endvalVec));
+            
+            
             
             %setup storage
-            IDataMat = zeros(length(endvalVec),int16(cardparams.samples));
-            QDataMat = zeros(length(endvalVec),int16(cardparams.samples));
-            ampDataMat = zeros(length(endvalVec),int16(cardparams.samples));
+            IDataMat = zeros(length(drive.powerVec),int16(cardparams.samples));
+            QDataMat = zeros(length(drive.powerVec),int16(cardparams.samples));
+            ampDataMat = zeros(length(drive.powerVec),int16(cardparams.samples));
             cardparams.averages = 1;
             
             %Set AWG parameters for up pulse or down pulse
@@ -190,13 +226,13 @@ for rep = 1:5
             pulsegen1.timeaxis = taxis;
             
             
-            for idx=1:length(endvalVec)
-                endVal = endvalVec(idx);
+            for idx=1:length(drive.powerVec)
                 
+                rfgen.power = drive.powerVec(idx);
                 %finish the AWG pulse
                 Sec1 = startVal*ones(1,initializeTime/timeStep);
-                Sec2 = linspace(startVal,endVal,rampTime/timeStep);
-                Sec3 = endVal*ones(1,holdTime/timeStep);
+                Sec2 = linspace(startVal,0.5,rampTime/timeStep);
+                Sec3 = 0.5*ones(1,holdTime/timeStep);
                 Remainder = zeros(1,length(taxis)-(length(Sec1)+length(Sec2)+length(Sec3)));
                 pulsegen1.waveform1 = [Sec1 Sec2 Sec3 Remainder] ;
                 pulsegen1.waveform2 = 0.*taxis;
@@ -209,7 +245,7 @@ for rep = 1:5
                 if idx==1
                     tStart = tic;
                     time = clock;
-                    filename=['AvghysteresisUD_rightDrive_rightOutput_' num2str(drive.freq/1e9) 'GHz' num2str(time(1)) num2str(time(2)) num2str(time(3))...
+                    filename=['hysteresisUD_rightDrive_rightOutput_' num2str(drive.freq/1e9) 'GHz' num2str(time(1)) num2str(time(2)) num2str(time(3))...
                         num2str(time(5)) num2str(time(6))];
                 end
                 
@@ -246,8 +282,8 @@ for rep = 1:5
                 %             imagesc(timeaxis,endvalPowers(1:idx) ,QDataMat(1:idx,:)); xlabel('time [\mu s]');
                 %             title(['Q_' titleStr])
                 %             subplot(3,1,3);
-                imagesc(timeaxis,endvalPowers(1:idx) ,ampDataMat(1:idx,:)); xlabel('time [\mu s]');
-                title(['|abd|^2 _' titleStr])
+                imagesc(timeaxis,drive.powerVec(1:idx) ,ampDataMat(1:idx,:)); xlabel('time [\mu s]');
+                title([filename ', |abd|^2 _' titleStr])
             end
             if up ==0
                 savefig([saveFolder filename  '_down.fig']);
@@ -256,9 +292,12 @@ for rep = 1:5
             end
         end
         
-        saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\pulses_072417\';
+        saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\pulses_072517\';
+        if exist(saveFolder)==0
+            mkdir(saveFolder)
+        end
         save([saveFolder filename '.mat'],...
-            'drive','IDataMat_up','QDataMat_up','ampDataMat_up','IDataMat_down','QDataMat_down','ampDataMat_down','timeaxis', 'endvalVec', 'maxVal','endvalPowers');
+            'drive','IDataMat_up','QDataMat_up','ampDataMat_up','IDataMat_down','QDataMat_down','ampDataMat_down','timeaxis');
         
         savefig([saveFolder filename '.fig']);
         

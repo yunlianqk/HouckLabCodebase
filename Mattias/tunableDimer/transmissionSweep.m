@@ -49,7 +49,7 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 pnax.SetActiveTrace(1);
 % transWaitTime=7;
 % transWaitTime=20;
-transWaitTime=20;
+transWaitTime=15;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 % pnax.params.start = 5.80e9;
@@ -58,11 +58,8 @@ pnax.params.stop = 6.0e9;
 pnax.params.points = 3201;
 % pnax.params.power = -35;
 
-powerVec = linspace(-50,-50,1)
+powerVec = linspace(-45,-45,1)
 
-for idx=1:length(powerVec)
-
-pnax.params.power = powerVec(idx);
 % pnax.params.power = -35;
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
@@ -97,9 +94,9 @@ clear vtraj ftraj
 % fstart=[-3.6 0.0 0.0];
 % fstop=[3.2 0.0 0.0];fsteps=50;
 
-
-fstart=[0.0 0.275 0.0];
-fstop=[0.0 -0.3159 0.0];fsteps=14;
+% fDetunedSmallJ=[-0.1 0.0091
+fstart=[-0.1 0.0091 0.0];
+fstop=[-0.1 0.0091 0.5];fsteps=20;
 
 % fstart=[0.0 -0.7 0.0];
 % fstop=[0.0 -0.7 0.0];fsteps=44;
@@ -121,6 +118,9 @@ vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
 fc.visualizeTrajectories(vtraj,ftraj);
 
+for idx=1:length(powerVec)
+
+pnax.params.power = powerVec(idx);
 %% Transmission scan along trajectory
 tic; time=fix(clock);
 steps=size(vtraj,2); points=pnax.params.points; freqvector=pnax.ReadAxis();
@@ -130,12 +130,8 @@ for index=1:steps
     if index==1
         tStart=tic;
         time=clock;
-%         filename=['couplerFit_LeftInput_couplerCalibration_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-%         filename=['couplerFit_LeftInput_rightQubit_couplerCrossCal_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-%         filename=['couplerFit_LeftInput_leftQubit_couplerCrossCal_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-%         filename=['couplerFit_LeftInput_rightQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-%         filename=['couplerFit_LeftInput_leftQubitScan_'  num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
-        filename=['couplerFit_RightInput_rightQubitScan_power' num2str(powerVec(idx)) 'dBm_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+
+        filename=['couplerFit_rightInput_rightOutput_coupler_power' num2str(powerVec(idx)) 'dBm_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
     end
     % update flux/voltage
     fc.currentVoltage=vtraj(:,index);
@@ -170,7 +166,10 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072317\';
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072517\';
+if exist(saveFolder)==0
+    mkdir(saveFolder)
+end
 save([saveFolder filename '.mat'],...
     'CM','f0','fc','transWaitTime','pnaxSettings','ftrans','ftraj','vtraj','time','steps',...
     'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS41AlongTrajectoryAmp','transS41AlongTrajectoryPhase')
