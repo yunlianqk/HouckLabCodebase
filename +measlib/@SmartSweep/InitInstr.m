@@ -4,12 +4,12 @@ function InitInstr(self)
            yoko1 yoko2 pulsegen1 pulsegen2 card triggen;
 
     % Initialize generators
-    function tf = isused(gen)
+    function inuse = isused(gen)
         % Determine if gen is in self.generator
-        tf = 0;
+        inuse = 0;
         for ii = 1:length(self.generator)
             if gen == self.generator{ii}
-                tf = 1;
+                inuse = 1;
                 return;
             end
         end
@@ -78,7 +78,7 @@ function InitInstr(self)
         if ~isempty(seq{index})
             % Generate waveforms
             if index < 4
-                % Gate pulses
+                % Drive pulses
                 [waveform1, waveform2] ...
                     = seq{index}(1).uwWaveforms(self.awgtaxis, ...
                                                 self.seqEndTime - seq{index}(1).totalDuration);
