@@ -20,8 +20,6 @@ function Save(self, filename)
     % If filename is not specified, use default name
     if nargin == 1
         filename = self.savefile;
-    elseif nargin == 2
-        path = [pwd(), filesep()];
     end
     
     % Convert pulseCal to struct
@@ -35,15 +33,22 @@ function Save(self, filename)
         self.pulseCal2 = funclib.obj2struct(self.pulseCal2);
     end
     
+    % Clear instrument objects as it causes matlab crash
+    awg = self.awg;
+    generator = self.generator;
+    self.awg = [];
+    self.generator = [];
+
     % Convert x to struct
     x = funclib.obj2struct(self);
     
-    % Clear instrument objects as it causes matlab crash
-    awg = x.awg;
-    generator = x.generator;
-    x.awg = [];
-    x.generator = [];
-    
+    % Remove empty fields
+    for f = fieldnames(x)'
+        if isempty(x.(f{:}))
+            x = rmfield(x, f{:});
+        end
+    end
+
     % Save data
     try
         % Save cardparams if possible
