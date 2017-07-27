@@ -4,7 +4,7 @@ function SetPulse(self)
     
     seqDuration = 0;
     measDuration = 0;
-    
+    tomoSeqInd = self.tomoSeqInd;
     if ~isempty(self.pulseCal)
         self.pulseCal.samplingRate = pulsegen1.samplingrate;
         if ~isempty(self.generator{4})
@@ -23,6 +23,36 @@ function SetPulse(self)
         checkpulse(seq{:});
     end
 
+    % Append Identity X90 and Y90 at the end of sequences for tomography
+    
+    if self.tomography
+        disp(['Using the final state of row ',num2str(tomoSeqInd),' of gatesequences for Tomography']);
+        if ~isempty(self.gateseq)
+            self.gateseq(end+1) = pulselib.gateSequence(self.gateseq(tomoSeqInd).gateArray);
+            self.gateseq(end).append(self.pulseCal.Identity());
+            self.gateseq(end+1) = pulselib.gateSequence(self.gateseq(tomoSeqInd).gateArray);
+            self.gateseq(end).append(self.pulseCal.X90());
+            self.gateseq(end+1) = pulselib.gateSequence(self.gateseq(tomoSeqInd).gateArray);
+            self.gateseq(end).append(self.pulseCal.Y90());        
+        end
+        if ~isempty(self.gateseq2)
+            self.gateseq2(end+1) = pulselib.gateSequence(self.gateseq2(tomoSeqInd).gateArray);
+            self.gateseq2(end).append(self.pulseCal2.Identity());
+            self.gateseq2(end+1) = pulselib.gateSequence(self.gateseq2(tomoSeqInd).gateArray);
+            self.gateseq2(end).append(self.pulseCal2.X90());
+            self.gateseq2(end+1) = pulselib.gateSequence(self.gateseq2(tomoSeqInd).gateArray);
+            self.gateseq2(end).append(self.pulseCal2.Y90());
+        end
+        if ~isempty(self.fluxseq)
+            self.fluxseq(end+1) = pulselib.gateSequence(self.fluxseq(tomoSeqInd).gateArray);
+            self.fluxseq(end).append(self.pulseCal2.Identity());
+            self.fluxseq(end+1) = pulselib.gateSequence(self.fluxseq(tomoSeqInd).gateArray);
+            self.fluxseq(end).append(self.pulseCal2.Identity());
+            self.fluxseq(end+1) = pulselib.gateSequence(self.fluxseq(tomoSeqInd).gateArray);
+            self.fluxseq(end).append(self.pulseCal2.Identity());
+        end
+    end
+    
     % Append Identity and X180 as last two sequences for normalization
     if self.normalization
         if ~isempty(self.gateseq)
@@ -39,38 +69,6 @@ function SetPulse(self)
         end
     end
     
-        % Append Identity X90 and Y90 at the end of sequences for
-        % tomography
-    if self.tomography
-        if ~isempty(self.gateseq)
-            self.gateseq(end+1) = pulselib.gateSequence();
-            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
-            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.Identity());
-            self.gateseq(end+1) = pulselib.gateSequence();
-            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
-            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.X90());
-            self.gateseq(end+1) = pulselib.gateSequence();
-            self.gateseq(end).gateArray=self.gateseq(1).gateArray;
-            self.gateseq(end) = pulselib.gateSequence(self.pulseCal.Y90());        
-        end
-        if ~isempty(self.gateseq2)
-            self.gateseq2(end+1) = pulselib.gateSequence();
-            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
-            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.Identity());
-            self.gateseq2(end+1) = pulselib.gateSequence();
-            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
-            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.X90());
-            self.gateseq2(end+1) = pulselib.gateSequence();
-            self.gateseq2(end).gateArray=self.gateseq2(1).gateArray;
-            self.gateseq2(end) = pulselib.gateSequence(self.pulseCal2.Y90());
-        end
-        if ~isempty(self.fluxseq)
-            self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
-            self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
-            self.fluxseq(end+1) = pulselib.gateSequence(self.pulseCal.Identity());
-        end
-    end
-
     % Get the duration of the longest sequence
     try
         seqDuration = max([self.gateseq.totalDuration]);
