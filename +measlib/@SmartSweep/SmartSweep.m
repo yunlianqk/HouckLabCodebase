@@ -150,7 +150,6 @@ classdef SmartSweep < handle
         Plot(self, fignum);
         [intI, intQ] = Integrate(self, ind);
         Normalize(self);
-        TomographyPlot(self);
     end
 
     methods (Static)
