@@ -9,15 +9,15 @@ function TomographyPlot(self)
     self.result.normalization = self.normalization;
     self.result.cardchannel = self.cardchannel;
     if self.tomography && self.normalization % need to have normalization ON for tomography
-        gndI = self.result.intI(end-1-self.tomography*numTomoGates);
-        extI = self.result.intI(end-self.tomography*numTomoGates);
-        gndQ = self.result.intQ(end-1-self.tomography*numTomoGates);
-        extQ = self.result.intQ(end-self.tomography*numTomoGates);
+        gndI = self.result.intI(end-1);
+        extI = self.result.intI(end);
+        gndQ = self.result.intQ(end-1);
+        extQ = self.result.intQ(end);
         if length(self.cardchannel) == 1
         % If cardchannel = 'dataIQ' or 'dataI' or 'dataQ'
             self.result.TomoAmp ...
-                = sqrt((self.result.intI(end-self.tomography*numTomoGates+1:end)-gndI).^2 ...
-                       + (self.result.intQ(end-self.tomography*numTomoGates+1:end)-gndQ).^2) ...
+                = sqrt((self.result.intI(end-self.tomography*numTomoGates-1:end-2)-gndI).^2 ...
+                       + (self.result.intQ(end-self.tomography*numTomoGates-1:end-2)-gndQ).^2) ...
                   / sqrt((extI-gndI)^2+(extQ-gndQ)^2);
             % Plot tomography
             figure(999);
@@ -42,22 +42,22 @@ function TomographyPlot(self)
         % If cardchannel = {'dataI', 'dataQ'}
             if self.result.intFreq == 0
             % Homodyne
-                self.result.TomoAmp = (self.result.intI(end-self.tomography*numTomoGates+1:end)-gndI)/(extI-gndI);
-                self.result.TomoAmp2 = (self.result.intQ(end-self.tomography*numTomoGates+1:end)-gndQ)/(extQ-gndQ);
+                self.result.TomoAmp = (self.result.intI(end-self.tomography*numTomoGates-1:end-2)-gndI)/(extI-gndI);
+                self.result.TomoAmp2 = (self.result.intQ(end-self.tomography*numTomoGates-1:end-2)-gndQ)/(extQ-gndQ);
             else
             % Heterodyne
-                gndI2 = self.result.intI2(end-1-self.tomography*numTomoGates);
-                extI2 = self.result.intI2(end-self.tomography*numTomoGates);
-                gndQ2 = self.result.intQ2(end-1-self.tomography*numTomoGates);
-                extQ2 = self.result.intQ2(end-self.tomography*numTomoGates);
+                gndI2 = self.result.intI2(end-1);
+                extI2 = self.result.intI2(end);
+                gndQ2 = self.result.intQ2(end-1);
+                extQ2 = self.result.intQ2(end);
 
                 self.result.TomoAmp ...
-                = sqrt((self.result.intI(end-self.tomography*numTomoGates+1:end)-gndI).^2 ...
-                       + (self.result.intQ(end-self.tomography*numTomoGates+1:end)-gndQ).^2) ...
+                = sqrt((self.result.intI(end-self.tomography*numTomoGates-1:end-2)-gndI).^2 ...
+                       + (self.result.intQ(end-self.tomography*numTomoGates-1:end-2)-gndQ).^2) ...
                   / sqrt((extI-gndI)^2+(extQ-gndQ)^2);
                 self.result.TomoAmp2 ...
-                = sqrt((self.result.intI2(end-self.tomography*numTomoGates+1:end)-gndI2).^2 ...
-                       + (self.result.intQ2(end-self.tomography*numTomoGates+1:end)-gndQ2).^2) ...
+                = sqrt((self.result.intI2(end-self.tomography*numTomoGates-1:end-2)-gndI2).^2 ...
+                       + (self.result.intQ2(end-self.tomography*numTomoGates-1:end-2)-gndQ2).^2) ...
                   / sqrt((extI2-gndI2)^2+(extQ2-gndQ2)^2);
             end
             % Plot tomography
