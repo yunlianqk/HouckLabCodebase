@@ -259,6 +259,10 @@ function SetSweep(self)
                 = fluxseq.uwWaveforms(self.awgtaxis, ...
                                       self.seqEndTime - fluxseq.totalDuration);
         end
+        if isprop(self, 'fluxbaseband') && (self.fluxbaseband == 0)
+            waveform1 = waveform1 .* cos(2*pi*self.pulseCal.fluxFreq*self.awgtaxis);
+            waveform2 = waveform2 .* sin(2*pi*self.pulseCal.fluxFreq*self.awgtaxis);
+        end
         if length(self.awgchannel{3}) == 2
             % Set dual channel with I and Q
             self.awg{3}.(self.awgchannel{3}{1}) = waveform1;
