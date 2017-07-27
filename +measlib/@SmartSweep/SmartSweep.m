@@ -62,6 +62,8 @@ classdef SmartSweep < handle
         histbins = 20;  % Number of bins for histogram
         bgsubtraction = [];  % Background subtraction
         normalization = 0;  % Use zero and pi pulse to normalize readout
+        tomography = 0; % single qubit tomography
+        numTomoGates=3; % number of gates in tomography
         intrange = [];   % start and stop time for integration
 
         % Plotting options
@@ -86,7 +88,8 @@ classdef SmartSweep < handle
                         'sampleinterval', [], ... % sample interval
                         'cardchannel', [], ...  % single/dual channel acquisition
                         'normalization', [], ... % normalization
-                        'histogram', []); ... % histogram
+                        'histogram', [], ... % histogram
+                        'tomography',[]);... % single qubit tomography
     end
     
     properties (Access = private)
@@ -147,6 +150,7 @@ classdef SmartSweep < handle
         Plot(self, fignum);
         [intI, intQ] = Integrate(self, ind);
         Normalize(self);
+        TomographyPlot(self);
     end
 
     methods (Static)
