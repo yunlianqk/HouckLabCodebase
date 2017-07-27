@@ -9,9 +9,6 @@ yoko3.rampstep=.01;yoko3.rampinterval=.001;
 % CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .54 -.51 2.3447;]; % update on 09/11
 % CM = [1.0 0.00 0.0; 0.00 1.0 0.00; 0 0.0 2.3447*0.9302;]; % update on 09/11
 
-
-
-
 % cal_MAT = [1.0  0.0  0.0; 0.0  0.1704   0.0; 0.1535   -0.1765   2.1810];  %voltage to flux conversion matrix, best guess from 6-21-17
 
 nla = 3.5; %new attenuation of left line
@@ -46,6 +43,15 @@ fc2.leftQubitFluxToFreqFunc = @(x) sqrt(8.*EcLeft.*EjSumLeft.*abs(cos(pi.*x)))-E
 fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x)))-EcRight;
 
 
+% Tune the yokos to the proper place
+fResonanceLargeJ=[0.0143 0.275 0.0];
+fResonanceSmallJ=[0.0143 0.275 0.35];
+fDetunedLargeJ=[-0.1 0.0091 0.0];
+fDetunedSmallJ=[-0.1 0.0091 0.35];
+
+v = fc.calculateVoltagePoint(fDetunedLargeJ);
+fc.currentVoltage=v;
+
 %% PXA params
 
 pxa.bw=0.5e6;
@@ -55,86 +61,79 @@ pxa.stop=5.95e9;
 pxa.averageCount=3000;
 pxa.numPoints=2001;
 
-freqVec = linspace(pxa.start,pxa.stop,pxa.numPoints);
-
-waitTime=1.5;
+waitTime = 2;
 %%
 
-fResonance=[0.0143 0.275 0.0];
-fDetuned=[-0.1 0.0091 0.0];
-
-f = fDetuned;
-v=fc.calculateVoltagePoint(f);
-
-%%
-fc.currentVoltage=v;
-
-
-leftDrive.PowerOff();
-rightDrive.PowerOff();
-
-pxa.AvgClear;
-pause(10)
-measuredEmission_background = pxa.Read();    
-
-% leftDrive.PowerOn();
-rightDrive.PowerOn();
+rfgen.PowerOn();
+specgen.PowerOn();
     
-drive.powerVec = linspace(-10,5,11);
-drive.freqVec=linspace(5.8e9,5.95e9,1400);
+drive.powerVec = linspace(-55,-15,60);
+drive.freqVec = linspace(5.8e9,5.95e9,20);
 
-% measuredEmission = zeros(length(drive.freqVec),pxa.numPoints);
-% measuredEmissionSubtracted = zeros(length(drive.freqVec),pxa.numPoints);
+measuredEmission = zeros(length(drive.powerVec),length(drive.freqVec));
 
-for pdx = 1:length(drive.powerVec)
-    measuredEmission = zeros(length(drive.freqVec),pxa.numPoints);
-    measuredEmissionSubtracted = zeros(length(drive.freqVec),pxa.numPoints);
-    leftDrive.power = drive.powerVec(pdx);
-    rightDrive.power = drive.powerVec(pdx);
-    for idx=1:length(drive.freqVec)
+for fdx = 1:length(drive.freqVec)
+    rfgen.freq = drive.freqVec(fdx);
+    specgen.freq = drive.freqVec(fdx);
+    
+    pxa.bw=1e3;
+    pxa.video=10e3;
+    pxa.start=rfgen.freq-10e3;
+    pxa.stop=rfgen.freq+10e3;
+    pxa.averageCount=3000;
+    pxa.numPoints=220;
+    
+    pxaFreq = linspace(pxa.start,pxa.stop,pxa.numPoints);
+   
+    for idx=1:length(drive.powerVec)
         
-        leftDrive.freq = drive.freqVec(idx);
-%         rightDrive.freq = drive.freqVec(idx);
-        rightDrive.freq = 5.9094e9;
-        if idx==1
+        specgen.power = drive.powerVec(idx);
+        rfgen.power = drive.powerVec(idx);
+        if (idx == 1 && fdx==1)
             tStart = tic;
             time = clock;
-%             filename=['dualDrive_PXA_drivePower' num2str(drive.powerVec(pdx)) num2str(time(1)) num2str(time(2)) num2str(time(3))...
-%                 num2str(time(4)) num2str(time(5))];
-            filename=['dualDrive_rightOutput_PXA_rightDriveFixed5.9094GHz_drivePower' num2str(drive.powerVec(pdx)) '_' num2str(time(1)) num2str(time(2)) num2str(time(3))...
+            filename=['leftDrive_rightOutput_PXA_' num2str(time(1)) num2str(time(2)) num2str(time(3))...
                 num2str(time(4)) num2str(time(5))];
         end
         
         pxa.AvgClear;
         pause(waitTime);
-        measuredEmission(idx,:) = pxa.Read();
-        measuredEmissionSubtracted(idx,:) = measuredEmission(idx,:) - measuredEmission_background;
+        measuredEmissionTemp = pxa.Read();        
         
-        if idx == 1;
+%         figure(21);
+%         plot(measuredEmissionTemp)
+%         title(measuredEmissionTemp(pxa.numPoints/2))
+        
+        measuredEmission(idx,fdx) = measuredEmissionTemp(pxa.numPoints/2);
+
+        
+        if (fdx == 1 && idx == 1)
             deltaT=toc(tStart);
-            estimatedTime=deltaT*length(drive.freqVec)*length(drive.powerVec)*2;
+            estimatedTime=deltaT*length(drive.freqVec)*length(drive.powerVec);
             disp(['Estimated Time is '...a
                 num2str(estimatedTime/3600),' hrs, or '...
                 num2str(estimatedTime/60),' min']);
             disp(['Scan should finish at ' datestr(addtodate(datenum(time),...
                 round(estimatedTime),'second'))]);
         end
-        
-        
-        figure(2);
-        imagesc(freqVec/1e9,drive.freqVec(1:idx),measuredEmissionSubtracted(1:idx,:));
-        xlabel('Emission Frequency [GHz]');
-        ylabel('Drive Frequency [GHz]');
-        title([filename]);
-        colorbar();
-        
-        
+           
         
     end
-    saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PXA_Calibrations_072317\';
-    save([saveFolder filename '.mat'],...
-        'leftDrive','rightDrive','measuredEmission', 'pxa','freqVec','drive');
     
-    savefig([saveFolder filename '.fig']);
+    figure(2);
+    imagesc(drive.freqVec(1:fdx)/1e9,drive.powerVec,measuredEmission(:,1:fdx));
+    xlabel('Drive Frequency [GHz]');
+    ylabel('Drive Power [dBm]');
+    set(gca, 'YDir', 'normal');
+    title([filename]);
+    colorbar();
+
 end
 
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\pulse_072517\';
+isFolder = exist(saveFolder);
+if isFolder == 0
+    mkdir(saveFolder)
+end
+save([saveFolder filename '.mat'],...
+    'drive','measuredEmission','pxa','rfgen','logen');

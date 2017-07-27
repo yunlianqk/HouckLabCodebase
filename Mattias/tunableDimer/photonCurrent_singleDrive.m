@@ -87,8 +87,11 @@ rfgen.ModOff();
 % specgen.ModOff();
 
 rfgen.PowerOn();
+% rfgen.PowerOff();
 
+% specgen.PowerOn();
 specgen.PowerOff();
+
 
 logen.PowerOn();
 
@@ -98,7 +101,8 @@ corrparams.LPF = 1e6;
 
 rfgen.freq = 5.899e9;
 specgen.freq = 5.899e9;
-logen.freq = rfgen.freq+corrparams.IF;
+
+logen.freq = rfgen.freq + corrparams.Int_Freq;
 
 %% Set Up Card Parameters
 
@@ -109,7 +113,7 @@ cardparams.offset = 0e-6;
 timeDuration = 2e-6;
 cardparams.sampleinterval = 1e-9;
 cardparams.samples = timeDuration/cardparams.sampleinterval;
-cardparams.averages = 200000;
+cardparams.averages = 100000;
 cardparams.segments = 1;
 cardparams.delaytime = 6e-6;
 cardparams.couplemode = 'DC';
@@ -157,7 +161,7 @@ logen.power = 13.5;
 logen.PowerOn();
 
 % drive.powerVec = linspace(-40,5,20);
-drive.powerVec = linspace(-55,-15,80);
+drive.powerVec = linspace(-55,-10,30);
 % drive.freqVec = linspace(5.818e9,5.89e9,5);
 drive.freqVec = linspace(5.8e9,5.95e9,25);
 
@@ -185,8 +189,6 @@ a2daga2Mat=zeros(length(drive.powerVec),length(drive.freqVec));
 a1Mat=zeros(length(drive.powerVec),length(drive.freqVec));
 a2Mat=zeros(length(drive.powerVec),length(drive.freqVec));
 
-
-
 tStart = tic;
 time = clock;
 fileIdentifier='2channelDigitalHomodyne';
@@ -200,6 +202,10 @@ clear photonCurrentLine a2daga1Line ...
     a1daga2Line a1daga1Line ...
     a2daga2Line phasePhotonCurrentLine ...
     phaseLine ampLine a1Line a2Line
+
+rfgen.freq = drive.freqVec(idx);
+% specgen.freq = drive.freqVec(idx);
+logen.freq = rfgen.freq + corrparams.Int_Freq;
 
 photonCurrentLine=zeros(length(drive.powerVec),1);
 phaseLine=zeros(length(drive.powerVec),1);
