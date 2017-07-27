@@ -9,10 +9,10 @@ function Normalize(self)
     self.result.normalization = self.normalization;
     self.result.cardchannel = self.cardchannel;
     if self.normalization
-        gndI = self.result.intI(end-1-self.tomography*numTomoGates);
-        extI = self.result.intI(end-self.tomography*numTomoGates);
-        gndQ = self.result.intQ(end-1-self.tomography*numTomoGates);
-        extQ = self.result.intQ(end-self.tomography*numTomoGates);
+        gndI = self.result.intI(end-1);
+        extI = self.result.intI(end);
+        gndQ = self.result.intQ(end-1);
+        extQ = self.result.intQ(end);
         if length(self.cardchannel) == 1
         % If cardchannel = 'dataIQ' or 'dataI' or 'dataQ'
             self.result.normAmp ...
