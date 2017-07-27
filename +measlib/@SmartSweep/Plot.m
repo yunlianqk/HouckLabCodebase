@@ -90,16 +90,16 @@ end
 function TomoPlot(self,fignum)
             % Plot tomography
             figure(fignum+1);
-            plot(1:numTomoGates, self.result.TomoAmp, '-o');
-            set(gca, 'xtick', 1:numTomoGates);
+            plot(1:3, self.result.TomoAmp, '-o');
+            set(gca, 'xtick', 1:3);
             set(gca, 'xticklabel', {'Id','X90','Y90'});
             set(gca, 'xticklabelrotation', 45);
-            axis([0, numTomoGates+1, -0.2, 1.2]);
+            axis([0, 3+1, -0.2, 1.2]);
             plotlib.hline(1);
             plotlib.hline(0);
             plotlib.hline(0.5);
             hold on;
-            for ind = 1:numTomoGates
+            for ind = 1:3
                 plot([ind, ind], [-0.2, self.result.TomoAmp(ind)], 'r:');
             end
             hold off;
@@ -108,16 +108,16 @@ function TomoPlot(self,fignum)
 			drawnow;
             if length(self.cardchannel) == 2
                 figure(fignum+2);
-                plot(1:numTomoGates, self.result.TomoAmp2, '-o');
-                set(gca, 'xtick', 1:numTomoGates);
+                plot(1:3, self.result.TomoAmp2, '-o');
+                set(gca, 'xtick', 1:3);
                 set(gca, 'xticklabel', {'Id','X90','Y90'});
                 set(gca, 'xticklabelrotation', 45);
-                axis([0, numTomoGates+1, -0.2, 1.2]);
+                axis([0, 3+1, -0.2, 1.2]);
                 plotlib.hline(1);
                 plotlib.hline(0);
                 plotlib.hline(0.5);
                 hold on;
-                for ind = 1:numTomoGates
+                for ind = 1:3
                     plot([ind, ind], [-0.2, self.result.TomoAmp2(ind)], 'r:');
                 end
                 hold off;
