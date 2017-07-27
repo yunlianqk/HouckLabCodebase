@@ -64,6 +64,7 @@ classdef SmartSweep < handle
         normalization = 0;  % Use zero and pi pulse to normalize readout
         tomography = 0; % single qubit tomography
         numTomoGates=3; % number of gates in tomography
+        tomoSeqInd = 1; % Index of the gate seq
         intrange = [];   % start and stop time for integration
 
         % Plotting options
