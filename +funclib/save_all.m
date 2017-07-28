@@ -1,13 +1,16 @@
-function  save_all(save_path)
+function  save_all(save_path, source_path)
 %save all .m files in directiory,
 %and all variables in the name space of the .m file from which this is
 %called
 
-
-full_path_info = evalin('base', 'mfilename(''fullpath'')');
+if nargin == 1
+    full_path_info = evalin('base', 'mfilename(''fullpath'')');
+    folder_breaks = regexp(full_path_info,'\');
+    current_file_location = full_path_info(1:max(folder_breaks));
+else
+    current_file_location = source_path;
+end
 current_file_name = evalin('base', 'mfilename()');
-folder_breaks = regexp(full_path_info,'\');
-current_file_location = full_path_info(1:max(folder_breaks));
 clear folder_breaks full_path_info
 
 
