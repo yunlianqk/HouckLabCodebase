@@ -1,6 +1,6 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 rfgen specgen specgen2 logen logen2 card fluxgen;
+    global pulsegen1 pulsegen2 logen logen2 card fluxgen;
 
     % Set up signal and background acquisition function handles
     if self.histogram
@@ -17,8 +17,6 @@ function SetOutput(self)
                 self.acqbgfunc = @SpecOnOff;
             case 'rfonoff'
                 self.acqbgfunc = @RFOnOff;
-            case 'pulseonoff'
-                self.acqbgfunc = @PulseOnOff;
             case 'fluxonoff'
                 self.acqbgfunc = @FluxOnOff;
             otherwise
@@ -26,24 +24,46 @@ function SetOutput(self)
         end
     end
 
-    % Pre-allocate output data
+    % Set up parameters in self.result
     cardparams = card.GetParams();
+    % Time axis and sample interval are read from card
     self.result.tAxis = cardparams.delaytime + ...
                         cardparams.sampleinterval*(0:cardparams.samples-1);
     self.result.sampleinterval = cardparams.sampleinterval;
+    % Integration range is read from self.intrange
     self.result.intRange = self.intrange;
-    switch self.generator{5}
-        case logen
-            self.result.intFreq = self.intfreq;
-        case logen2
-            self.result.intFreq = self.int2freq;
-        otherwise
+    % Channel setting is read from self.cardchannel
+    self.result.cardchannel = self.cardchannel;
+    % Normalization is read from self.normalization
+    self.result.normalization = self.normalization;
+    % Histogram is read from self.histogram
+    self.result.histogram = self.histogram;
+    % Intermediate frequency is read from self.intfreq or self.int2freq
+    if ~isempty(self.generator{5})
+        switch self.generator{5}
+            case logen
+                self.result.intFreq = self.intfreq;
+            case logen2
+                self.result.intFreq = self.int2freq;
+            otherwise
+        end
     end
+    if ~isempty(self.generator{7})
+        switch self.generator{7}
+            case logen
+                self.result.intFreq = self.intfreq;
+            case logen2
+                self.result.intFreq = self.int2freq;
+            otherwise
+        end
+    end
+    % Pre-allocate dataI and dataQ
     self.result.dataI = zeros(self.numSweep2, cardparams.samples);
     self.result.dataQ = zeros(self.numSweep2, cardparams.samples);
     if isempty(self.result.rowAxis)
         self.result.rowAxis = 1:self.numSweep2;
     end
+    % Pre-allocate intI and intQ
     if self.histogram
         self.result.intI = zeros(self.numSweep2, cardparams.segments*self.histrepeat);
         self.result.intQ = zeros(self.numSweep2, cardparams.segments*self.histrepeat);
@@ -77,14 +97,16 @@ function SetOutput(self)
         figure(100);
         subplot(2, 2, 1);
         plot(pulsegen1.timeaxis/1e-6, pulsegen1.waveform1, ...
-             pulsegen1.timeaxis/1e-6, pulsegen1.waveform2, 'r');
+             pulsegen1.timeaxis/1e-6, pulsegen1.waveform2, 'r', ...
+             pulsegen1.timeaxis/1e-6, pulsegen1.marker3, 'k');
         axis tight;
         ylim([-1, 1]);
-        legend('ch1', 'ch2');
+        legend('ch1', 'ch2', 'mkr3');
         title('AWG 1');
         subplot(2, 2, 3);
         plot(pulsegen2.timeaxis/1e-6, pulsegen2.waveform1, ...
-             pulsegen2.timeaxis/1e-6, pulsegen2.waveform2, 'r');
+             pulsegen2.timeaxis/1e-6, pulsegen2.waveform2, 'r', ...
+             pulsegen2.timeaxis/1e-6, pulsegen2.marker3, 'k');
         axis tight;
         ylim([-1, 1]);
         title('AWG 2');
@@ -128,18 +150,10 @@ function SetOutput(self)
         Qbg = 0;
     end
     function [Ibg, Qbg] = SpecOnOff()
-        specgen.PowerOff();
-        try
-            specgen2.PowerOff();
-        catch
-        end
+        self.generator{1}.PowerOff();
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
-        specgen.PowerOn();
-        try
-            specgen2.PowerOn();
-        catch
-        end
+        self.generator{1}.PowerOn();
     end
     function [Ibg, Qbg] = FluxOnOff()
         fluxgen.PowerOff();
@@ -148,26 +162,9 @@ function SetOutput(self)
         fluxgen.PowerOn();
     end
     function [Ibg, Qbg] = RFOnOff()
-        rfgen.PowerOff();
+        self.generator{4}.PowerOff();
         pause(self.waittime);
         [Ibg, Qbg] = card.ReadIandQ();
-        rfgen.PowerOn();
+        self.generator{4}.PowerOn();
     end
-    function [Ibg, Qbg] = PulseOnOff()
-        ch1 = pulsegen1.waveform1;
-        ch2 = pulsegen1.waveform2;
-        ch4 = pulsegen2.waveform2;
-        pulsegen1.waveform1 = zeros(1, length(ch1));
-        pulsegen1.waveform2 = zeros(1, length(ch2));
-        pulsegen2.waveform2 = zeros(1, length(ch4));
-        pulsegen1.Generate();
-        pulsegen2.Generate();
-        pause(self.waittime);
-        [Ibg, Qbg] = card.ReadIandQ();
-        pulsegen1.waveform1 = ch1;
-        pulsegen1.waveform2 = ch2;
-        pulsegen2.waveform2 = ch4;
-        pulsegen1.Generate();
-        pulsegen2.Generate();
-    end    
 end

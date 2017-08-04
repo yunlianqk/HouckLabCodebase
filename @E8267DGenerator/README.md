@@ -46,8 +46,8 @@ rfgen.alc = 0;
   * **frequency** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
   * **phase** (*float*): Phase (in radians) of the signal
-  * **output** (*1/0*): output on/off
-  * **modulation** (*1/0*): modulation on/off
+  * **output** (*1/0*): Output on/off
+  * **modulation** (*1/0*): Modulation on/off
   * **iq** (*1/0*): Wideband digital modulation on/off (only available in E8267D models)
   * **iqadjust** (*1/0*): I/Q adjustment on/off (only available in E8267D models)
   * **ioffset** (*float*): I offset (in volts) for I/Q adjustment (only available in E8267D models)

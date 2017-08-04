@@ -25,15 +25,22 @@ classdef HolzworthHS9000 < handle
         freq; % in Hz
         power; % in dBm
         phase; % in radians
-        modulation = 0; % 0/1
+        modulation; % 0/1
+        ref; % (internal 100MHz) 'int', (external) '10MHz', or (external) '100MHz'
+    end
+    
+    properties (SetAccess = private)
+        temperature; % Temperature
+    end
+    
+    properties (Hidden)
+        channel; % Channel number
+        % The following properties are not supported by hardware
+        % They are kept here as placeholder to make the interface
+        % consistent with E8267D class
         alc = 0;
         pulse = 0;
         iq = 0;
-        ref = '10MHz' % (internal 100MHz) 'int', (external) '10MHz', or (external) '100MHz'
-    end
-    
-    properties (Hidden, SetAccess = private)
-        channel; % Channel number
     end
 
     methods
@@ -54,7 +61,9 @@ classdef HolzworthHS9000 < handle
             tempstr = strsplit(address, '-');
             self.channel = str2double(tempstr{3});
             % Set reference clock
-            self.ref = '10MHz';            
+            self.ref = '10MHz';
+            % Turn off modulation
+            self.modulation = 0;
         end
         
         function Finalize(self)
@@ -167,11 +176,10 @@ classdef HolzworthHS9000 < handle
         function pulse = get.pulse(self)
             % Same as modulation
             switch self.modulation
-                case 'ON'
-                    pulse = 1;
                 case 'OFF'
                     pulse = 0;
                 otherwise
+                    pulse = 1;
             end
         end
 
@@ -198,6 +206,10 @@ classdef HolzworthHS9000 < handle
             out = self.write(':REF:STATUS?');
         end
         
+        function temp = get.temperature(self)
+            % Get temperature
+            temp = sscanf(self.write(':TEMP?'), 'Temp = %s');
+        end
         % Declaration of all other methods
         % Each method is defined in a separate file        
         SetFreq(self, freq);

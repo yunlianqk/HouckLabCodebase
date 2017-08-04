@@ -1,6 +1,6 @@
 % Example code for single qubit CW and pulsed measurements
 % using E8267D generators, M9330 AWG and U1082A/U1084A digitizer
-%% Checkout instruments
+%% Check instruments
 % rfgen, specgen, logen, triggen, pulsegen1, pulsegen2, card
 % need to be initialized before using this script.
 success = 1;
@@ -21,7 +21,7 @@ else
 end
 
 clear instr s success;
-%% Qubit and measurement pulse parameters are defined in pulseCal
+%% Pulse parameters are defined in pulseCal
 pulseCal = paramlib.pulseCal();
 pulseCal.qubitFreq = 5.3e9;
 pulseCal.specPower = 5;

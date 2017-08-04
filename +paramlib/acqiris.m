@@ -2,7 +2,7 @@ classdef acqiris
     % Defines the parameters for Acqiris digitizer
     
     properties
-        fullscale = 0.05; % Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
+        fullscale = 0.5; % Full scale in volts, from 0.05 V to 5 V in 1, 2, 5 sequence
         offset = 0; % Offset in volts
         sampleinterval = 1e-9; % Sampling interval in seconds, from 1 ns to 0.1 ms in 1, 2, 2.5, 4, 5 sequence
         samples = 10000; % Number of samples for each segment, from 16 to 2 Mega (2^21) in steps of 16    

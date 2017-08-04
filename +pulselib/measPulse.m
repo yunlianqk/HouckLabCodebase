@@ -1,12 +1,14 @@
 classdef measPulse < handle
     % Simple rectangular measurement pulse object.  
     properties
+        name = 'measurement';
         duration = 4e-6; % pulse length in seconds
         amplitude = 1.0; % amplitude of main gaussian pulse
         azimuth = 0.0; % angle in IQ plane.  0 corresponds to I, pi/2 to Q
         sigma = 5e-9; % sigma for Gaussian ramp-up
         cutoff = 30e-9;
         buffer = 2e-9;
+        unitary = eye(2);
     end
 
     properties (Dependent, SetAccess = private)
