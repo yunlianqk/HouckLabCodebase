@@ -305,10 +305,10 @@ end
 
 cardSettings=card.params.toStruct();
 saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\pulses_072517\';
-    isFolder = exist(saveFolder);
-    if isFolder == 0
-        mkdir(saveFolder)
-    end
+isFolder = exist(saveFolder);
+if isFolder == 0
+    mkdir(saveFolder)
+end
 save([saveFolder filename '.mat'],...
     'rfgen','logen','specgen','corrparams',...
     'card','cardSettings','photonCurrentMat','expOMat',...

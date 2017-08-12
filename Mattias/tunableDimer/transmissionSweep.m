@@ -1,4 +1,4 @@
-addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
+addpath('C:\Users\BFG\Documents\HouckLabMeasurementCode\JJR\TunableDimer')
 
 %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
@@ -47,16 +47,12 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
-% transWaitTime=7;
-% transWaitTime=20;
+
 transWaitTime=15;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
-% pnax.params.start = 5.80e9;
-% pnax.params.stop = 6.00e9;
 
 pnax.params.points = 3201;
-% pnax.params.power = -35;
 
 powerVec = linspace(-45,-45,1)
 
@@ -68,56 +64,15 @@ ftrans = pnax.ReadAxis();
 
 clear vtraj ftraj
 
-% %coupler-coupler
-% fstart=[0.0 0.0 -1.0];
-% fstop=[0.0 0 1.0];fsteps=200;
-
-% %right qubit - coupler
-% fstart=[0.0 -3.2 0.0];
-% fstop=[0.0 3.6 0.0];fsteps=24;
-% fstart=[0.0 -2.0 0.0];
-% fstop=[0.0 1.8 0.0];fsteps=26;
-
-% fstart=[0.0 -0.5 0.0];
-% fstop=[0.0 0.00 0.0];fsteps=12;
-% fstart=[0.0 -0.9 0.0];
-% fstop=[0.0 0.4 0.0];fsteps=14;
-% fstart=[0.0 -0.6 0.0];
-% fstop=[0.0 0.6 0.0];fsteps=14;
-
-
-% vstart=[0.0 0.0 0.0];
-% vstop=[0.0 0.4 0.0];vsteps=26;
-
-
-%left qubit - coupler
-% fstart=[-3.6 0.0 0.0];
-% fstop=[3.2 0.0 0.0];fsteps=50;
-
-% fDetunedSmallJ=[-0.1 0.0091
 fstart=[-0.1 0.0091 0.0];
 fstop=[-0.1 0.0091 0.5];fsteps=20;
-
-% fstart=[0.0 -0.7 0.0];
-% fstop=[0.0 -0.7 0.0];fsteps=44;
-
-
-% fstart=[-0.10 0.0 0.0];
-% fstop=[0.10 0.0 0.0];fsteps=14;
-
-% fstart=[-0.10 0.0 0.0];
-% fstop=[0.0 0.0 0.0];fsteps=12;
-
-% %cheating way to ramp off yokos
-% fstart=f0;
-% fstop=f0;fsteps=2;
-
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
 fc.visualizeTrajectories(vtraj,ftraj);
 
+%%
 for idx=1:length(powerVec)
 
 pnax.params.power = powerVec(idx);
@@ -131,7 +86,7 @@ for index=1:steps
         tStart=tic;
         time=clock;
 
-        filename=['couplerFit_rightInput_rightOutput_coupler_power' num2str(powerVec(idx)) 'dBm_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+        filename=['couplerFit_leftInput_rightOutput_coupler_power' num2str(powerVec(idx)) 'dBm_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
     end
     % update flux/voltage
     fc.currentVoltage=vtraj(:,index);
@@ -166,7 +121,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072517\';
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_081117\';
 if exist(saveFolder)==0
     mkdir(saveFolder)
 end
