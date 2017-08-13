@@ -2,9 +2,9 @@ addpath('C:\Users\BFG\Documents\HouckLabMeasurementCode\JJR\TunableDimer')
 
 %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
-yoko1.rampstep=.001;yoko1.rampinterval=.001;
-yoko2.rampstep=.001;yoko2.rampinterval=.001;
-yoko3.rampstep=.001;yoko3.rampinterval=.001;
+yoko1.rampstep=.002;yoko1.rampinterval=.01;
+yoko2.rampstep=.002;yoko2.rampinterval=.01;
+yoko3.rampstep=.002;yoko3.rampinterval=.01;
 
 
 % these are leftover from before
@@ -15,7 +15,8 @@ yoko3.rampstep=.001;yoko3.rampinterval=.001;
 % CM = cal_MAT;
 
 % CM = [1 0 0; 0 1 0; 0 0 1];  %starter Matrix
-CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
+% CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
+CM = [1 0 0; 0 1 0; 120/(7*41) 120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
 
 f0 = [0; 0; -0.05]; % iteration2
 fc=fluxController(CM,f0);
@@ -29,11 +30,11 @@ fc2.leftQubitFluxToFreqFunc = @(x) sqrt(8.*EcLeft.*EjSumLeft.*abs(cos(pi.*x)))-E
 fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x)))-EcRight;
 
 
-for idx = 1:2
+
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 
-transWaitTime=160;
+transWaitTime=40;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 
@@ -47,24 +48,26 @@ ftrans = pnax.ReadAxis();
 
 clear vtraj ftraj
 
-if idx ==1
-    vstart=[0.0 -3.5 0.0225];
-    vstop=[0.0 3.5 0.0225];fsteps=120;
-elseif idx==2
-    vstart=[-3.5 0.0 0.0225];
-    vstop=[3.5 0.0 0.0225];fsteps=120;
-end
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-ftraj=fc.calculateFluxTrajectory(vtraj);
-fc.visualizeTrajectories(vtraj,ftraj);
-
-% fstart=[0.0 0.0 0.0];
-% fstop=[0.0 0.0 0.0];fsteps=30;
-% 
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% if idx ==1
+%     vstart=[0.0 -3.5 0.0225];
+%     vstop=[0.0 3.5 0.0225];fsteps=120;
+% elseif idx==2
+%     vstart=[-3.5 0.0 0.0225];
+%     vstop=[3.5 0.0 0.0225];fsteps=120;
+% end
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 % ftraj=fc.calculateFluxTrajectory(vtraj);
 % fc.visualizeTrajectories(vtraj,ftraj);
+
+% fstart=[-3.5 0.0 0.0];
+% fstop=[3.5 0.0 0.0];fsteps=30;
+fstart=[0.0 -2.0 0.0];
+fstop=[0.0 2.0 0.0];fsteps=40;
+
+vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+ftraj=fc.calculateFluxTrajectory(vtraj);
+fc.visualizeTrajectories(vtraj,ftraj);
 
 pnax.params.power = pnax.params.power;
 
@@ -79,7 +82,7 @@ for index=1:steps
         tStart=tic;
         time=clock;
 
-        filename=['matrixCalibration_leftInput_overnight_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
+        filename=['matrixCalibration_leftInput_'   num2str(time(1)) num2str(time(2)) num2str(time(3)) num2str(time(4)) num2str(time(5)) num2str(time(6))];
     end
     % update flux/voltage
     fc.currentVoltage=vtraj(:,index);
@@ -117,7 +120,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081117';
+saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081217';
 if exist(saveFolder)==0
     mkdir(saveFolder);
 end
@@ -132,5 +135,5 @@ fc.visualizeTrajectories(vtraj,ftraj);
 title([filename '_traj'])
 savefig([saveFolder filename '_traj.fig']);
 toc
-end
-fc.currentVoltage=[0 0 0];
+
+% fc.currentVoltage=[0 0 0];
