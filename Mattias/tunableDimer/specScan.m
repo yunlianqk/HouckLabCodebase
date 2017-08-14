@@ -30,8 +30,8 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 
 %%
 
-fstart=[-3.5 0.0 0.0];
-fstop=[-2.5 0.0 0.0];fsteps=50;
+fstart=[0.0 0.0 0.0];
+fstop=[0.0 0.5 0.0];fsteps=50;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -44,7 +44,7 @@ pnax.PowerOn();
 pnax.TrigContinuous;
 %% Update and read transmission channel
 
-whichQubit=1;
+whichQubit=2;
 
 pnax.params=paramlib.pnax.trans();
 pnax.SetActiveTrace(1);
@@ -85,7 +85,7 @@ transparams.stop=pnax.params.stop;
 
 %% Switch to spec channels and update settings
 
-powerVec=linspace(-40,-20,3);
+powerVec=linspace(-40,-30,2);
 for pdx = 1:length(powerVec)
 
 pnax.TrigContinuous;
@@ -93,15 +93,15 @@ pnax.params=paramlib.pnax.spec();
 
 pnax.SetActiveTrace(3);
 pnax.TrigContinuous;
-specWaitTime = 25;
+specWaitTime = 100;
 pnax.params.cwpower = -50;
 
 if whichQubit==1
     pnax.params.start = 5.8e9;
     pnax.params.stop = 8.5e9;
 else
-    pnax.params.start = 3.5e9;
-    pnax.params.stop = 5.88e9;
+    pnax.params.start = 5.8e9;
+    pnax.params.stop = 8.5e9;
 end
 
 
@@ -148,7 +148,7 @@ tic;
 for idx=1:steps
 
     if idx==1
-        filename=['specAutoScan_leftQubit_power' num2str(powerVec(pdx)) '_' ...
+        filename=['specAutoScan_rightQubit_power' num2str(powerVec(pdx)) '_' ...
             num2str(time(1)) num2str(time(2)) num2str(time(3))...
             num2str(time(4)) num2str(time(5))];
 
