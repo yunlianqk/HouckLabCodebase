@@ -1,22 +1,38 @@
 %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
-yoko1.rampstep=.002;yoko1.rampinterval=.01;
-yoko2.rampstep=.002;yoko2.rampinterval=.01;
-yoko3.rampstep=.002;yoko3.rampinterval=.01;
+yoko1.rampstep=.01;yoko1.rampinterval=.001;
+yoko2.rampstep=.01;yoko2.rampinterval=.001;
+yoko3.rampstep=.01;yoko3.rampinterval=.001;
+
+% CM = [.0845 -.00037 -.011; -.0034 0.5597 .0117; .54 -.51 2.3447;]; % update on 09/11
+% CM = [1.0 0.00 0.0; 0.00 1.0 0.00; 0 0.0 2.3447*0.9302;]; % update on 09/11
 
 
-% these are leftover from before
-% nla = 3.5; %new attenuation of left line
-% nra = 2.9; %new attenuation of right line
-% nca = 1.075; %new attenuation of coupler line
-% cal_MAT = [.0845/nla      -.00037/nra     -.011/nca;     -.0034/nla      0.5597/nra      .0117/nca;      0.1535   -0.1765   2.1810];  %best guess from calibrated bottom row and old matrix, 6-21-17
-% CM = cal_MAT;
 
-% CM = [1 0 0; 0 1 0; 0 0 1];  %starter Matrix
-% CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
-CM = [1 0 0; 0 1 0; 120/(7*41) 120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
 
-f0 = [0; 0; -0.05]; % iteration2
+% cal_MAT = [1.0  0.0  0.0; 0.0  0.1704   0.0; 0.1535   -0.1765   2.1810];  %voltage to flux conversion matrix, best guess from 6-21-17
+
+nla = 3.5; %new attenuation of left line
+nra = 2.9; %new attenuation of right line
+nca = 1.075; %new attenuation of coupler line
+cal_MAT = [.0845/nla      -.00037/nra     -.011/nca;     -.0034/nla      0.5597/nra      .0117/nca;      0.1535   -0.1765   2.1810];  %best guess from calibrated bottom row and old matrix, 6-21-17
+% cal_MAT = [1.0  0.0  0.0; 0.0  1.0   0.0; 0.1535   -0.1765   2.3447*0.9302];  %voltage to flux conversion matrix
+CM = cal_MAT;
+% CM = inv(cal_MAT)
+
+% f0 = [.2748; -.1975; 0.2319;]; % after power surge 7/18
+% f0 = [.2748; -.1975; 0.064286;]; % after power surge 9/10
+% f0 = [.2748; -0.1659; 0.064286;]; % 9/16
+
+% f0 = [.2748; -0.1659; 0.3358 - 0.3333;]; %first try 6-21-17 Doesn't work with best guess matrix
+
+% f0 = [0; 0.4557; 0.3358 - 0.3333;];  %freq min of right qubit is at zero
+% f0 = [0; -0.1443; 0.3358 - 0.3333;];  %freq max of right qubit is at zero
+f0 = [0.01; -0.1443; 0.3358 - 0.3333;]; %freq max of right qubit is at zero
+
+
+% f0 = [0; -.1975; -.348;]; % from reboot before power surge
+% f0 = [0; -.1975; -.1655;];   from before reboot
 fc=fluxController(CM,f0);
 
 fc2 = fluxController2;
@@ -27,11 +43,10 @@ EjSumRight = 29.342e9;
 fc2.leftQubitFluxToFreqFunc = @(x) sqrt(8.*EcLeft.*EjSumLeft.*abs(cos(pi.*x)))-EcLeft;
 fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x)))-EcRight;
 
-
 %%
 
-fstart=[-3.5 0.0 0.0];
-fstop=[-2.5 0.0 0.0];fsteps=50;
+fstart=[0.0 -0.1583 0.0];
+fstop=[0.0 0.1667 0.0];fsteps=5;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -44,17 +59,20 @@ pnax.PowerOn();
 pnax.TrigContinuous;
 %% Update and read transmission channel
 
-whichQubit=1;
+whichQubit=2;
 
 pnax.params=paramlib.pnax.trans();
 pnax.SetActiveTrace(1);
 transWaitTime=45;
 
 if whichQubit==1
-    pnax.params.start = 5.75e9;
-    pnax.params.stop = 5.85e9;
-else
+%     pnax.params.start = 5.75e9;
+%     pnax.params.stop = 5.95e9;
+    
     pnax.params.start = 5.87e9;
+    pnax.params.stop = 5.95e9;
+else
+    pnax.params.start = 5.85e9;
     pnax.params.stop = 5.95e9;
 end
 
@@ -85,31 +103,28 @@ transparams.stop=pnax.params.stop;
 
 %% Switch to spec channels and update settings
 
-powerVec=linspace(-40,-20,3);
-for pdx = 1:length(powerVec)
-
 pnax.TrigContinuous;
 pnax.params=paramlib.pnax.spec();
 
 pnax.SetActiveTrace(3);
 pnax.TrigContinuous;
-specWaitTime = 25;
+specWaitTime = 120;
 pnax.params.cwpower = -50;
 
 if whichQubit==1
-    pnax.params.start = 5.8e9;
-    pnax.params.stop = 8.5e9;
-else
     pnax.params.start = 3.5e9;
-    pnax.params.stop = 5.88e9;
+    pnax.params.stop = 5.6e9;
+else
+    pnax.params.start = 5.85e9;
+    pnax.params.stop = 9.8e9;
 end
 
 
 pnax.params.points = 2001;
-pnax.params.specpower = powerVec(pdx);
+pnax.params.specpower = -35;
 pnax.params.averages = 10000;
 pnax.params.ifbandwidth = 250e3;
-pnax.params.cwfreq=peakFreq;
+pnax.params.cwfreq=peakFreq
 
 specCh1 = pnax.params;
 
@@ -135,7 +150,7 @@ specparams.start = pnax.params.start;
 specparams.stop = pnax.params.stop;
 
 %% run scan
-specWaitTime = 300;
+specWaitTime = 90;
 clear transAmpLine transPhaseLine specAmpLine specPhaseLine
 clear transAmpData transPhaseData specAmpData specPhaseData
 clear peakFreqData
@@ -148,7 +163,7 @@ tic;
 for idx=1:steps
 
     if idx==1
-        filename=['specAutoScan_leftQubit_power' num2str(powerVec(pdx)) '_' ...
+        filename=['specAutoScan_rightQubit_' ...
             num2str(time(1)) num2str(time(2)) num2str(time(3))...
             num2str(time(4)) num2str(time(5))];
 
@@ -210,7 +225,7 @@ for idx=1:steps
     
     if idx==1
         deltaT=toc(tStart);
-        estimatedTime=steps*deltaT*length(powerVec);
+        estimatedTime=steps*deltaT;
         disp(['Estimated Time is '...
             num2str(estimatedTime/3600),' hrs, or '...
             num2str(estimatedTime/60),' min']);
@@ -218,10 +233,7 @@ for idx=1:steps
             round(estimatedTime),'second'))]);
     end
     
-    saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\SpecScans_081217\';
-    if exist(saveFolder)==0
-        mkdir(saveFolder);
-    end
+    saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\PNAX_Calibrations_072217\';
     if ~mod(idx,20)
         save([saveFolder filename '.mat'],...
             'fc','steps',...
@@ -244,5 +256,3 @@ save([saveFolder filename '.mat'],...
 title(filename)
 savefig([saveFolder filename '.fig']);
 
-end
-fc.currentVoltage=[0 0 0];
