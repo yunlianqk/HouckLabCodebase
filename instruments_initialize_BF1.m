@@ -24,7 +24,7 @@ global yoko2;
 yoko2 = YOKOGS200(address.yoko2);
 
 global yoko3;
-yoko3 = YOKO7651(address.yoko3);
+yoko3 = YOKOGS200(address.yoko3);
 
 global pnax;
 pnax = PNAXAnalyzer(address.pnax);

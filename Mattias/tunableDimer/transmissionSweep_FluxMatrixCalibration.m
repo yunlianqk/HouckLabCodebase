@@ -16,7 +16,8 @@ yoko3.rampstep=.002;yoko3.rampinterval=.01;
 
 % CM = [1 0 0; 0 1 0; 0 0 1];  %starter Matrix
 % CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
-CM = [1 0 0; 0 1 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
+% CM = [1 0 0; 0 1 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
+CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit  
 
 f0 = [0; 0; -0.05]; % iteration2
 fc=fluxController(CM,f0);
@@ -34,12 +35,12 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 
-transWaitTime=30;
+transWaitTime=22;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 
 pnax.params.points = 3201;
-pnax.params.power = -45;
+pnax.params.power = -40;
 
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
@@ -57,8 +58,8 @@ clear vtraj ftraj
 
 % fstart=[-3.5 0.0 0.0];
 % fstop=[3.5 0.0 0.0];fsteps=30;
-fstart=[0.0 -3.0 0.0];
-fstop=[0.0 3.0 0.0];fsteps=50;
+fstart=[-3.0 0.0 0.0];
+fstop=[3.0 0.0 0.0];fsteps=15;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
@@ -116,7 +117,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081417';
+saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081417\';
 if exist(saveFolder)==0
     mkdir(saveFolder);
 end
@@ -133,3 +134,10 @@ savefig([saveFolder filename '_traj.fig']);
 toc
 
 % fc.currentVoltage=[0 0 0];
+
+
+
+currFilePath = mfilename('fullpath');
+savePath = [saveFolder filename 'AK' '.mat'];
+% funclib.save_all(savePath);
+funclib.save_all(savePath, currFilePath);

@@ -14,7 +14,8 @@ yoko3.rampstep=.002;yoko3.rampinterval=.01;
 
 % CM = [1 0 0; 0 1 0; 0 0 1];  %starter Matrix
 % CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
-CM = [1 0 0; 0 1 0; 120/(7*41) 120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
+% CM = [1 0 0; 0 1 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
+CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit  
 
 f0 = [0; 0; -0.05]; % iteration2
 fc=fluxController(CM,f0);
@@ -30,8 +31,16 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 
 %%
 
-fstart=[0.0 0.0 0.0];
-fstop=[0.0 0.5 0.0];fsteps=50;
+% fstart=[0.0 0.0 0.0];
+% fstop=[0.0 0.5 0.0];fsteps=20;
+% fstart=[0.0 0.0 -2.0];
+% fstop=[0.0 0.0 2.0];fsteps=20;
+% fstart=[-3.0 0.0 0.0];
+% fstop=[3.0 0.0 0.0];fsteps=20;
+% fstart=[-0.3 -1.0 0.0];
+% fstop=[-0.3 1.0 0.0];fsteps=20;
+fstart=[-3.0 -0.5 0.0];
+fstop=[-3.0 0.5 0.0];fsteps=20;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -44,15 +53,17 @@ pnax.PowerOn();
 pnax.TrigContinuous;
 %% Update and read transmission channel
 
-whichQubit=2;
+whichQubit=1;
 
 pnax.params=paramlib.pnax.trans();
 pnax.SetActiveTrace(1);
-transWaitTime=45;
+transWaitTime=15; %quickish
+% transWaitTime=25; %overnight
 
 if whichQubit==1
     pnax.params.start = 5.75e9;
-    pnax.params.stop = 5.85e9;
+%     pnax.params.stop = 5.85e9;
+    pnax.params.stop = 5.87e9;
 else
     pnax.params.start = 5.87e9;
     pnax.params.stop = 5.95e9;
@@ -85,20 +96,28 @@ transparams.stop=pnax.params.stop;
 
 %% Switch to spec channels and update settings
 
-powerVec=linspace(-40,-30,2);
-for pdx = 1:length(powerVec)
 
 pnax.TrigContinuous;
 pnax.params=paramlib.pnax.spec();
 
 pnax.SetActiveTrace(3);
 pnax.TrigContinuous;
-specWaitTime = 100;
+specWaitTime = 10;
 pnax.params.cwpower = -50;
 
 if whichQubit==1
-    pnax.params.start = 5.8e9;
-    pnax.params.stop = 8.5e9;
+%     %searching for spec above cavity resonance
+%     pnax.params.start = 5.0e9;
+%     pnax.params.stop = 7.5e9;
+    %searching for spec below the cavity resonances
+    pnax.params.start = 4.0e9;
+    pnax.params.stop = 7.5e9;
+%     %searching for spec far below the cavity resonances
+%     pnax.params.start = 4.0e9 - 2e9;
+%     pnax.params.stop = 7.5e9  - 2e9;
+%     %searching for spec everywhere
+%     pnax.params.start = 3.5e9;
+%     pnax.params.stop = 7.5e9;
 else
     pnax.params.start = 5.8e9;
     pnax.params.stop = 8.5e9;
@@ -106,8 +125,11 @@ end
 
 
 pnax.params.points = 2001;
-pnax.params.specpower = powerVec(pdx);
-pnax.params.averages = 10000;
+% pnax.params.specpower = -40;
+pnax.params.specpower = -40;
+% pnax.params.averages = 10000;
+% pnax.params.averages = 50000;
+pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 250e3;
 pnax.params.cwfreq=peakFreq;
 
@@ -135,7 +157,11 @@ specparams.start = pnax.params.start;
 specparams.stop = pnax.params.stop;
 
 %% run scan
-specWaitTime = 300;
+% specWaitTime = 150;
+specWaitTime = 105;
+% specWaitTime = 65;
+% specWaitTime = 45;
+
 clear transAmpLine transPhaseLine specAmpLine specPhaseLine
 clear transAmpData transPhaseData specAmpData specPhaseData
 clear peakFreqData
@@ -148,9 +174,15 @@ tic;
 for idx=1:steps
 
     if idx==1
-        filename=['specAutoScan_rightQubit_power' num2str(powerVec(pdx)) '_' ...
-            num2str(time(1)) num2str(time(2)) num2str(time(3))...
-            num2str(time(4)) num2str(time(5))];
+        if whichQubit == 2
+            filename=['specAutoScan_rightQubit_' ...
+                num2str(time(1)) num2str(time(2)) num2str(time(3))...
+                num2str(time(4)) num2str(time(5))];
+        else
+            filename=['specAutoScan_leftQubit_' ...
+                num2str(time(1)) num2str(time(2)) num2str(time(3))...
+                num2str(time(4)) num2str(time(5))];
+        end
 
         tStart=tic;
         time=clock;
@@ -167,7 +199,7 @@ for idx=1:steps
     % fidx peak
     [peakVal,peakidx] = max(transAmpLine); peakFreq = transFreqVector(peakidx);
     peakFreqData(idx)=peakFreq;
-    figure(662);
+    figure(665);
     subplot(3,2,1)
     imagesc(transFreqVector/1e9,[1:idx],transAmpData(1:idx,:))
     xlabel('Transmission Frequency [GHz]');
@@ -210,7 +242,7 @@ for idx=1:steps
     
     if idx==1
         deltaT=toc(tStart);
-        estimatedTime=steps*deltaT*length(powerVec);
+        estimatedTime=steps*deltaT;
         disp(['Estimated Time is '...
             num2str(estimatedTime/3600),' hrs, or '...
             num2str(estimatedTime/60),' min']);
@@ -218,7 +250,7 @@ for idx=1:steps
             round(estimatedTime),'second'))]);
     end
     
-    saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\SpecScans_081217\';
+    saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\SpecScans_081517\';
     if exist(saveFolder)==0
         mkdir(saveFolder);
     end
@@ -244,5 +276,14 @@ save([saveFolder filename '.mat'],...
 title(filename)
 savefig([saveFolder filename '.fig']);
 
-end
 fc.currentVoltage=[0 0 0];
+
+
+
+%alternate save method
+% currFilePath = 'C:\Users\BFG\Documents\HouckLabMeasurementCode\Mattias\tunableDimer\specScan.m';
+currFilePath = mfilename('fullpath');
+savePath = [saveFolder filename 'AK' '.mat'];
+% funclib.save_all(savePath);
+funclib.save_all(savePath, currFilePath);
+
