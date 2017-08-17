@@ -39,8 +39,21 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 % fstop=[3.0 0.0 0.0];fsteps=20;
 % fstart=[-0.3 -1.0 0.0];
 % fstop=[-0.3 1.0 0.0];fsteps=20;
-fstart=[-3.0 -0.5 0.0];
-fstop=[-3.0 0.5 0.0];fsteps=20;
+
+% for overnight part 1
+% fstart=[0.0 -1.0 0.0];
+% fstop=[0.0 -0.68 0.0];fsteps=5;
+
+% fstart=[0.0 -0.3 0.0];
+% fstop=[0.0 -0.15 0.0];fsteps=5;
+
+% for overnight
+% fstart=[0.0 -1.2 0.0];
+% fstop=[0.0 0.4 0.0];fsteps=15;
+
+fstart=[0.0 -1.2 0.0];
+fstop=[0.0 0.7 0.0];fsteps=180;
+
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
@@ -53,7 +66,7 @@ pnax.PowerOn();
 pnax.TrigContinuous;
 %% Update and read transmission channel
 
-whichQubit=1;
+whichQubit=2;
 
 pnax.params=paramlib.pnax.trans();
 pnax.SetActiveTrace(1);
@@ -110,8 +123,13 @@ if whichQubit==1
 %     pnax.params.start = 5.0e9;
 %     pnax.params.stop = 7.5e9;
     %searching for spec below the cavity resonances
-    pnax.params.start = 4.0e9;
-    pnax.params.stop = 7.5e9;
+%     pnax.params.start = 4.0e9;
+%     pnax.params.stop = 7.5e9;
+
+%     pnax.params.start = 4.0e9;
+%     pnax.params.stop = 7.5e9;
+
+
 %     %searching for spec far below the cavity resonances
 %     pnax.params.start = 4.0e9 - 2e9;
 %     pnax.params.stop = 7.5e9  - 2e9;
@@ -119,8 +137,12 @@ if whichQubit==1
 %     pnax.params.start = 3.5e9;
 %     pnax.params.stop = 7.5e9;
 else
-    pnax.params.start = 5.8e9;
-    pnax.params.stop = 8.5e9;
+%     pnax.params.start = 5.8e9;
+%     pnax.params.stop = 8.5e9;
+    
+    pnax.params.start = 3.5e9;
+    pnax.params.stop = 8.0e9;
+    
 end
 
 
@@ -158,9 +180,9 @@ specparams.stop = pnax.params.stop;
 
 %% run scan
 % specWaitTime = 150;
-specWaitTime = 105;
+% specWaitTime = 10;
 % specWaitTime = 65;
-% specWaitTime = 45;
+specWaitTime = 260;
 
 clear transAmpLine transPhaseLine specAmpLine specPhaseLine
 clear transAmpData transPhaseData specAmpData specPhaseData
@@ -250,7 +272,7 @@ for idx=1:steps
             round(estimatedTime),'second'))]);
     end
     
-    saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\SpecScans_081517\';
+    saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\SpecScans_081617\';
     if exist(saveFolder)==0
         mkdir(saveFolder);
     end
@@ -259,7 +281,7 @@ for idx=1:steps
             'fc','steps',...
             'transWaitTime','transparams','specWaitTime','specparams',...
             'transAmpData','transPhaseData','specAmpData','specPhaseData',...
-            'specFreqVector','transFreqVector','specWaitTime','transWaitTime');
+            'specFreqVector','transFreqVector','specWaitTime','transWaitTime','vtraj', 'ftraj');
     end
     
     
@@ -271,12 +293,12 @@ save([saveFolder filename '.mat'],...
     'fc','steps',...
     'transWaitTime','transparams','specWaitTime','specparams',...
     'transAmpData','transPhaseData','specAmpData','specPhaseData',...
-    'specFreqVector','transFreqVector');
+    'specFreqVector','transFreqVector','vtraj', 'ftraj');
 
 title(filename)
 savefig([saveFolder filename '.fig']);
 
-fc.currentVoltage=[0 0 0];
+% fc.currentVoltage=[0 0 0];
 
 
 

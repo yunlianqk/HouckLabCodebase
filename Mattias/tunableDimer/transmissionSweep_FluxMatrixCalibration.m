@@ -35,12 +35,12 @@ fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x))
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 
-transWaitTime=22;
+transWaitTime=12;
 pnax.params.start = 5.7e9;
 pnax.params.stop = 6.0e9;
 
 pnax.params.points = 3201;
-pnax.params.power = -40;
+pnax.params.power = -50;
 
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
@@ -58,8 +58,9 @@ clear vtraj ftraj
 
 % fstart=[-3.5 0.0 0.0];
 % fstop=[3.5 0.0 0.0];fsteps=30;
-fstart=[-3.0 0.0 0.0];
-fstop=[3.0 0.0 0.0];fsteps=15;
+
+fstart=[0.0 -1.0 0.0];
+fstop=[0.0 1.0 0.0];fsteps=20;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
@@ -117,7 +118,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081417\';
+saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_081617\';
 if exist(saveFolder)==0
     mkdir(saveFolder);
 end
