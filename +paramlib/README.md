@@ -83,6 +83,7 @@ A class to store parameters for transmission measurement
   * **power** (*float*): RF power
   * **points** (*integer*): number of sweeping points
   * **averages** (*integer*): number of averages
+  * **avgmode** (*string*): average mode, possible values are 'SWEEP' and 'POINT'
   * **ifbandwidth** (*float*): IF bandwidth
   * **channel** (*integer*): channel number
   * **trace** (*integer*): trace number
@@ -100,6 +101,7 @@ A class to store parameters for spectroscopy measurement
   * **specpower** (*float*): spec power
   * **points** (*integer*): number of sweeping points
   * **averages** (*integer*): number of averages
+  * **avgmode** (*string*): average mode, possible values are 'SWEEP' and 'POINT'
   * **ifbandwidth** (*float*): IF bandwidth
   * **cwfreq** (*float*): CW frequency
   * **cwpower** (*float*): CW power
@@ -119,6 +121,7 @@ A class to store parameters for power sweep measurement
   * **stop** (*float*): stop power
   * **points** (*integer*): number of sweeping points
   * **averages** (*integer*): number of averages
+  * **avgmode** (*string*): average mode, possible values are 'SWEEP' and 'POINT'
   * **ifbandwidth** (*float*): IF bandwidth
   * **cwfreq** (*float*): CW frequency
   * **trace** (*integer*): trace number

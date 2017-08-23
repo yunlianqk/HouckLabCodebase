@@ -81,5 +81,6 @@ classdef PNAXAnalyzer < GPIBINSTR
     end
     methods (Hidden)
         Explode(~);
+        ClearChannelAverages(pnax, channel);
     end
 end

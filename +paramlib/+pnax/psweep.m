@@ -5,6 +5,7 @@ classdef psweep
         stop = -10;
         points = 1001;
         averages = 1000;
+        avgmode = 'SWEEP';
         ifbandwidth = 5e3;
         cwfreq  = 7e9;
         channel = 3;

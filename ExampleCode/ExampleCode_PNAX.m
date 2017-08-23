@@ -13,6 +13,7 @@ transCh1.stop = 13.5e9;
 transCh1.points = 1001;
 transCh1.power = 10;
 transCh1.averages = 1000;
+transCh1.avgmode = 'SWEEP';
 transCh1.ifbandwidth = 5e3;
 transCh1.channel = 1;
 transCh1.trace = 1;
