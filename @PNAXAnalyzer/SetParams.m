@@ -3,16 +3,18 @@ function SetParams(pnax, params)
 
     % Check parameters
     if ~pnax.CheckParams(params)
-        display('Parameters are not set correctly.');
+        disp('Parameters are not set correctly.');
         return;
     end
     % Create measurement  
     pnax.CreateMeas(params.channel, params.trace, params.meastype); 
 
+    % Get old parameters
     oldparams = pnax.GetParams();
+    % Find the measurement class for new parameters
     measclass = strsplit(class(params), '.');
     measclass = measclass{end};
-    
+
     % If channel has the same measurement class, update the parameters    
     if strcmp(class(oldparams), class(params))
         switch measclass
@@ -23,11 +25,11 @@ function SetParams(pnax, params)
             case 'psweep'
                 pnax.UpdatePsweepParams(oldparams, params);
             otherwise
-                display('Unexpected measurement class');
+                disp(['Unknow measurement class ', measclass]);
         end
         return;
     end
-    
+
     % Otherwise, clear the channel and set up the parameters
     pnax.DeleteChannel(params.channel);
     pnax.CreateMeas(params.channel, params.trace, params.meastype);
@@ -39,6 +41,6 @@ function SetParams(pnax, params)
         case 'psweep'
             pnax.SetPsweepParams(params);
         otherwise
-            display('Unexpected measurement class');
+            disp(['Unknow measurement class ', measclass]);
     end
 end
