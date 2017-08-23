@@ -15,7 +15,8 @@ yoko3.rampstep=.002;yoko3.rampinterval=.01;
 % CM = [1 0 0; 0 1 0; 0 0 1];  %starter Matrix
 % CM = [1 0 0; 0 1 0; 1/2.5 60/136 1/0.45];  %iteration3
 % CM = [1 0 0; 0 1 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler  
-CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit  
+% CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit  
+CM = [0.07512 0 0; 0 0.9198/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated left and right qubit diagonal elements at 9:30 am on 8/17/17 
 
 f0 = [0; 0; -0.05]; % iteration2
 fc=fluxController(CM,f0);
