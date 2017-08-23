@@ -26,8 +26,8 @@ yoko2 = YOKOGS200(address.yoko2);
 global yoko3;
 yoko3 = YOKO7651(address.yoko3);
 
-% global pnax;
-% pnax = PNAXAnalyzer(address.pnax);
+global pnax;
+pnax = PNAXAnalyzer(address.pnax);
 
 global rfgen;
 rfgen = E8267DGenerator(address.rfgen);
@@ -41,17 +41,17 @@ logen = E8267DGenerator(address.logen);
 global triggen;
 triggen = AWG33250A(address.triggen);
 
-global pxa;
-pxa = PXAAnalyzer(address.pxa);
-
-global pulsegen1;
-pulsegen1 = M9330AWG(address.pulsegen1);
+% global pxa;
+% pxa = PXAAnalyzer(address.pxa);
+% 
+% global pulsegen1;
+% pulsegen1 = M9330AWG(address.pulsegen1);
 
 % global pulsegen2;
 % pulsegen2 = M9330AWG(address.pulsegen2);
 % pulsegen2.SyncWith(pulsegen1);
 
-global card;
-card = U1084ADigitizer(address.card);
+% global card;
+% card = U1084ADigitizer(address.card);
 
 clear('address');
