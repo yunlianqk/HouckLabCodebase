@@ -6,6 +6,7 @@ classdef spec
         points = 1001;
         specpower = -50;
         averages = 1000;
+        avgmode = 'SWEEP';
         ifbandwidth = 5e3;
         cwfreq  = 7e9;
         cwpower = -50;

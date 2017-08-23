@@ -1,7 +1,11 @@
 % Instrument initialization for BF1
 
 run(['.', filesep(), 'setpath.m']);
+<<<<<<< HEAD
 addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
+=======
+addpath('C:\Users\BFG\Documents\HouckLabMeasurementCode\JJR\TunableDimer')
+>>>>>>> fcfd5e9cf561fc8f7ca51bf628e9d0c6f4f94fdd
 % Turn off 32bit IVI-COM warning
 warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
 
@@ -24,6 +28,7 @@ global yoko2;
 yoko2 = YOKOGS200(address.yoko2);
 
 global yoko3;
+<<<<<<< HEAD
 yoko3 = YOKO7651(address.yoko3);
 
 global pnax;
@@ -41,6 +46,25 @@ logen = E8267DGenerator(address.logen);
 global triggen;
 triggen = AWG33250A(address.triggen);
 
+=======
+yoko3 = YOKOGS200(address.yoko3);
+
+global pnax;
+pnax = PNAXAnalyzer(address.pnax);
+% 
+% global rfgen;
+% rfgen = E8267DGenerator(address.rfgen);
+% 
+% global specgen;
+% specgen = E8267DGenerator(address.specgen);
+% 
+% global logen;
+% logen = E8267DGenerator(address.logen);
+% 
+% global triggen;
+% triggen = AWG33250A(address.triggen);
+% 
+>>>>>>> fcfd5e9cf561fc8f7ca51bf628e9d0c6f4f94fdd
 % global pxa;
 % pxa = PXAAnalyzer(address.pxa);
 % 

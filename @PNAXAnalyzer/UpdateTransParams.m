@@ -34,7 +34,12 @@ function UpdateTransParams(pnax, oldparams, newparams)
                 [channel, newparams.averages]);
     end
 
-    if ~strcmp(oldparams.format, newparams.format)
+    if ~strcmpi(oldparams.avgmode, newparams.avgmode)
+        fprintf(pnax.instrhandle, 'SENSe%d:AVERage:MODE %s', ...
+                [channel, newparams.avgmode]);
+    end
+
+    if ~strcmpi(oldparams.format, newparams.format)
         fprintf(pnax.instrhandle, 'CALCulate%d:FORMat %s', ...
                 [channel, newparams.format]);
     end

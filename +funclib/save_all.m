@@ -2,15 +2,33 @@ function  save_all(save_path, source_path)
 %save all .m files in directiory,
 %and all variables in the name space of the .m file from which this is
 %called
+%input argumens:
+%save_path = full absolute path to data file to be created, including .mat
+%extension
+%source_path (optional argument) = full absolute path to data acquisition
+%file, including .m extension. This argument is needed if save_all is being
+%called from the command line or a cell. If save_all is run within a
+%script, it will determine this path automatically
+
+%updated AK 8-14-2017
 
 if nargin == 1
-    full_path_info = evalin('base', 'mfilename(''fullpath'')');
+    full_path_info = evalin('base', 'mfilename(''fullpath'')')
     folder_breaks = regexp(full_path_info,'\');
     current_file_location = full_path_info(1:max(folder_breaks));
+    current_file_name = evalin('base', 'mfilename()');
 else
-    current_file_location = source_path;
+%     current_file_location = source_path;
+%     current_file_name = evalin('base', 'mfilename()');
+    full_path_info = source_path;
+    if ~strcmp(full_path_info(end), 'm')
+       full_path_info = [full_path_info '.m'];
+    end
+    folder_breaks = regexp(full_path_info,'\');
+    current_file_location = full_path_info(1:max(folder_breaks));
+    current_file_name = full_path_info((max(folder_breaks)+1):end);
 end
-current_file_name = evalin('base', 'mfilename()');
+% current_file_name = evalin('base', 'mfilename()');
 clear folder_breaks full_path_info
 
 
@@ -34,6 +52,7 @@ for i=1:length(all_vars)
     if all_vars(i).global == 1
       try
         save_variables.(var_name) = struct(evalin('base',var_name));
+%         save_variables.(var_name) = funclib.obj2struct(evalin('base',var_name));
       catch
         save_variables.(var_name) = evalin('base',var_name);
       end

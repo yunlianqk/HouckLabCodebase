@@ -21,19 +21,19 @@ function UpdateSpecParams(pnax, oldparams, newparams)
         fprintf(pnax.instrhandle, 'SOURce%d:POWer3 %f', ...
                 [channel, newparams.specpower]);
     end
-    
+
     if oldparams.cwfreq ~= newparams.cwfreq
         fprintf(pnax.instrhandle, 'SENSe%d:FREQuency:CW %f', ...
                 [channel, newparams.cwfreq]);
     end
-    
+
     if oldparams.cwpower ~= newparams.cwpower
         fprintf(pnax.instrhandle, sprintf('SOURce%d:POWer%s %f',  ...
                                           channel, ...
                                           newparams.meastype(end), ...
                                           newparams.cwpower));
     end
-    
+
     if oldparams.ifbandwidth ~= newparams.ifbandwidth
         fprintf(pnax.instrhandle, 'SENSe%d:BANDwidth %f', ...
                 [channel, newparams.ifbandwidth]);
@@ -44,7 +44,12 @@ function UpdateSpecParams(pnax, oldparams, newparams)
                 [channel, newparams.averages]);
     end
 
-    if ~strcmp(oldparams.format, newparams.format)
+    if ~strcmpi(oldparams.avgmode, newparams.avgmode)
+        fprintf(pnax.instrhandle, 'SENSe%d:AVERage:MODE %s', ...
+                [channel, newparams.avgmode]);
+    end
+
+    if ~strcmpi(oldparams.format, newparams.format)
         fprintf(pnax.instrhandle, 'CALCulate%d:FORMat %s', ...
                 [channel, newparams.format]);
     end

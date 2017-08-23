@@ -105,7 +105,7 @@ function InitInstr(self)
     end
     % Turn on AWGs
     pulsegen1.Generate();
-    pulsegen2.Generate();
+%     pulsegen2.Generate();
 
     % Initialize card
     cardparams = card.GetParams();

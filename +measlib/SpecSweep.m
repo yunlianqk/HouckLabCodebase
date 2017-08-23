@@ -38,6 +38,7 @@ classdef SpecSweep < measlib.SmartSweep
         end
        
         function Plot(self, fignum)
+            self.Integrate();
             self.result.intAmp = sqrt(self.result.intI.^2 + self.result.intQ.^2);
             self.result.intPhase = atan2(self.result.intQ, self.result.intI);
             if nargin == 1

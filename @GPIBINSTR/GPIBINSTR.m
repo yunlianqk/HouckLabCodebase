@@ -99,7 +99,7 @@ classdef GPIBINSTR < handle
             % Same as SendCommand + GetReply
             if ~ismember('?', command)
                 % If command doesn't contain '?', throw warning
-                if ~strcmp(input('command does not contain ''?''. Are you sure (y/N)? ', 's'), 'y')
+                if ~strcmpi(input('command does not contain ''?''. Are you sure (y/N)? ', 's'), 'y')
                     return;
                 end
             end
