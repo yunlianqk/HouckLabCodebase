@@ -10,6 +10,54 @@ transCh1 = paramlib.pnax.trans();
 % transCh1.start = 5.72428e9;
 % transCh1.stop = 6.49351e9;
 
+transCh1.start = 10e6;
+transCh1.stop = 11.0e9;
+transCh1.points = 4001;
+transCh1.averages = 70;
+transCh1.ifbandwidth = 1000;
+transCh1.channel = 1;
+transCh1.trace = 1;
+transCh1.meastype = 'S21';
+transCh1.format = 'MLOG';
+
+pnax.SetParams(transCh1);
+pnax.AvgOn();
+pnax.PowerOn();
+pnax.TrigContinuous();
+
+
+params.WaitTime = 10;
+
+transCh1.power = -40;
+
+filename=['outputB_30dBadditionalAttenuation_ColdAmpB_inputPower' num2str(transCh1.power) ];
+pnax.SetParams(transCh1);
+pnax.AvgClear();
+pause(params.WaitTime);
+S21amp = pnax.Read();
+S21freqvector = pnax.ReadAxis();
+% Plot data
+figure(71);
+plot(S21freqvector/1e9, S21amp);
+title([filename])
+
+saveFolder = 'C:\Users\Cheesesteak\Documents\Mattias\tunableDimer\lineCalibrations_080317\';
+isFolder = exist(saveFolder);
+if isFolder == 0
+    mkdir(saveFolder)
+end
+
+savefig([saveFolder filename '.fig']);
+
+save( [saveFolder filename '.mat'], 'params', 'S21amp', 'S21freqvector', 'transCh1');
+savefig([filename '.fig'] )
+
+
+%% Set channel 1 parameters for transmission S21
+transCh1 = paramlib.pnax.trans();
+% transCh1.start = 5.72428e9;
+% transCh1.stop = 6.49351e9;
+
 transCh1.start = 8.55e9;
 transCh1.stop = 10.1e9;
 transCh1.points = 1001;
