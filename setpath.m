@@ -13,3 +13,13 @@ addpath(genpath([pwd, filesep(), 'drivers', filesep(), 'U10xx_driver']));
 addpath([pwd, filesep(), 'drivers', filesep(), 'iqtools']);
 % Add Holzworth driver
 addpath([pwd, filesep(), 'drivers', filesep(), 'Holzworth_driver']);
+% Add SignalCore driver
+switch computer()
+    case 'PCWIN64'
+        addpath([pwd, filesep(), 'drivers', filesep(), 'SignalCore_driver', ...
+                 filesep(), 'x64']);
+    case 'PCWIN'
+        addpath([pwd, filesep(), 'drivers', filesep(), 'SignalCore_driver', ...
+                 filesep(), 'x86']);
+    otherwise
+end

@@ -47,6 +47,7 @@ rfgen.ModOn();
   * **phase** (*float*): Phase (in radians) of the signal
   * **output** (*1/0*): Output on/off
   * **modulation** (*1/0*): Modulation on/off
+  * **ref** (*string*): Reference clock source. Can be '10MHZ', '100MHZ' or 'INT'.
   * **temperature** (*string, read-only*): Temperature of the instruement
 * **Methods**:
   * **gen = HolzworthHS9000(address)**: Opens the instrument with `address` and creates an object `gen`
