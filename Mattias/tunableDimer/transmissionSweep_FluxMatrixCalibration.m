@@ -1,4 +1,4 @@
-addpath('C:\Users\BFG\Documents\HouckLabMeasurementCode\JJR\TunableDimer')
+addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
 
 % %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
