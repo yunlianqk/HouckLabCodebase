@@ -1,10 +1,12 @@
-function ref = GetRef(self)
+function refin = GetRefIn(self)
+% Get reference clock source
+    self.CheckInstr();
     status = self.GetStatus();
     switch status.operate_status.ext_ref_lock_enable
         case 1
-            ref = 'EXT';
+            refin = 'EXT';
         case 0
-            ref = 'INT';
+            refin = 'INT';
         otherwise
     end
 end

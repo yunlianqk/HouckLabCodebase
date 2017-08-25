@@ -1,4 +1,5 @@
 function status = GetStatus(self)
+    self.CheckInstr();
     
     list_mode_values = struct('sss_mode', 0, ...
                   'sweep_dir', 0, ...
@@ -37,10 +38,10 @@ function status = GetStatus(self)
                   'harmonic_ss', 0);
     operate_status_pointer = libstruct('operate_status_t', operate_status_values);
 
-    device_status_values = struct('list_mode', list_mode_pointer, ...
-                                  'pll_status', pll_status_pointer, ...
-                                  'operate_status', operate_status_pointer);
-    device_status_pointer = libstruct('device_status_t', device_status_values);
+    status = struct('list_mode', list_mode_pointer, ...
+                    'pll_status', pll_status_pointer, ...
+                    'operate_status', operate_status_pointer);
+    device_status_pointer = libstruct('device_status_t', status);
     
     calllib(self.lib, 'sc5511a_get_device_status', self.instr, device_status_pointer);
     

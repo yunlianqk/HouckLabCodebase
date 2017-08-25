@@ -4,7 +4,8 @@ classdef SignalCoreSC5511A < handle
         address; % In form of 8 character string
         instr; % pointer to instrument
         output; % 0/1
-        ref; % 'EXT' or 'INT'
+        refin; % 'EXT' or 'INT'
+        refout; % '10MHz' or '100MHz'
         freq; % in Hz
         power; % in dBm
     end
@@ -43,7 +44,7 @@ classdef SignalCoreSC5511A < handle
                       'Address: ', address]);
             end
             % Set reference clock
-            self.ref = 'EXT';
+            self.refin = 'EXT';
         end
         
         function Finalize(self)
@@ -54,11 +55,6 @@ classdef SignalCoreSC5511A < handle
                     self.instr = [];
                 end
             end
-        end
-        
-        function s = Info(self)
-            % Returns info of all connected signal cores in vector
-            s=self.address;
         end
                
         % property getters/setters
@@ -80,7 +76,7 @@ classdef SignalCoreSC5511A < handle
         
         function set.freq(self, freq)
             % Frequency in Hz
-            SetFreq(self,freq);
+            SetFreq(self, freq);
         end
         
         function freq = get.freq(self)
@@ -88,23 +84,32 @@ classdef SignalCoreSC5511A < handle
         end
         
         function set.power(self, power)
-            SetPower(self,power);
+            SetPower(self, power);
         end
         
         function power = get.power(self)
             power = GetPower(self);
         end
         
-        function set.ref(self, ref)
-            SetRef(self, ref);
+        function set.refin(self, refin)
+            SetRefIn(self, refin);
         end
         
-        function ref = get.ref(self)
+        function refin = get.refin(self)
             % Get reference clock source
-            ref = GetRef(self);
+            refin = GetRefIn(self);
+        end
+
+        function set.refout(self, refout)
+            SetRefOut(self, refout);
         end
         
+        function refout = get.refout(self)
+            % Get reference clock source
+            refout = GetRefOut(self);
+        end
         function temp = get.temperature(self)
+            self.CheckInstr();
             % Get temperature
             tempPointer = libpointer('singlePtr', 20.0);
             calllib(self.lib, 'sc5511a_get_temperature', self.instr, tempPointer);
@@ -115,16 +120,20 @@ classdef SignalCoreSC5511A < handle
         % Each method is defined in a separate file        
         SetFreq(self, freq);
         SetPower(self, power);
-        SetRef(self, ref);
+        SetRefIn(self, refin);
+        SetRefOut(self, refout);
         
-        status = GetStatus(self);
         output = GetOutput(self);
         freq = GetFreq(self);
         power = GetPower(self);
-        ref = GetRef(self);
+        refin = GetRefIn(self);
+        refout = GetRefOut(self);
         
         PowerOn(self);
         PowerOff(self);
+        
+        status = GetStatus(self);
+        info = Info(self);
     end
 
     methods (Static)
@@ -164,8 +173,7 @@ classdef SignalCoreSC5511A < handle
                 switch computer()
                     % The driver supports 32 or 64 bit Windows system
                     case 'PCWIN64'
-                        loadlibrary('sc5511a64.dll', 'sc5511a.h', ...
-                                    'addheader', 'libusb', ...
+                        loadlibrary('sc5511a64.dll', @sc5511a, ...
                                     'alias', SignalCoreSC5511A.lib);
                         warning('on');
                     case 'PCWIN'
@@ -183,6 +191,14 @@ classdef SignalCoreSC5511A < handle
             % Unload the driver library
             if libisloaded(SignalCoreSC5511A.lib)
                 unloadlibrary(SignalCoreSC5511A.lib);
+            end
+        end
+    end
+    
+    methods (Access = protected)
+        function CheckInstr(self)
+            if isempty(self.instr)
+                error('Device is not initialized.');
             end
         end
     end
