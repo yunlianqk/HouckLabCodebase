@@ -40,7 +40,7 @@ couplerMinJ=0.44;
 couplerMaxJ=0; 
 
 % powerVec = linspace(0,-40, 5);
-powerVec = [5];
+powerVec = [-5];
 
 for pdx = 1:length(powerVec)
 %% Update and read transmission channel
@@ -50,7 +50,8 @@ pnax.SetActiveTrace(1);
 
 % transWaitTime=10+13*pdx^2;
 % timeVec = 10 + 13.*(1:length(powerVec)).^2;
-transWaitTime=17;
+
+transWaitTime=25;
     
 pnax.params.start = 5.55e9;
 pnax.params.stop = 6.15e9;
@@ -62,7 +63,7 @@ pnax.params.power = powerVec(pdx); % with external attenuation of 30 dB
 
 pnax.params.averages = 65536;
 pnax.params.ifbandwidth = 10e3;
-pnax.ClearChannelAverages(1);
+pnax.AvgClear(1);
 ftrans = pnax.ReadAxis();
 
 clear vtraj ftraj
@@ -77,11 +78,14 @@ clear vtraj ftraj
 % fstart=[-3.5 0.0 0.0];
 % fstop=[3.5 0.0 0.0];fsteps=30;
 
-fstart=[leftQubitMin (rightQubitResonance-0.15) couplerMinJ];
-fstop=[leftQubitMin (rightQubitResonance+0.15) couplerMinJ];fsteps=50;
+% fstart=[leftQubitMin (rightQubitResonance-0.15) 0.22];
+% fstop=[leftQubitMin (rightQubitResonance+0.15) 0.22];fsteps=40;
 
 % fstart=[leftQubitResonace (rightQubitResonace-0.15) 0];
 % fstop=[leftQubitResonace (rightQubitResonace+0.15) 0];fsteps=6;
+
+fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
+fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
 
 
 
@@ -119,7 +123,7 @@ for index=1:steps
     
     % measure S21 and S41
     pnax.SetActiveTrace(1);
-    pnax.ClearChannelAverages(1);
+    pnax.AvgClear(1);
     pause(transWaitTime);
     pnax.SetActiveTrace(1);
     [data_transS21A data_transS21P] = pnax.ReadAmpAndPhase();
@@ -142,7 +146,7 @@ for index=1:steps
 
     if index==1 && pdx == 1
         deltaT=toc(tStart);
-        estimatedTime=steps*deltaT*sum(timeVec)/timeVec(1);
+        estimatedTime=steps*deltaT;
         disp(['Estimated Time is '...
             num2str(estimatedTime/3600),' hrs, or '...
             num2str(estimatedTime/60),' min']);

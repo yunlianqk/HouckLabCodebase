@@ -48,8 +48,10 @@ couplerMaxJ=0;
 
 %%
 % use the vtraj from matrixCalibration_rightInput_-25wAtten_20170823_1137
-fstart=[leftQubitMin (rightQubitResonance-0.15) couplerMinJ];
-fstop=[leftQubitMin (rightQubitResonance+0.15) couplerMinJ];fsteps=50;
+% fstart=[leftQubitMin (rightQubitResonance-0.15) couplerMinJ];
+% fstop=[leftQubitMin (rightQubitResonance+0.15) couplerMinJ];fsteps=50;
+fstart=[leftQubitMin (rightQubitResonance-0.15) 0.22];
+fstop=[leftQubitMin (rightQubitResonance+0.15) 0.22];fsteps=40;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 voltageCutoff = 3.5;
@@ -61,7 +63,8 @@ end
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
 
-fc.currentVoltage = vtraj(:,23); 
+% fc.currentVoltage = vtraj(:,23); 
+fc.currentVoltage = vtraj(:,19); 
 %%
 
 
@@ -119,7 +122,8 @@ corrparams.Int_Freq = 0e6;
 % corrparams.LPF = 10e3;
 % corrparams.LPF = 1e6;
 
-rfgen.freq = 5.872e9;
+% rfgen.freq = 5.872e9;
+rfgen.freq = 5.908e9;
 % rfgen.freq = 5.917e9;
 % specgen.freq = 5.899e9;
 
@@ -131,24 +135,27 @@ cardparams = paramlib.acqiris();
 cardparams.fullscale = 0.5;
 cardparams.offset = 0e-6;
 
-timeDuration = 5e-6;
+targetTimeDuration = 6e-6;
 cardparams.sampleinterval = 1e-9;
-cardparams.samples = timeDuration/cardparams.sampleinterval;
-cardparams.averages = 400000;
+exponent = nextpow2(targetTimeDuration/cardparams.sampleinterval);
+actualTimeDuration = (2^exponent)*cardparams.sampleinterval;
+cardparams.samples = 2^exponent;
+cardparams.averages = 4;
 cardparams.segments = 1;
-cardparams.delaytime = 1e-6;
+cardparams.delaytime = 0e-6;
 cardparams.couplemode = 'DC';
-cardparams.trigPeriod = triggen.period;
-
 corrparams.limCount=1;
+
+triggen.period = actualTimeDuration+1e-6;
+cardparams.trigPeriod = triggen.period;
 
 card.SetParams(cardparams);
 
 % Time axis in us
 timeaxis = (0:card.params.samples-1)*card.params.sampleinterval/1e-6;
 
-%% Acquire test data
-
+% %% Acquire test data
+% 
 % rfgen.power = -25;
 % % specgen.power = -20;
 % pause(0.01);
@@ -176,16 +183,24 @@ timeaxis = (0:card.params.samples-1)*card.params.sampleinterval/1e-6;
 %%
 driveEpsilon = 0.0001;
 
-numTrials = 1000;
-drive.powerSetPoints = linspace(-30,-24,40);
-cardAcqLengths = [1e-6 6e-6 10e-6];
+numTrials = 2000;
+drive.powerSetPoints = linspace(-26,-26,1);
+drive.powerSetPoints = linspace(-30,-20,30);
+drive.powerSetPoints = linspace(-45,-36,20);
+drive.powerSetPoints = [-39.7895, -39.3158, -38.3684, -36.9474];
+cardAcqLengths = [3e-6];
 
 for acq = 1:length(cardAcqLengths)
-    triggen.period =cardAcqLengths(acq)+4e-6;
-    timeDuration = cardAcqLengths(acq);
+    
+    targetTimeDuration = cardAcqLengths(acq);
+    exponent = nextpow2(targetTimeDuration/cardparams.sampleinterval);
+    actualTimeDuration = (2^exponent)*cardparams.sampleinterval;
+    cardparams.samples = 2^exponent;
+    triggen.period = actualTimeDuration+1e-6;
     cardparams.trigPeriod = triggen.period;
-    cardparams.samples = timeDuration/cardparams.sampleinterval;
     card.SetParams(cardparams);
+    
+
     
     ampDataAvgMat = zeros(length(drive.powerSetPoints),numTrials);
     ampDataPostAvgMat = zeros(length(drive.powerSetPoints),numTrials);
@@ -198,10 +213,14 @@ for acq = 1:length(cardAcqLengths)
             filename=['singleDriveHomodyne_cardAcqLength' num2str(cardAcqLengths(acq)/1e-6) 'us_'  timestr];
             
         end
+        rfgen.power = drive.powerSetPoints(pdx);
         
-        drive.powerVec = linspace(drive.powerSetPoints(pdx),drive.powerSetPoints(pdx)+driveEpsilon,numTrials);
+        drive.powerVec = linspace(drive.powerSetPoints(pdx),drive.powerSetPoints(pdx) + driveEpsilon, numTrials);
+%         drive.powerVec = drive.powerSetPoints*ones(1,numTrials);
         
-        cardparams.averages = 600000;
+%         cardparams.averages = 6000;
+        cardparams.averages = 60000;
+        
         card.SetParams(cardparams);
         
         % find a background measurement
@@ -252,42 +271,45 @@ for acq = 1:length(cardAcqLengths)
             
             ampDataSingle(idx,:) = IDataSingle(idx,:).^2+QDataSingle(idx,:).^2;
             
-            %     % Plot data
-            %     figure(1);
-            %     subplot(3,2,1);
-            %     imagesc(timeaxis, drive.powerVec(1:idx), IDataSingle(1:idx,:));
-            %     title('IData');
-            %     ylabel('Drive Power [dBm]');
-            %     colorbar();
-            %
-            %     subplot(3,2,2);
-            %     plot(drive.powerVec(1:idx), IDataAvg(1:idx));
-            %     title('IDataAvg');
-            %     xlabel('Drive Power [dBm]');
-            %
-            %     subplot(3,2,3);
-            %     imagesc(timeaxis, drive.powerVec(1:idx), QDataSingle(1:idx,:));
-            %     ylabel('Drive Power [dBm]');
-            %     xlabel('Time (\mus)');
-            %     colorbar();
-            %
-            %     subplot(3,2,4);
-            %     plot(drive.powerVec(1:idx), QDataAvg(1:idx));
-            %     title('QDataAvg');
-            %     xlabel('Drive Power [dBm]');
-            %
-            %     subplot(3,2,5);
-            %     imagesc(timeaxis, drive.powerVec(1:idx), ampDataSingle(1:idx,:));
-            %     title('Amplitude');
-            %     ylabel('Drive Power [dBm]');
-            %     xlabel('Time (\mus)');
-            %     colorbar();
-            %
-            %     subplot(3,2,6);
-            %     plot(drive.powerVec(1:idx), ampDataAvg(1:idx));
-            %     title('ampDataAvg');
-            %     xlabel('Drive Power [dBm]');
-            %
+%             % Plot data
+%             figure(1);
+%             subplot(3,2,1);
+%             imagesc(timeaxis, 1:numTrials, IDataSingle(1:idx,:));
+%             title('IData');
+%             ylabel('Number of Trials');
+%             colorbar();
+%             
+%             subplot(3,2,2);
+%             plot((1:idx), IDataAvg(1:idx));
+%             title('IDataAvg');
+% %             xlabel('Drive Power [dBm]');
+%             
+%             subplot(3,2,3);
+%             imagesc(timeaxis, 1:numTrials, QDataSingle(1:idx,:));
+%             ylabel('Number of Trials');
+%             xlabel('Time (\mus)');
+%             colorbar();
+%             
+%             subplot(3,2,4);
+%             plot((1:idx), QDataAvg(1:idx));
+%             title('QDataAvg');
+% %             xlabel('Drive Power [dBm]');
+%             
+%             subplot(3,2,5);
+%             imagesc(timeaxis, 1:numTrials, ampDataSingle(1:idx,:));
+%             title('Amplitude');
+%             ylabel('Number of Trials');
+%             xlabel('Time (\mus)');
+%             colorbar();
+%             
+%             subplot(3,2,6);
+%             plot((1:idx), ampDataAvg(1:idx));
+%             title('ampDataAvg');
+%             %             xlabel('Drive Power [dBm]');
+            
+            
+
+            
             if idx==1 && pdx == 1 && acq == 1
                 deltaT=toc(tStart);
                 estimatedTime=deltaT*length(drive.powerVec)*length(drive.powerSetPoints)*mean(cardAcqLengths)/cardAcqLengths(1);
@@ -316,12 +338,14 @@ for acq = 1:length(cardAcqLengths)
         xlabel('Trials');
         ylabel('Drive Set Points [dBm]');
         
-%         figure(33)
-%         subplot(1,2,1)
-%         hist(reshape(ampDataSingle,[],1),100)
-%         subplot(1,2,2)
-%         hist(ampDataAvg,30)
-%         
+        if length(drive.powerSetPoints)==1
+            figure(33)
+            subplot(1,2,1)
+            hist(reshape(ampDataSingle,[],1),100)
+            subplot(1,2,2)
+            hist(ampDataAvg,30)
+        end
+        
     end
     
         saveFolder = ['Z:\Mattias\Data\tunableDimer\singleDriveHomodyne_' runDate '\'];
