@@ -79,16 +79,16 @@ sampleinterval = 64e-9;
 
 clear acquisitionPoints measurementPoint
 
-%%%%max J
-measurementPoint = {};
-measurementPoint.name = 'maxJ';
-measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
+% %%%max J
+% measurementPoint = {};
+% measurementPoint.name = 'maxJ';
+% measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
 % measurementPoint.powerSetPoints = linspace(-45,-30,15);
-measurementPoint.powerSetPoints = -32.5*ones(1,8);
-measurementPoint.numReads = 5;
-measurementPoint.probeFrequency = 5.909e9;
-measurementPoint.averages = 6000;
-acquisitionPoints(1) = measurementPoint;
+% measurementPoint.powerSetPoints = -32.5*ones(1,8);
+% measurementPoint.numReads = 5;
+% measurementPoint.probeFrequency = 5.909e9;
+% measurementPoint.averages = 6000;
+% acquisitionPoints(1) = measurementPoint;
 
 % %%%max J2
 % measurementPoint = {};
@@ -125,18 +125,18 @@ acquisitionPoints(1) = measurementPoint;
 % measurementPoint.averages = 6000;
 % acquisitionPoints(4) = measurementPoint;
 % 
-% %%%small J
-% measurementPoint = {};
-% measurementPoint.name = 'minJ';
-% measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
-% % measurementPoint.powerSetPoints = linspace(-29,-25,5);
-% % measurementPoint.powerSetPoints = linspace(-29,-24,10);
-% measurementPoint.powerSetPoints = -27*ones(1,16);
-% measurementPoint.numReads = 200;
-% measurementPoint.probeFrequency = 5.872e9;
-% measurementPoint.averages = 6000;
-% acquisitionPoints(5) = measurementPoint;
-% 
+%%%small J
+measurementPoint = {};
+measurementPoint.name = 'minJ';
+measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
+% measurementPoint.powerSetPoints = linspace(-29,-25,5);
+% measurementPoint.powerSetPoints = linspace(-29,-24,10);
+measurementPoint.powerSetPoints = -27*ones(1,16);
+measurementPoint.numReads = 5;
+measurementPoint.probeFrequency = 5.872e9;
+measurementPoint.averages = 6000;
+acquisitionPoints(1) = measurementPoint;
+% % 
 % %%%small J2
 % measurementPoint = {};
 % measurementPoint.name = 'minJ2';
@@ -181,7 +181,7 @@ acquisitionPoints(1) = measurementPoint;
 
 %% Set up Trigger
 
-triggen.period = 10e-6;
+% triggen.period = 10e-6;
 triggen.offset=1;
 triggen.vpp=2;
 triggen.PowerOn();
@@ -269,7 +269,7 @@ avgingWindows = [2, 5, 10, 20]*1e-6; %%%%%!!!!!!!!!!!!!! must be integer divisio
 numDivisions = floor(targetTimeDuration./avgingWindows);
 for acq = 1:numAcquisitions
     config = acquisitionPoints(acq);
-    numReads = config.numReads; %number of card acquisitions
+    numReads = config.numReads; %number of card acquisitions % to segments
     drive.powerSetPoints = config.powerSetPoints;
     
     fc.currentVoltage = config.voltagePoint; 
@@ -301,14 +301,15 @@ for acq = 1:numAcquisitions
         
         card.SetParams(cardparams);
         
-        % find a background measurement
-        rfgen.PowerOff();
-        pause(0.05);
-        [IDataBackground, QDataBackground] = card.ReadIandQ();
-        IDataBackground = IDataBackground(1:int32(cardparams.samples));
-        QDataBackground = QDataBackground(1:int32(cardparams.samples));
-        
-        rfgen.PowerOn();
+%         % find a background measurement
+%         rfgen.PowerOff();
+%         
+%         pause(0.05);
+%         [IDataBackground, QDataBackground] = card.ReadIandQ();
+%         IDataBackground = IDataBackground(1:int32(cardparams.samples));
+%         QDataBackground = QDataBackground(1:int32(cardparams.samples));
+%         
+%         rfgen.PowerOn();
         
         ampDataSingle = zeros(length(drive.powerVec),int32(cardparams.samples));
         IDataSingle = zeros(length(drive.powerVec),int32(cardparams.samples));
@@ -325,6 +326,18 @@ for acq = 1:numAcquisitions
                 tStart=tic;
                 time=clock;
             end
+            
+            % find a background measurement
+            rfgen.PowerOff();
+            
+            pause(0.05);
+            [IDataBackground, QDataBackground] = card.ReadIandQ();
+            IDataBackground = IDataBackground(1:int32(cardparams.samples));
+            QDataBackground = QDataBackground(1:int32(cardparams.samples));
+            
+            rfgen.PowerOn();
+            
+            
             rfgen.power = drive.powerVec(idx);
             pause(0.1);
             
@@ -339,9 +352,7 @@ for acq = 1:numAcquisitions
             QDataAvg(idx) = mean(QDataTemp);
             
             ampDataAvg(idx) = IDataAvg(idx)^2 + QDataAvg(idx)^2;
-            ampDataPostAvg(idx) = mean(IDataTemp.^2 + QDataTemp.^2);
-            
-            
+            ampDataPostAvg(idx) = mean(IDataTemp.^2 + QDataTemp.^2);         
             
             minSamplesPerDivision = (targetTimeDuration/cardparams.sampleinterval)/numDivisions(1);
             for divdx = 1:numDivisions(1)
