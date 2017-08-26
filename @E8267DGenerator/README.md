@@ -43,7 +43,7 @@ rfgen.alc = 0;
 * **Properties**: 
   * **address** (*string*): GPIB address of the instrument
   * **instrhandle** (*GPIB object*):  Handle to communicate with instrument
-  * **frequency** (*float*): Frequency (in Hz) of the signal
+  * **freq** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
   * **phase** (*float*): Phase (in radians) of the signal
   * **output** (*1/0*): Output on/off

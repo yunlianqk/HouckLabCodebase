@@ -42,11 +42,12 @@ rfgen.ModOn();
 #### *class* HolzworthHS9000 < handle
 * **Properties**: 
   * **address** (*string*): Address of the instrument
-  * **frequency** (*float*): Frequency (in Hz) of the signal
+  * **freq** (*float*): Frequency (in Hz) of the signal
   * **power** (*float*): Power (in dBm) of the signal
   * **phase** (*float*): Phase (in radians) of the signal
   * **output** (*1/0*): Output on/off
   * **modulation** (*1/0*): Modulation on/off
+  * **ref** (*string*): Reference clock source. Can be '10MHZ', '100MHZ' or 'INT'.
   * **temperature** (*string, read-only*): Temperature of the instruement
 * **Methods**:
   * **gen = HolzworthHS9000(address)**: Opens the instrument with `address` and creates an object `gen`

@@ -198,6 +198,7 @@ Check [markdown cheat sheet](./Reference/markdown-cheat-sheet.pdf) or online tut
 - [M9330A arbitrary waveform generator](./@M9330AWG/README.md)
 - [33250A 80 MHz waveform generator](./@AWG33250A/README.md)
 - [Holzworth HS9000 RF synthesizer](./@HolzworthHS9000/README.md)
+- [SignalCore SC5511A RF signal source](./@SignalCoreSC5511A/README.md)
 
 ### Libraries
 - [measlib](./+measlib/README.md)
