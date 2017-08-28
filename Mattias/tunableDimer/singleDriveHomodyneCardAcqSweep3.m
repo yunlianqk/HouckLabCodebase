@@ -50,14 +50,22 @@ couplerMaxJ=0;
 
 %%
 
-
 % use the vtraj from matrixCalibration_rightInput_-25wAtten_20170823_1137
 % fstart=[leftQubitMin (rightQubitResonance-0.15) couplerMinJ];
 % fstop=[leftQubitMin (rightQubitResonance+0.15) couplerMinJ];fsteps=50;
 % fstart=[leftQubitMin (rightQubitResonance-0.15) 0.22];
 % fstop=[leftQubitMin (rightQubitResonance+0.15) 0.22];fsteps=40;
-fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
-fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
+% fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
+% fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
+
+% fstart=[(leftQubitResonance) rightQubitMin-0.15 couplerMinJ];
+% fstop=[(leftQubitResonance) rightQubitMin+0.15 couplerMinJ];fsteps=50;
+
+fstart=[(leftQubitResonance) rightQubitMin couplerMinJ];
+fstop=[(leftQubitResonance) rightQubitMin couplerMinJ];fsteps=50;
+
+% fstart=[(leftQubitResonance-0.15) rightQubitMin 0.22];
+% fstop=[(leftQubitResonance+0.2) rightQubitMin 0.22];fsteps=25;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 voltageCutoff = 3.5;
@@ -69,7 +77,7 @@ end
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 ftraj=fc.calculateFluxTrajectory(vtraj);
 
-vtraj(:,9)
+vtraj(:,23)
 % fc.currentVoltage = vtraj(:,23); 
 % fc.currentVoltage = vtraj(:,19); 
 
@@ -81,45 +89,213 @@ sampleinterval = 64e-9;
 
 clear acquisitionPoints measurementPoint
 
-%%%max J
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 measurementPoint = {};
-measurementPoint.name = 'maxJ';
-measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
-% measurementPoint.powerSetPoints = linspace(-45,-30,15);
-% measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
-measurementPoint.powerSetPoints =linspace(-27, -21,20);
-measurementPoint.numReads = 250;
+measurementPoint.name = 'maxJ_dualDriveSplit_leftResonance';
+measurementPoint.voltagePoint = [-1.2403 -0.6374 0.1603];
+measurementPoint.powerSetPoints =linspace(-18.0, -15.0, 20);
+measurementPoint.numReads = 500;
 measurementPoint.segments = 20;
 measurementPoint.probeFrequency = 5.909e9;
 measurementPoint.averages = 6000/measurementPoint.segments;
 acquisitionPoints(1) = measurementPoint;
 
-%%%%largeJ
 measurementPoint = {};
-measurementPoint.name = 'largeJ';
-measurementPoint.voltagePoint = [1.4341, -0.2189, -0.1643];
-% measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
-% measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
-measurementPoint.powerSetPoints = linspace(-38,-35,20);
-measurementPoint.numReads = 250;
+measurementPoint.name = 'minJ_dualDriveSplit_leftResonance';
+measurementPoint.voltagePoint = [-1.2364 -0.5894 0.3657];
+measurementPoint.powerSetPoints = linspace(-27, -10,20);
+measurementPoint.numReads = 500;
 measurementPoint.segments = 20;
-measurementPoint.probeFrequency = 5.908e9;
+measurementPoint.probeFrequency = 5.872e9;
 measurementPoint.averages = 6000/measurementPoint.segments;
 acquisitionPoints(2) = measurementPoint;
 
+measurementPoint = {};
+measurementPoint.name = 'maxJ_dualDriveSplit_doubleResonance';
+measurementPoint.voltagePoint = [-1.2465 -0.6374 0.1603];
+measurementPoint.powerSetPoints =linspace(-19.0, -15,20);
+measurementPoint.numReads = 500;
+measurementPoint.segments = 20;
+measurementPoint.probeFrequency = 5.909e9;
+measurementPoint.averages = 6000/measurementPoint.segments;
+acquisitionPoints(3) = measurementPoint;
+
+
+%%%max J % right qubit and left qubit in resonance
+measurementPoint = {};
+measurementPoint.name = 'maxJ_dualDriveSplit_rightResonance';
+% measurementPoint.voltagePoint = [-1.2465 -0.6374 0.1603];
+measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
+% measurementPoint.powerSetPoints = linspace(-45,-30,15);
+% measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
+measurementPoint.powerSetPoints =linspace(-19.0, -15,20);
+measurementPoint.numReads = 500;
+measurementPoint.segments = 20;
+measurementPoint.probeFrequency = 5.909e9;
+measurementPoint.averages = 6000/measurementPoint.segments;
+acquisitionPoints(4) = measurementPoint;
+
 %%%small J
 measurementPoint = {};
-measurementPoint.name = 'minJ';
+measurementPoint.name = 'minJ_dualDriveSplit_doubleResonance';
+measurementPoint.voltagePoint = [-1.2404, -0.6210, 0.3603];
+% measurementPoint.powerSetPoints = linspace(-29,-25,5);
+% measurementPoint.powerSetPoints = linspace(-29,-24,10);
+% measurementPoint.powerSetPoints = -27*ones(1,16);
+measurementPoint.powerSetPoints = linspace(-25, -15,20);
+measurementPoint.numReads = 500;
+measurementPoint.segments = 20;
+measurementPoint.probeFrequency = 5.872e9;
+measurementPoint.averages = 6000/measurementPoint.segments; %number of averages for background measurement
+acquisitionPoints(5) = measurementPoint;
+
+%%%small J
+measurementPoint = {};
+measurementPoint.name = 'minJ_dualDriveSplit_rightResonance';
 measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
 % measurementPoint.powerSetPoints = linspace(-29,-25,5);
 % measurementPoint.powerSetPoints = linspace(-29,-24,10);
 % measurementPoint.powerSetPoints = -27*ones(1,16);
-measurementPoint.powerSetPoints = linspace(-28, -26,20);
-measurementPoint.numReads = 250;
+measurementPoint.powerSetPoints = linspace(-25, -15,20);
+measurementPoint.numReads = 500;
 measurementPoint.segments = 20;
 measurementPoint.probeFrequency = 5.872e9;
 measurementPoint.averages = 6000/measurementPoint.segments; %number of averages for background measurement
-acquisitionPoints(3) = measurementPoint;
+acquisitionPoints(6) = measurementPoint;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% %%%max J
+% measurementPoint = {};
+% measurementPoint.name = 'maxJ_2';
+% measurementPoint.voltagePoint = [-1.5198 -0.5908 0.2207];
+% % measurementPoint.powerSetPoints = linspace(-45,-30,15);
+% % measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
+% measurementPoint.powerSetPoints =linspace(-30, -24,5);
+% measurementPoint.numReads = 5;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.844e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+% %%%%
+% largeJ
+% measurementPoint = {};
+% measurementPoint.name = 'largeJ_2';
+% % measurementPoint.voltagePoint = [-1.0724 -0.5875 0.2362]; % traj 10
+% measurementPoint.voltagePoint = [-1.4043 -0.5903 0.2981]; % traj 8
+% % measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
+% % measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
+% measurementPoint.powerSetPoints = linspace(-40,-30,30);
+% measurementPoint.numReads = 5;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.841e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+
+% %%%%minJ
+% measurementPoint = {};
+% measurementPoint.name = 'minJ';
+% % measurementPoint.voltagePoint = [-1.0724 -0.5875 0.2362]; % traj 10
+% measurementPoint.voltagePoint = [-1.6809 -0.5926 0.3497]; % traj 8
+% % measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
+% % measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
+% measurementPoint.powerSetPoints = linspace(-20,-5,10);
+% measurementPoint.numReads = 5;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.825e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+% %%%%largeJ
+% measurementPoint = {};
+% measurementPoint.name = 'largeJ_@';
+% % measurementPoint.voltagePoint = [-1.0724 -0.5875 0.2362]; % traj 10
+% measurementPoint.voltagePoint = [-1.4043 -0.5903 0.2981]; % traj 8
+% % measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
+% % measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
+% measurementPoint.powerSetPoints = linspace(-40,-30,30);
+% measurementPoint.numReads = 5;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.841e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+
+% %%%max J % right qubit and left qubit in resonance
+% measurementPoint = {};
+% measurementPoint.name = 'maxJ_splitter_rightDrive';
+% measurementPoint.voltagePoint = [-1.2465 -0.6374 0.1603];
+% % measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
+% % measurementPoint.powerSetPoints = linspace(-45,-30,15);
+% % measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
+% measurementPoint.powerSetPoints =linspace(-18.0, -15,5);
+% measurementPoint.numReads = 20;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.909e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+
+
+% %%%max J  % nice point for right drive, right output bistability
+% measurementPoint = {};
+% measurementPoint.name = 'maxJ';
+% measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
+% % measurementPoint.powerSetPoints = linspace(-45,-30,15);
+% % measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
+% measurementPoint.powerSetPoints =linspace(-23, -23,1);
+% measurementPoint.numReads = 20;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.909e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+
+
+% %%%max J
+% measurementPoint = {};
+% measurementPoint.name = 'maxJ';
+% measurementPoint.voltagePoint = [1.4290, -0.2435, -0.2671];
+% % measurementPoint.powerSetPoints = linspace(-45,-30,15);
+% % measurementPoint.powerSetPoints =linspace(-34.5, -29.5,5);
+% measurementPoint.powerSetPoints =linspace(-27, -21,20);
+% measurementPoint.numReads = 250;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.909e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(1) = measurementPoint;
+
+% %%%%largeJ
+% measurementPoint = {};
+% measurementPoint.name = 'largeJ';
+% measurementPoint.voltagePoint = [1.4341, -0.2189, -0.1643];
+% % measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
+% % measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
+% measurementPoint.powerSetPoints = linspace(-38,-35,20);
+% measurementPoint.numReads = 250;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.908e9;
+% measurementPoint.averages = 6000/measurementPoint.segments;
+% acquisitionPoints(2) = measurementPoint;
+% 
+% %%%small J
+% measurementPoint = {};
+% measurementPoint.name = 'minJ';
+% measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
+% % measurementPoint.powerSetPoints = linspace(-29,-25,5);
+% % measurementPoint.powerSetPoints = linspace(-29,-24,10);
+% % measurementPoint.powerSetPoints = -27*ones(1,16);
+% measurementPoint.powerSetPoints = linspace(-28, -26,20);
+% measurementPoint.numReads = 250;
+% measurementPoint.segments = 20;
+% measurementPoint.probeFrequency = 5.872e9;
+% measurementPoint.averages = 6000/measurementPoint.segments; %number of averages for background measurement
+% acquisitionPoints(3) = measurementPoint;
 
 
 
@@ -280,8 +456,6 @@ triggen.period = actualTimeDuration+1e-6;
 cardparams.trigPeriod = triggen.period;
 card.SetParams(cardparams);
 
-
-
 % avgingWindows = [2.5, 5, 10, 20, 50, 100]*1e-6;
 % avgingWindows = [2, 5, 10, 20]*1e-6; %%%%%!!!!!!!!!!!!!! must be integer divisions of target time duration
 avgingWindows = [1, 2, 5, 10, 20]*1e-6;
@@ -308,7 +482,7 @@ for acq = 1:numAcquisitions
         tStart=tic;
         time=clock;
         timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
-        filename=['singleDriveHomodyne_' config.name '_' num2str(drive.powerSetPoints(pdx)) 'dBm_'  timestr];
+        filename=['dualDriveHomodyne_' config.name '_' num2str(drive.powerSetPoints(pdx)) 'dBm_'  timestr];
         
         if pdx > 1 && drive.powerSetPoints(pdx) == drive.powerSetPoints(pdx-1)
             1;
@@ -350,11 +524,7 @@ for acq = 1:numAcquisitions
             %get the average background
             IDataBackground = mean(IDataBackground(:));
             QDataBackground = mean(QDataBackground(:));
-%             tempIDataBackground = mean(IDataBackground(:));
-%             tempQDataBackground = mean(QDataBackground(:));
-%             IDataBackground = 0;
-%             QDataBackground = 0;
-            
+
             % acquire new data set
             [IDataTemp, QDataTemp] = card.ReadIandQ();
             IDataTemp = IDataTemp(:,1:int32(cardparams.samples))-IDataBackground;
@@ -421,6 +591,7 @@ for acq = 1:numAcquisitions
         
         %do all further down sampling and store result.
         ampDataAvgStruct = {};
+
         ampDataAvgStruct.(['avgWind' num2str(avgingWindows(1)*10^6) 'us']) = ampDataAvgMat;
         dataMax = max(ampDataAvgMat(:));
         %down sample the data.
@@ -476,7 +647,7 @@ for acq = 1:numAcquisitions
         %save data for each measurement configuration and each
         %power set point and acquisition setup
 %         saveFolder = ['Z:\Mattias\Data\tunableDimer\singleDriveHomodyne_' runDate '\'];
-         saveFolder = ['Z:\Mattias\Data\tunableDimer\singleDriveHomodyne_RightBistability' runDate '\'];
+         saveFolder = ['Z:\Mattias\Data\tunableDimer\DualDriveCompareBistability' runDate '\'];
         isFolder = exist(saveFolder);
         if isFolder == 0
             mkdir(saveFolder)

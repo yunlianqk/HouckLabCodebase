@@ -40,7 +40,7 @@ couplerMinJ=0.44;
 couplerMaxJ=0; 
 
 % powerVec = linspace(0,-40, 5);
-powerVec = [-5];
+powerVec = [0];
 
 for pdx = 1:length(powerVec)
 %% Update and read transmission channel
@@ -51,7 +51,7 @@ pnax.SetActiveTrace(1);
 % transWaitTime=10+13*pdx^2;
 % timeVec = 10 + 13.*(1:length(powerVec)).^2;
 
-transWaitTime=25;
+transWaitTime=35;
     
 pnax.params.start = 5.55e9;
 pnax.params.stop = 6.15e9;
@@ -84,10 +84,11 @@ clear vtraj ftraj
 % fstart=[leftQubitResonace (rightQubitResonace-0.15) 0];
 % fstop=[leftQubitResonace (rightQubitResonace+0.15) 0];fsteps=6;
 
-fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
-fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
+% fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
+% fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
 
-
+fstart=[(leftQubitResonance-0.15) rightQubitMin couplerMinJ];
+fstop=[(leftQubitResonance+0.2) rightQubitMin couplerMinJ];fsteps=25;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 
@@ -115,7 +116,7 @@ for index=1:steps
         tStart=tic;
         time=clock;
         timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
-        filename=['matrixCalibration_rightInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
+        filename=['matrixCalibration_leftInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
         
     end
     % update flux/voltage
@@ -139,9 +140,9 @@ for index=1:steps
     hFig = figure(158);
     set(hFig, 'Position', [100 100 1000 600]);
     subplot(1,2,1);
-    imagesc(ftrans/1e9,[1,index],transS21AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Right Output Frequency [GHz]');
+    imagesc(ftrans/1e9,[1,index],transS21AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Left Output Frequency [GHz]');
     subplot(1,2,2);
-    imagesc(ftrans/1e9,[1,index],transS41AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Left Output Frequency [GHz]');
+    imagesc(ftrans/1e9,[1,index],transS41AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Right Output Frequency [GHz]');
     
 
     if index==1 && pdx == 1

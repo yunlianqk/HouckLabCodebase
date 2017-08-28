@@ -125,17 +125,35 @@ clear acquisitionPoints measurementPoint
 % measurementPoint.averages = 6000;
 % acquisitionPoints(4) = measurementPoint;
 % 
-%%%small J
+% %%%small J
+% measurementPoint = {};
+% measurementPoint.name = 'minJ';
+% measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
+% % measurementPoint.powerSetPoints = linspace(-29,-25,5);
+% % measurementPoint.powerSetPoints = linspace(-29,-24,10);
+% measurementPoint.powerSetPoints = -27*ones(1,16);
+% measurementPoint.numReads = 5;
+% measurementPoint.probeFrequency = 5.872e9;
+% measurementPoint.averages = 6000;
+% acquisitionPoints(1) = measurementPoint;
+
+
+
+%%%%largeJ
 measurementPoint = {};
-measurementPoint.name = 'minJ';
-measurementPoint.voltagePoint = [1.4351, -0.2272, -0.0671];
-% measurementPoint.powerSetPoints = linspace(-29,-25,5);
-% measurementPoint.powerSetPoints = linspace(-29,-24,10);
-measurementPoint.powerSetPoints = -27*ones(1,16);
+measurementPoint.name = 'largeJ';
+% measurementPoint.voltagePoint = [-1.0724 -0.5875 0.2362]; % traj 10
+measurementPoint.voltagePoint = [-1.4043 -0.5903 0.2981]; % traj 8
+% measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
+% measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
+measurementPoint.powerSetPoints = linspace(-40,-28,30);
 measurementPoint.numReads = 5;
-measurementPoint.probeFrequency = 5.872e9;
+% measurementPoint.segments = 20;
+measurementPoint.probeFrequency = 5.841e9;
 measurementPoint.averages = 6000;
 acquisitionPoints(1) = measurementPoint;
+
+
 % % 
 % %%%small J2
 % measurementPoint = {};
@@ -406,6 +424,7 @@ for acq = 1:numAcquisitions
         title([filename ', ampDataAvgMat']);
         xlabel('Trials');
         ylabel('Drive Set Points [dBm]');
+        colorbar();
         
         subplot(2,1,2);
 %         imagesc(1:numReads,drive.powerSetPoints(1:pdx),ampDataPostAvgMat(1:pdx,:));
