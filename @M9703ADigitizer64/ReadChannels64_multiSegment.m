@@ -26,10 +26,10 @@ end
 
 if strcmp(params.couplemode, 'DC')
     coupling = 1;
-elseif strcmp(params.coupledmode, 'AC')
+elseif strcmp(params.couplemode, 'AC')
     coupling = 0;
 else
-    display('Unknow couplemode');
+    display('Unknown couplemode');
 end
 
 % Enable ChI and ChQ
@@ -40,14 +40,13 @@ for ch = 1:8
     else
         enabled = 0;
     end
-    %         pCh.Configure(params.fullscale, params.offset, coupling, enabled);
     invoke(device.Configurationchannel, 'configurechannel', channelList{ch},...
         params.fullscale, params.offset, coupling, enabled);
 end
 
 % Set the acquisition parameters
 invoke(device.Configurationacquisition, 'configureacquisition',...
-    1, params.samples, params.samplerate);
+    params.segments*params.averages, params.samples, params.samplerate);
 
 %Size waveform arrays as required
 arraySize =...
@@ -89,50 +88,71 @@ end
 %             XIncrement, ScaleFactor, ScaleOffset] = ...
 %             invoke(device.Waveformacquisitionlowlevelacquisitionmultirecordacquisition,...
 %             'fetchwaveformint16',channelList{index},arraySize,inArray);
-%         
+%
 %         % Convert data to Volts.
 %         for i=1+FirstValidPoint1:FirstValidPoint1+ActualPoints1
 %             inArray(i) = inArray(i) * ScaleFactor + ScaleOffset;
 %         end;
-%         
+%
 %         dataArray(counter, :) = inArray(1+FirstValidPoint1:FirstValidPoint1+ActualPoints1)';
 %         counter=counter+1;
 %     end
-%     
-%     
+%
+%
 % end
 %     disp('Measurement Complete ...');
 
-    % Fetch data
-    for index = 1:length(chList)
-        [dataArrayReal64, actualRecords, actualPoints, firstValidPoint, ~, ~, ~, ~] ...
-            = invoke(device.Waveformacquisitionlowlevelacquisitionmultirecordacquisition,...
-            'fetchmultirecordwaveformreal64',channelList{index}, 1, params.averages*params.segments, 0, params.samples, arraySize, inArray, 0, 0, 0, 0, 1);
-        % Averaged sequence of segments
-        if actualRecords ~= 1
-            tempdata = sum(reshape(dataArrayReal64, ...
-                                   params.segments*(firstValidPoint(2)-firstValidPoint(1)), ...
-                                   params.averages), ...
-                           2)/params.averages;
-            % reshape matrix so final form has each averaged segement in each row
-            tempSeqSig = reshape(tempdata, firstValidPoint(2)-firstValidPoint(1), params.segments)';
-        else
-            tempSeqSig = dataArrayReal64;
-        end
-        % remove zero entries
-        dataArray(index, :, :) = tempSeqSig(:, firstValidPoint(1)+1:actualPoints(1));
-        clear dataArrayReal64;
-        clear tempdata;
-        clear tempSeqSig;
+% Fetch data
+for index = 1:length(chList)
+    %         [dataArrayReal64, actualRecords, actualPoints, firstValidPoint, ~, ~, ~, ~] ...
+    %             = invoke(device.Waveformacquisitionlowlevelacquisitionmultirecordacquisition,...
+    %             'fetchmultirecordwaveformint16',channelList{index}, 1, params.averages*params.segments, 0, params.samples, arraySize, inArray, 0, 0, 0, 0, 1);
+    inActualPoints = int64(zeros(params.averages*params.segments+1, 1));
+    inFirstValidPoint = int64(zeros(params.averages*params.segments+1, 1));
+    inInitialXOffset = double(zeros(params.averages*params.segments+1, 1));
+    inInitialXTimeSeconds = double(zeros(params.averages*params.segments+1, 1));
+    inInitialXTimeFraction = double(zeros(params.averages*params.segments+1, 1));
+    FirstRecord = 0;
+    %[WaveformArray, WaveformArrayActualSize, ActualRecords, ActualPoints, 
+%     FirstValidPoint, InitialXOffset, InitialXTimeSeconds, InitialXTimeFraction,
+%     XIncrement, ScaleFactor, ScaleOffset] =
+    %fetchmultirecordwaveformint16(obj, ChannelName, FirstRecord, NumRecords, OffsetWithinRecord,
+    % NumPointsPerRecord, WaveformArrayBufferSize, WaveformArray, ActualPoints, FirstValidPoint,
+    % InitialXOffset, InitialXTimeSeconds, InitialXTimeFraction)
+
+    [dataArrayReal64, ~, actualRecords, actualPoints, firstValidPoint, ~, ~, ~, ~, ScaleFactor, ScaleOffset] ...
+        = invoke(device.Waveformacquisitionlowlevelacquisitionmultirecordacquisition,...
+        'fetchmultirecordwaveformint16', channelList{chList(index)}, FirstRecord, params.averages*params.segments, 0, ...
+        params.samples, arraySize, inArray, inActualPoints, inFirstValidPoint,...
+        inInitialXOffset, inInitialXTimeSeconds, inInitialXTimeFraction);
+    
+    % Convert to Volts. Alternate: use fetchmultirecordwaveformReal64
+    dataArrayReal64 = dataArrayReal64.*ScaleFactor + ScaleOffset;
+    
+    % Averaged sequence of segments
+    if actualRecords ~= 1
+        tempdata = sum(reshape(dataArrayReal64, params.segments*(firstValidPoint(2)-firstValidPoint(1)), ...
+            params.averages), ...
+            2)/params.averages;
+        % reshape matrix so final form has each averaged segement in each row
+        tempSeqSig = reshape(tempdata, firstValidPoint(2)-firstValidPoint(1), params.segments)';
+    else
+        tempSeqSig = dataArrayReal64;
     end
-    dataArray = squeeze(dataArray);
+    % remove zero entries
+    dataArray(index, :, :) = tempSeqSig(:, firstValidPoint(1)+1:actualPoints(1));
+    clear dataArrayReal64;
+    clear tempdata;
+    clear tempSeqSig;
+end
+dataArray = squeeze(dataArray);
 
 
 
 % Enable ChI and ChQ
 for ch = 1:8
     pCh = 1:8;
-    if ismember(pCh(ch), [1 2])
+    if ismember(pCh(ch), [1 2 3 4 5 6 7 8])
         enabled = 1;
     else
         enabled = 0;

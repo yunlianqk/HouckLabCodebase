@@ -1,8 +1,21 @@
 % address='PXI0::CHASSIS1::SLOT2::FUNC0::INSTR'; % PXI address
-address='PXI0::12-0.0::INSTR'; % PXI address
-card=M9703ADigitizer(address);  % create object
+% address='PXI0::11-0.0::INSTR'; % PXI address
+% 
+% addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\drivers')
+% address = 'PXI0::CHASSIS1::SLOT2:FUNC0::INSTR'
+% address='PXI0::11-0.0::INSTR'; % PXI address
+address='PXI11::0::0::INSTR'; % PXI address
+
+card=M9703ADigitizer64(address);  % create object
 %% Set card parameters
 cardparams=paramlib.m9703a();   %default parameters
+
+%% Set the reference clock source
+% set(card.instrID.Referenceoscillator,'Reference_Oscillator_Source',0)
+% set(card.instrID.Referenceoscillator,'Reference_Oscillator_Source',1) %external 100 MHz on ref port
+set(card.instrID.Referenceoscillator,'Reference_Oscillator_Source',4) %Chassis 100 MHz system clock
+disp(['clock source  = ' num2str(card.instrID.Referenceoscillator.Reference_Oscillator_Source)])
+
 %%
 cardparams.samplerate=1.6e9;   % Hz units
 cardparams.samples=1.6e9*1e-6;    % samples for a single trace

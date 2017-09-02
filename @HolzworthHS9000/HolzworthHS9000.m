@@ -242,7 +242,7 @@ classdef HolzworthHS9000 < handle
         
         function LoadDriver()
         % Load the drive library if necessary
-        % The .dll, .h and HolzworthProto.m files are in ..\drivers
+        % The .dll, .h and HolzworthProto.m files are in ..\drivers\Holzworth_driver
         % And added to path in ..\setpath.m
             if ~libisloaded(HolzworthHS9000.lib)
                 switch computer()

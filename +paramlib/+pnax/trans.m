@@ -6,6 +6,7 @@ classdef trans
         points = 1001;
         power = -50;
         averages = 1000;
+        avgmode = 'SWEEP'
         ifbandwidth = 5e3;
         channel = 1;
         trace = 1;

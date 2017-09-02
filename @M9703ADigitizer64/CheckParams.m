@@ -43,12 +43,13 @@ function iscorrect = CheckParams(~, params)
         display('Error: couplemode needs to be ''AC''/''DC''');
     end
     
-    % Check channel name
-    if (isempty(regexp(params.ChI, 'Channel[1-8]', 'once')) || ...
-        isempty(regexp(params.ChI, 'Channel[1-8]', 'once')))
-        display('Error: ChI and ChQ needs to be ''Channel1-8''');
-        iscorrect = 0;
-    end
+    %AKmod
+%     % Check channel name
+%     if (isempty(regexp(params.ChI, 'Channel[1-8]', 'once')) || ...
+%         isempty(regexp(params.ChI, 'Channel[1-8]', 'once')))
+%         display('Error: ChI and ChQ needs to be ''Channel1-8''');
+%         iscorrect = 0;
+%     end
     
     % Check trigger source
     if isempty(regexp(params.trigSource, '(Channel[1-8]|External[1-3])', 'once'))

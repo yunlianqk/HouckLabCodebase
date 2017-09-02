@@ -23,6 +23,16 @@ if ismember('HolzworthHS9000', instrlist)
     HolzworthHS9000.UnloadDriver();
 end
 
+% Unolad SignalCore driver library
+if ismember('SignalCoreSC5511A', instrlist)
+    SignalCoreSC5511A.UnloadDriver();
+end
+
+% Unolad LabBrick driver library
+if ismember('LabBrick', instrlist)
+    LabBrick.UnloadDriver();
+end
+
 % Final house keeping
 instrlist = instrfind();
 if (~isempty(instrlist))

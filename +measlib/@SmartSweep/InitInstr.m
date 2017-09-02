@@ -125,6 +125,7 @@ function InitInstr(self)
         pulsegen3.Generate();
     catch
     end
+
     % Initialize card
     cardparams = card.GetParams();
     % Delay time
