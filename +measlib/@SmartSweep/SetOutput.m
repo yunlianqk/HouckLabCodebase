@@ -1,6 +1,6 @@
 function SetOutput(self)
 
-    global pulsegen1 pulsegen2 logen logen2 card fluxgen;
+    global pulsegen1 pulsegen2 pulsegen3 logen logen2 card fluxgen;
 
     % Set up signal and background acquisition function handles
     if self.histogram
@@ -118,6 +118,16 @@ function SetOutput(self)
         imagesc(self.result.tAxis/1e-6, 1:ind, self.result.dataQ(1:ind, :));
         title('Q data');
         xlabel('Time (\mus)');
+        if strcmp(self.name, 'FluxDCoffset')
+            figure(201);
+            plot(pulsegen3.timeaxis/1e-6, pulsegen3.waveform1, ...
+                 pulsegen3.timeaxis/1e-6, pulsegen3.waveform2, 'r', ...
+                 pulsegen3.timeaxis/1e-6, pulsegen3.marker3, 'k');
+            axis tight;
+            ylim([-1, 1]);
+            title('AWG 3');
+            xlabel('Time (\mus)');
+        end
         drawnow;
     end
     function PlotSweep1(ind)
