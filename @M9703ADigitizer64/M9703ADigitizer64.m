@@ -52,7 +52,8 @@ classdef M9703ADigitizer64 < handle
         end
         
         function set.params(self, params)
-            SetParams(self, params);
+            SetParams(self, params); %trying to set hardware
+            
         end
         
         function params= get.params(self)
@@ -73,5 +74,7 @@ classdef M9703ADigitizer64 < handle
         dataArray_v2 = ReadChannels_v2(self, chList);  % Acquire data from desired channels
         dataArray_v3 = ReadChannels64(self, chList);
         dataArray_v4 = ReadChannels64_multiSegment(self, chList);
+        Data = Read64_multiSeg(self, channel);
+%         SetParam_MS(self, params);
     end
 end

@@ -141,16 +141,13 @@ clear acquisitionPoints measurementPoint
 
 %%%%largeJ
 measurementPoint = {};
-measurementPoint.name = 'largeJ';
-% measurementPoint.voltagePoint = [-1.0724 -0.5875 0.2362]; % traj 10
-measurementPoint.voltagePoint = [-1.4043 -0.5903 0.2981]; % traj 8
-% measurementPoint.powerSetPoints = [-41, -40, -39, -38, -37, -36, -35]; %collumns
-% measurementPoint.powerSetPoints = [-38,-38, -37, -37, -36, -36];
-measurementPoint.powerSetPoints = linspace(-40,-28,30);
+measurementPoint.name = 'maxJ_dualDriveSplit_LeftDetunedRightClose';
+measurementPoint.voltagePoint = [1.4195 -0.3186 -0.2798];
+measurementPoint.powerSetPoints =linspace(-45,-30,30);
 measurementPoint.numReads = 5;
-% measurementPoint.segments = 20;
-measurementPoint.probeFrequency = 5.841e9;
-measurementPoint.averages = 6000;
+measurementPoint.segments = 20;
+measurementPoint.probeFrequency = 5.912e9;
+measurementPoint.averages = 6000/measurementPoint.segments;
 acquisitionPoints(1) = measurementPoint;
 
 
@@ -217,7 +214,7 @@ logen.PowerOn();
 
 corrparams.Int_Freq = 0e6;
 
-rfgen.freq = 5.908e9;
+rfgen.freq = 5.912e9;
 logen.freq = rfgen.freq + corrparams.Int_Freq;
 
 %% Set Up Card Parameters

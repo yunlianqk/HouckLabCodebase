@@ -1,5 +1,9 @@
 addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
 
+%%
+time = clock;
+runDate = datestr(time,'mmddyy');
+%%
 % %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
 yoko1.rampstep=.002;yoko1.rampinterval=.01;
@@ -39,8 +43,9 @@ leftQubitMax=-0.22;
 couplerMinJ=0.44;
 couplerMaxJ=0; 
 
-% powerVec = linspace(0,-40, 5);
-powerVec = [0];
+powerVec = -10;
+% powerVec = -5;
+% powerVec = [-10];
 
 for pdx = 1:length(powerVec)
 %% Update and read transmission channel
@@ -51,7 +56,7 @@ pnax.SetActiveTrace(1);
 % transWaitTime=10+13*pdx^2;
 % timeVec = 10 + 13.*(1:length(powerVec)).^2;
 
-transWaitTime=35;
+transWaitTime=20;
     
 pnax.params.start = 5.55e9;
 pnax.params.stop = 6.15e9;
@@ -87,8 +92,19 @@ clear vtraj ftraj
 % fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
 % fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
 
-fstart=[(leftQubitResonance-0.15) rightQubitMin couplerMinJ];
-fstop=[(leftQubitResonance+0.2) rightQubitMin couplerMinJ];fsteps=25;
+% fstart=[leftQubitMin rightQubitMin couplerMinJ];
+% fstop=[leftQubitMin rightQubitResonance couplerMinJ];fsteps=25;
+
+% fstart=[leftQubitMin rightQubitMin 0.0];
+% fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=20;
+
+% fstart=[leftQubitMin rightQubitMin 0.0];
+% fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=10;
+
+% fstart=[(leftQubitResonance-0.1) rightQubitMin 0.0];
+% fstop=[(leftQubitResonance+0.2) rightQubitMin 0.0];fsteps=20;
+fstart=[(leftQubitResonance+0.2) rightQubitMin 0.0];
+fstop=[(leftQubitResonance-0.1) rightQubitMin 0.0];fsteps=20;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 
@@ -116,6 +132,7 @@ for index=1:steps
         tStart=tic;
         time=clock;
         timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
+%         filename=['matrixCalibration_rightInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
         filename=['matrixCalibration_leftInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
         
     end
@@ -127,10 +144,10 @@ for index=1:steps
     pnax.AvgClear(1);
     pause(transWaitTime);
     pnax.SetActiveTrace(1);
-    [data_transS21A data_transS21P] = pnax.ReadAmpAndPhase();
+    [data_transS21A data_transS21P] = pnax.ReadAmpAndPhase(); %right output
     pnax.SetActiveTrace(2);
     pause(1);
-    [data_transS41A data_transS41P] = pnax.ReadAmpAndPhase();
+    [data_transS41A data_transS41P] = pnax.ReadAmpAndPhase(); %left output
     
     transS21AlongTrajectoryAmp(index,:)=data_transS21A;
     transS21AlongTrajectoryPhase(index,:)=data_transS21P;
@@ -140,14 +157,14 @@ for index=1:steps
     hFig = figure(158);
     set(hFig, 'Position', [100 100 1000 600]);
     subplot(1,2,1);
-    imagesc(ftrans/1e9,[1,index],transS21AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Left Output Frequency [GHz]');
+    imagesc(ftrans/1e9,[1,index],transS21AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Right Output Frequency [GHz]');
     subplot(1,2,2);
-    imagesc(ftrans/1e9,[1,index],transS41AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Right Output Frequency [GHz]');
+    imagesc(ftrans/1e9,[1,index],transS41AlongTrajectoryAmp(1:index,:)); title(filename); ylabel('step');xlabel('Left Output Frequency [GHz]');
     
 
     if index==1 && pdx == 1
         deltaT=toc(tStart);
-        estimatedTime=steps*deltaT;
+        estimatedTime=steps*deltaT*length(powerVec);
         disp(['Estimated Time is '...
             num2str(estimatedTime/3600),' hrs, or '...
             num2str(estimatedTime/60),' min']);
@@ -156,7 +173,7 @@ for index=1:steps
     end
 end
 pnaxSettings=pnax.params.toStruct();
-saveFolder = 'C:\Users\BFG\Documents\Mattias\tunableDimer\PNAX_Calibrations_082218\';
+saveFolder = ['Z:\Mattias\Data\tunableDimer\PNAX_Calibrations_' runDate '\'];
 if exist(saveFolder)==0
     mkdir(saveFolder);
 end

@@ -3,6 +3,7 @@
 run(['.', filesep(), 'setpath.m']);
 
 addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
+addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\drivers')
 
 % Turn off 32bit IVI-COM warning
 warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
@@ -17,7 +18,8 @@ address = struct('pnax',    'GPIB0::16::INSTR', ...
                  'triggen',  'GPIB0::10::INSTR', ...
                  'pxa', 'GPIB0::30::INSTR', ...
                  'card', 'PXI9::0::0::INSTR', ...
-                 'pulsegen1', 'PXI16::14::0::INSTR');
+                 'pulsegen1', 'PXI16::14::0::INSTR',...
+                 'card_fancy', 'PXI11::0::0::INSTR');
 
 global yoko1;
 yoko1 = YOKOGS200(address.yoko1);
@@ -44,7 +46,10 @@ global triggen;
 triggen = AWG33250A(address.triggen);
 
 global card;
-card = U1084ADigitizer(address.card);
+card = M9703ADigitizer64(address.card_fancy);
+
+% global card;
+% card = U1084ADigitizer(address.card);
 
 % global rfgen;
 % rfgen = E8267DGenerator(address.rfgen);

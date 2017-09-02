@@ -1,4 +1,4 @@
-function SetParams(self, params)
+function SetParams_MS(self, params)
 % Set card parameters
 %     warning('off', 'instrument:ivicom:MATLAB32bitSupportDeprecated');
 
@@ -79,33 +79,30 @@ else
     display('Unknow couplemode');
 end
 
-%AKmod
-% % Enable ChI and ChQ
-% for ch = 1:8
-%     pCh = {'Channel1', 'Channel2', 'Channel3', 'Channel4',...
-%         'Channel5', 'Channel6', 'Channel7', 'Channel8'};
-%     if ismember(pCh(ch), {params.ChI} )% , params.ChQ}) ONLY ENABLE CHI
-%         enabled = 1;
-%     else
-%         enabled = 0;
-%     end
-%     
-%     invoke(self.instrID.Configurationchannel, 'configurechannel', pCh{ch},...
-%         params.fullscale, params.offset, coupling, enabled);
-% end
-% 
-% self.ChI = params.ChI;
-% self.ChQ = params.ChQ;
+% Enable ChI and ChQ
+for ch = 1:8
+    pCh = {'Channel1', 'Channel2', 'Channel3', 'Channel4',...
+        'Channel5', 'Channel6', 'Channel7', 'Channel8'};
+    if ismember(pCh(ch), {params.ChI} )% , params.ChQ}) ONLY ENABLE CHI
+        enabled = 1;
+    else
+        enabled = 0;
+    end
+    
+    invoke(self.instrID.Configurationchannel, 'configurechannel', pCh{ch},...
+        params.fullscale, params.offset, coupling, enabled);
+end
+
+self.ChI = params.ChI;
+self.ChQ = params.ChQ;
 
 % Set the acquisition parameters
 invoke(self.instrID.Configurationacquisition, 'configureacquisition',...
     params.segments*params.averages, params.samples, params.samplerate);
 
-
 % Set the trigger source, and trigger type
-self.instrID.Trigger.Active_Trigger_Source = params.trigSource; %manually set the trigger source
 invoke(self.instrID.Configurationtrigger,'configureedgetriggersource',...
-    params.trigSource, params.trigLevel, 1);  %this function fails to set the trigger source properly.
+    params.trigSource, params.trigLevel, 1);
 
 end
 
