@@ -1,7 +1,6 @@
 classdef SignalCoreSC5511A < handle
 % Signal Core sc5511a32
     properties
-        address; % In form of 8 character string
         instr; % pointer to instrument
         output; % 0/1
         refin; % 'EXT' or 'INT'
@@ -11,6 +10,7 @@ classdef SignalCoreSC5511A < handle
     end
     
     properties (SetAccess = private)
+        address; % In form of 8 character string
         temperature; % Temperature
     end
     
@@ -159,13 +159,13 @@ classdef SignalCoreSC5511A < handle
     end
     
     methods (Static, Hidden)
-        % Define the alias for the driver library as a static property
         function lib = lib()
+        % Define the alias for the driver library as a static property
             lib = 'sc5511a';
         end
         
         function LoadDriver()
-        % Load the drive library if necessary
+        % Load the driver library
         % The .dll, .h and sc5511a.m files are in ..\drivers\SignalCore_driver
         % And added to path in ..\setpath.m
             if ~libisloaded(SignalCoreSC5511A.lib)

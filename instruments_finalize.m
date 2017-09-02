@@ -28,6 +28,11 @@ if ismember('SignalCoreSC5511A', instrlist)
     SignalCoreSC5511A.UnloadDriver();
 end
 
+% Unolad LabBrick driver library
+if ismember('LabBrick', instrlist)
+    LabBrick.UnloadDriver();
+end
+
 % Final house keeping
 instrlist = instrfind();
 if (~isempty(instrlist))
