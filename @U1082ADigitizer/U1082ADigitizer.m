@@ -4,6 +4,7 @@ classdef U1082ADigitizer < handle
     properties (SetAccess = private, GetAccess = public)
         address;    % PXI address
         instrID;    % ID
+        temperature;  % Temperature in degree C
     end
     properties
         params;     % Parameters for digitizer
@@ -51,7 +52,9 @@ classdef U1082ADigitizer < handle
         function params = get.params(self)
             params = GetParams(self);
         end
-
+        function temp = get.temperature(self)
+            [~, temp] = Aq_getInstrumentInfo(self.instrID, 'Temperature 0', 'integer');
+        end
         % Declaration of all methods
         % Each method is defined in a separate file
         Finalize(self);	% Close card
