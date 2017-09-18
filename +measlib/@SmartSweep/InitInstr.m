@@ -1,7 +1,7 @@
 function InitInstr(self)
 
     global rfgen specgen logen rfgen2 specgen2 logen2 fluxgen ...
-           yoko1 yoko2 pulsegen1 pulsegen2 card triggen;
+           yoko1 yoko2 pulsegen1 pulsegen2 pulsegen3 card triggen;
 
     % Initialize generators
     function inuse = isused(gen)
@@ -47,9 +47,17 @@ function InitInstr(self)
     for index = 1:length(seq)
         if ~isempty(seq{index}) && ~isempty(self.generator{index})
             self.generator{index}.ModOn();
+            if self.generator{index}.freq < 3.2e9
+                % If frequency is below 3.2 GHz, use I/Q modulation on the front panel
+                self.generator{index}.slowiq = 1;
+            else
+                % Otherwise use wideband I/Q modulation on the rear panel
+                self.generator{index}.iq = 1;
+            end
             if strfind(awgchannel{index}{1}, 'marker')
-                % If using marker for pulse modulation, turn off wideband IQ
+                % If using marker for pulse modulation, turn off wideband/slow IQ
                 self.generator{index}.iq = 0;
+                self.generator{index}.slowiq = 0;
             end
         end
     end
@@ -71,7 +79,14 @@ function InitInstr(self)
         pulsegen1.waveform2 = zeros(1, length(self.awgtaxis));
         pulsegen2.waveform1 = zeros(1, length(self.awgtaxis));
         pulsegen2.waveform2 = zeros(1, length(self.awgtaxis));
+        try
+            pulsegen3.timeaxis = self.awgtaxis;
+            pulsegen3.waveform1 = zeros(1, length(self.awgtaxis));
+            pulsegen3.waveform2 = zeros(1, length(self.awgtaxis));
+        catch
+        end
     end
+
     % Pass waveforms to AWG channels according to channel routing
     seq = {self.gateseq, self.gateseq2, self.fluxseq, self.measseq, self.measseq2};
     for index = 1:length(seq)
@@ -105,7 +120,11 @@ function InitInstr(self)
     end
     % Turn on AWGs
     pulsegen1.Generate();
-%     pulsegen2.Generate();
+    pulsegen2.Generate();
+    try
+        pulsegen3.Generate();
+    catch
+    end
 
     % Initialize card
     cardparams = card.GetParams();

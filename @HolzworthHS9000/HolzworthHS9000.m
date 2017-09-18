@@ -19,8 +19,6 @@
 
 classdef HolzworthHS9000 < handle
     properties
-        address; % Needs to be in the form of 'model-serial-channel'
-                 % e.g., 'HS9004A-527-1'
         output; % 0/1
         freq; % in Hz
         power; % in dBm
@@ -30,6 +28,8 @@ classdef HolzworthHS9000 < handle
     end
     
     properties (SetAccess = private)
+        address; % Needs to be in the form of 'model-serial-channel'
+                 % e.g., 'HS9004A-527-1'
         temperature; % Temperature
     end
     
@@ -41,6 +41,7 @@ classdef HolzworthHS9000 < handle
         alc = 0;
         pulse = 0;
         iq = 0;
+        slowiq = 0;
     end
 
     methods
@@ -62,8 +63,6 @@ classdef HolzworthHS9000 < handle
             self.channel = str2double(tempstr{3});
             % Set reference clock
             self.ref = '10MHz';
-            % Turn off modulation
-            self.modulation = 0;
         end
         
         function Finalize(self)

@@ -23,3 +23,13 @@ switch computer()
                  filesep(), 'x86']);
     otherwise
 end
+% Add LabBrick driver
+switch computer()
+    case 'PCWIN64'
+        addpath([pwd, filesep(), 'drivers', filesep(), 'LabBrick_driver', ...
+                 filesep(), 'x64']);
+    case 'PCWIN'
+        addpath([pwd, filesep(), 'drivers', filesep(), 'LabBrick_driver', ...
+                 filesep(), 'x86']);
+    otherwise
+end

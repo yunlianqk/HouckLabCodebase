@@ -36,7 +36,13 @@ classdef SpecSweep < measlib.SmartSweep
             end
             SetUp@measlib.SmartSweep(self);
         end
-       
+
+        function Run(self)
+            Run@measlib.SmartSweep(self);
+            self.result.intAmp = sqrt(self.result.intI.^2 + self.result.intQ.^2);
+            self.result.intPhase = atan2(self.result.intQ, self.result.intI);
+        end
+
         function Plot(self, fignum)
             self.Integrate();
             self.result.intAmp = sqrt(self.result.intI.^2 + self.result.intQ.^2);

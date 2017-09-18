@@ -1,5 +1,4 @@
 function ModOff(self)
-    % Set to CW mode
+    % Turn off modulation
     self.write(':MOD:MODE:OFF');
-
 end
