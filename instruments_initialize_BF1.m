@@ -52,11 +52,11 @@ twpagen = N5183BMXG(address.mxg);
 % global logen;
 % logen = N5183BMXG(address.mxg);
 
-global card;
-card = M9703ADigitizer64(address.card_fancy);
+% global card;
+% card = M9703ADigitizer64(address.card_fancy);
 
-global tek;
-tek = Tek5014AWG(address.tek);
+% global tek;
+% tek = Tek5014AWG(address.tek);
 
 % global card;
 % card = U1084ADigitizer(address.card);

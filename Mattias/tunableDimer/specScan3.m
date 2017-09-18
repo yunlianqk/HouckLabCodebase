@@ -38,7 +38,8 @@ CM = [0.0743 -0.004 -0.0164; -0.0061 0.4759 0.0118; 0.4181 -0.4286 2.2815];  %Al
 
 % f0 = [0; 0; -0.05]; % iteration2
 % f0 = [0; -0.2; -0.1083]; % updated 08/22/17 at 6:30 pm
-f0 = [0; -0.30237; -0.035899]; % updated 09/15/17 at 5:30 pm
+% f0 = [0; -0.30237; -0.035899]; % updated 09/15/17 at 5:30 pm
+f0 = [0; -0.0908; -0.035899]; %testing, update 9/18/17 12 noon
 fc=fluxController(CM,f0);
 
 fc2 = fluxController2;
@@ -67,7 +68,49 @@ voltageCutoff = 3.5;
 clear acquisitionPoints mp
 tempdx = 0;
 
-PNAXattenuation = 20;
+PNAXattenuation = 40;
+
+%%%%%%% RR
+tempdx = tempdx+1;
+mp = {};
+mp.name = ['rightQubit_rightQubitSweep']; 
+fstart=[leftQubitMin 0.2 0.0];
+fstop=[leftQubitMin -0.2 0.0];
+% fstart=[0 0.2 0.0];
+% fstop=[0 -0.2 0.0];
+fsteps=15;
+vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+vtraj1 = vtraj;
+
+fstart=[leftQubitMin -0.8 0.0];
+fstop=[leftQubitMin -1.2 0.0];
+% fstart=[0 -0.8 0.0];
+% fstop=[0 -1.2 0.0];
+vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+    disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+    return
+end
+vtraj2 = vtraj;
+
+%paste two voltage trajectories together
+vtraj = zeros(3,fsteps*2);
+vtraj(:,1:fsteps) = vtraj1;
+vtraj(:,fsteps+1:end) = vtraj2;
+
+mp.vtraj = vtraj;
+mp.cwpower = -50 + PNAXattenuation;
+% mp.specpower = -45;
+mp.specpower = -40;
+mp.transWaitTime = 10;
+mp.specWaitTime = 25*4;
+mp.startfreq = 3.5e9; % mp.startfreq = 4e9;
+mp.stopfreq = 8.0e9; % mp.stopfreq = 7.5e9;
+mp.points = 2001; %spec points
+mp.whichcavity = 2; %2 for right/upper, and 1 for left/lower
+acquisitionPoints(tempdx) = mp;
 
 
 
@@ -97,55 +140,55 @@ PNAXattenuation = 20;
 % mp.whichcavity = 1; %2 for right/upper, and 1 for left/lower
 % acquisitionPoints(tempdx) = mp;
 
-%%%%CL 
-tempdx = tempdx+1;
-mp = {};
-mp.name = ['leftQubit_couplerSweep_CMconfirm']; 
-fstart=[(leftQubitMax+leftQubitResonance)/2 (rightQubitMax + rightQubitResonance)/2 -1.0];
-fstop=[(leftQubitMax+leftQubitResonance)/2 (rightQubitMax + rightQubitResonance)/2 1.0];
-fsteps=8;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
-    disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
-    return
-end
-mp.vtraj = vtraj;
-mp.cwpower = -50 + PNAXattenuation;
-% mp.specpower = -40;
-mp.specpower = -45;
-mp.transWaitTime = 10;
-mp.specWaitTime = 25;
-mp.startfreq = 3.5e9;
-mp.stopfreq = 8.0e9;
-mp.points = 2001; %spec points
-mp.whichcavity = 1; %2 for right/upper, and 1 for left/lower
-acquisitionPoints(tempdx) = mp;
+% %%%%CL 
+% tempdx = tempdx+1;
+% mp = {};
+% mp.name = ['leftQubit_couplerSweep_CMconfirm']; 
+% fstart=[(leftQubitMax+leftQubitResonance)/2 (rightQubitMax + rightQubitResonance)/2 -1.0];
+% fstop=[(leftQubitMax+leftQubitResonance)/2 (rightQubitMax + rightQubitResonance)/2 1.0];
+% fsteps=8;
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% mp.vtraj = vtraj;
+% mp.cwpower = -50 + PNAXattenuation;
+% % mp.specpower = -40;
+% mp.specpower = -45;
+% mp.transWaitTime = 10;
+% mp.specWaitTime = 25;
+% mp.startfreq = 3.5e9;
+% mp.stopfreq = 8.0e9;
+% mp.points = 2001; %spec points
+% mp.whichcavity = 1; %2 for right/upper, and 1 for left/lower
+% acquisitionPoints(tempdx) = mp;
 
-%%%%RL
-tempdx = tempdx+1;
-mp = {};
-mp.name = ['leftQubit_rightQubitSweep_CMconfirm']; 
-fstart=[leftQubitMax -0.6 0.0];
-fstop=[leftQubitMax 0.3 0.0];
-fsteps=8;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
-    disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
-    return
-end
-mp.vtraj = vtraj;
-mp.cwpower = -50 + PNAXattenuation;
-mp.specpower = -40;
-mp.specpower = -45;
-mp.transWaitTime = 10;
-mp.specWaitTime = 50;
-mp.startfreq = 3.5e9;
-mp.stopfreq = 8.0e9;
-mp.points = 2001; %spec points
-mp.whichcavity = 1; %2 for right/upper, and 1 for left/lower
-acquisitionPoints(tempdx) = mp;
+% %%%%RL
+% tempdx = tempdx+1;
+% mp = {};
+% mp.name = ['leftQubit_rightQubitSweep_CMconfirm']; 
+% fstart=[leftQubitMax -0.6 0.0];
+% fstop=[leftQubitMax 0.3 0.0];
+% fsteps=8;
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% mp.vtraj = vtraj;
+% mp.cwpower = -50 + PNAXattenuation;
+% mp.specpower = -40;
+% mp.specpower = -45;
+% mp.transWaitTime = 10;
+% mp.specWaitTime = 50;
+% mp.startfreq = 3.5e9;
+% mp.stopfreq = 8.0e9;
+% mp.points = 2001; %spec points
+% mp.whichcavity = 1; %2 for right/upper, and 1 for left/lower
+% acquisitionPoints(tempdx) = mp;
 
 
 % %%%%CR 
@@ -308,9 +351,11 @@ for acq = 1:numAcquisitions
             pnax.params.stop = 5.95e9;
         end
         pnax.params.points = transpoints;
-        pnax.params.power = -50 + PNAXattenuation;
+%         pnax.params.power = -50 + PNAXattenuation;
+        pnax.params.power = config.cwpower;
         pnax.params.averages = 65536;
         pnax.params.ifbandwidth = 15e3;
+%         pnax.params.ifbandwidth = 250e3;
 
         transCh1 = pnax.params; 
         

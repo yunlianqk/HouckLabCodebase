@@ -32,6 +32,9 @@ CM = [0.07512 -0.009225 -0.001525; -0.003587 0.4841 0.002462; 0.4181 -0.4286 2.2
 % f0 = [0; -0.2; -0.25]; % updated 08/17/17 at 12 pm
 % f0 = [0; -0.2; -0.05]; % updated 08/17/17 at 12 pm
 f0 = [0; -0.2; -0.1083]; % updated 08/22/17 at 6:30 pm
+% f0 = [0; -0.30237; -0.035899]; % updated 09/15/17 at 5:30 pm
+f0 = [0; -0.0908; -0.035899]; %testing, update 9/18/17 12 noon
+
 fc=fluxController(CM,f0);
 
 fc2 = fluxController2;
@@ -87,13 +90,11 @@ voltageCutoff = 3.5;
 clear acquisitionPoints mp
 tempdx = 0;
 
-
 tempdx = tempdx+1;
 mp = {};
 mp.name = ['couplerSweep']; 
-fstart=[leftQubitMin rightQubitMin couplerMinJ];
-fstop=[leftQubitMin rightQubitMin couplerMaxJ];
-fsteps=50;
+fstart=[leftQubitMin rightQubitMin -0.5];
+fstop=[leftQubitMin rightQubitMin 0.5];fsteps=120;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
@@ -101,9 +102,31 @@ if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
     return
 end
 mp.vtraj = vtraj;
-mp.powerVec = -40 + PNAXattenuation; 
-mp.waitTime = 4;
+mp.powerVec = -50 + PNAXattenuation; %external attenuation removed from PNAX
+mp.waitTime = 12;
 acquisitionPoints(tempdx) = mp;
+
+
+% tempdx = tempdx+1;
+% mp = {};
+% mp.name = ['rightQubitSweep']; 
+% % fstart=[leftQubitMin rightQubitResonance-0.22 couplerMaxJ];
+% % fstop=[leftQubitMin rightQubitResonance+0.22 couplerMaxJ];
+% fstart=[leftQubitMin -0.2 couplerMaxJ];
+% fstop=[leftQubitMin 0.2 couplerMaxJ];
+% fsteps=8;
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% % vtraj = vtraj(:,4:8);
+% mp.vtraj = vtraj;
+% mp.powerVec = -50 + PNAXattenuation; 
+% % mp.waitTime = 200;
+% mp.waitTime = 10;
+% acquisitionPoints(tempdx) = mp;
 
 
 
@@ -236,12 +259,15 @@ for acq = 1:numAcquisitions
         pnax.SetActiveTrace(1);
 
 
-        transWaitTime=10;
+        transWaitTime=config.waitTime;
 
 %         pnax.params.start = 5.55e9;
 %         pnax.params.stop = 6.15e9;
+%         pnax.params.start = 5.2e9;
+%         pnax.params.stop = 6.4e9;
+        
         pnax.params.start = 5.75e9;
-        pnax.params.stop = 5.95e9;
+        pnax.params.stop = 6.0e9;
         
 
         pnax.params.points = 3201;
@@ -272,7 +298,7 @@ for acq = 1:numAcquisitions
                 timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
         %         filename=['matrixCalibration_rightInput_' num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
 %                 filename=['matrixCalibration_leftInput_' num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
-                filename=['matrixCalibration_leftInput_' config.name '_'  num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
+                filename=['matrixCalibration_rightInput_' config.name '_'  num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
 %                 filename=['matrixCalibration_rightInput_' config.name '_'  num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
             end
             % update flux/voltage
