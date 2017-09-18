@@ -96,7 +96,8 @@ for idx=1:length(powerVec)
         tStart=tic;
         time=clock;
         timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
-        filename=['powerScan_rightInput_bothOutputs_'  timestr];
+%         filename=['powerScan_rightInput_bothOutputs_'  timestr];
+        filename=['powerScan_DDDO_'  timestr];
     end
     % update flux/voltage
     pnax.params.power = powerVec(idx);

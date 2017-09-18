@@ -108,8 +108,9 @@ fstop=[leftQubitMin rightQubitMin+0.025 0.0];fsteps=10;
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
 
-qubitDrivePowerVec = [-100 linspace(-20,5,3)];
-driveFreqVec = [5.892e9 5.895e9 5.9e9 5.905e9];
+% qubitDrivePowerVec = [-100 linspace(-20,5,3)];
+qubitDrivePowerVec = [-100 5];
+driveFreqVec = [5.9e9];
 % qubitDrivePowerVec = [-100];
 for fdx = 1:length(driveFreqVec)
     for ldx = 1:length(qubitDrivePowerVec)
@@ -118,9 +119,10 @@ for fdx = 1:length(driveFreqVec)
         measurementPoint.voltagePoint = vtraj(:,8);
         measurementPoint.qubitFreq = 3.324e9;
         measurementPoint.qubitDrivePower = qubitDrivePowerVec(ldx);
-        measurementPoint.powerSetPoints = [linspace(-5, 10, 30)];
-        measurementPoint.numReads = 40;
-        measurementPoint.segments = 5;
+        measurementPoint.powerSetPoints = [linspace(3, 8, 20)];
+%         measurementPoint.powerSetPoints = [linspace(5, 8, 20)];
+        measurementPoint.numReads = 5;
+        measurementPoint.segments = 8;
         measurementPoint.probeFrequency = driveFreqVec(fdx);
         measurementPoint.averages = 6000/measurementPoint.segments;
         if qubitDrivePowerVec(ldx)<-20
@@ -139,14 +141,15 @@ for fdx = 1:length(driveFreqVec)
         measurementPoint.voltagePoint = vtraj(:,8);
         measurementPoint.qubitFreq = 3.524e9;
         measurementPoint.qubitDrivePower = qubitDrivePowerVec(ldx);
-        measurementPoint.powerSetPoints = [linspace(-5, 10, 30)];
-        measurementPoint.numReads = 40;
-        measurementPoint.segments = 5;
+%         measurementPoint.powerSetPoints = [linspace(5, 8, 20)];
+        measurementPoint.powerSetPoints = [linspace(3, 8, 20)];
+        measurementPoint.numReads = 5;
+        measurementPoint.segments = 8;
         measurementPoint.probeFrequency = driveFreqVec(fdx);
         if qubitDrivePowerVec(ldx)<-20
-            measurementPoint.name = ['maxJ_DDDO_switchingCompare_offResonance_qubitDriveOff'];
+            measurementPoint.name = ['maxJ_DDDO_driveAt' num2str(measurementPoint.probeFrequency/1e9) 'switchingCompare_offResonance_qubitDriveOff'];
         else
-            measurementPoint.name = ['maxJ_DDDO_switchingCompare_offResonance_qubitDrivePower' num2str(qubitDrivePowerVec(ldx)) 'dBm'];
+            measurementPoint.name = ['maxJ_DDDO_driveAt' num2str(measurementPoint.probeFrequency/1e9) 'switchingCompare_offResonance_qubitDrivePower' num2str(qubitDrivePowerVec(ldx)) 'dBm'];
         end
         measurementPoint.averages = 6000/measurementPoint.segments;
         acquisitionPoints(tempdx) = measurementPoint;
@@ -667,7 +670,7 @@ for acq = 1:numAcquisitions
         title('Left Output');
         
         
-        savefig([saveFolder config.name '_avgAmp.fig']);
+        savefig([saveFolder config.name '_avgAmp_' timestr '.fig']);
         
         
         

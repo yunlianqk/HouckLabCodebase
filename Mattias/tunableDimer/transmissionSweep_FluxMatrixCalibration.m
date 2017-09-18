@@ -1,8 +1,17 @@
+funclib.clear_local_variables()
+
 addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\TunableDimer')
 
 %%
 time = clock;
 runDate = datestr(time,'mmddyy');
+
+%% set up the twpa pump
+twpagen.ModOff();
+twpagen.freq = 8.265e9;
+twpagen.power = 16.3; %20 dB external, splitter, power amp
+twpagen.PowerOn();
+
 %%
 % %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
@@ -16,6 +25,7 @@ yoko3.rampstep=.002;yoko3.rampinterval=.01;
 % CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit
 % CM = [0.07512 0 0; 0 0.9198/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated left and right qubit diagonal elements at 9:30 am on 8/17/17
 CM = [0.07512 -0.009225 -0.001525; -0.003587 0.4841 0.002462; 0.4181 -0.4286 2.2222];  % Alicia update from scans over the past few days. Up 8/17/17
+CM = [0.07512 -0.009225 -0.001525; -0.003587 0.4841 0.002462; 0.4181 -0.4286 2.2222];
 
 
 % f0 = [0; -0.2; -0.25]; % updated 08/17/17 at 12 pm
@@ -43,18 +53,40 @@ leftQubitMax=-0.22;
 couplerMinJ=0.44;
 couplerMaxJ=0; 
 
-powerVec = -10;
+% %% test trajectory
+% % fstart=[leftQubitMin 0.0 -1.0];
+% % fstop=[leftQubitMin 0.0 1.0];fsteps=20;
+% % fstart=[leftQubitMin -1.0 0.0];
+% % fstop=[leftQubitMin 1. 0.0];fsteps=20;
+% % fstart=[leftQubitMax 0 0.0];
+% % fstop=[leftQubitMin 0 0.0];fsteps=20;
+% 
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% 
+% voltageCutoff = 3.5;
+% 
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% 
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% ftraj=fc.calculateFluxTrajectory(vtraj);
+% fc.visualizeTrajectories(vtraj,ftraj);
+
+%% drive power settings
+pnax.params = paramlib.pnax.trans();
+
+powerVec = -25;
 % powerVec = -5;
 % powerVec = [-10];
+
+PNAXattenuation = 20;
 
 for pdx = 1:length(powerVec)
 %% Update and read transmission channel
 pnax.SetActiveTrace(1);
 
-% transWaitTime=110;
-
-% transWaitTime=10+13*pdx^2;
-% timeVec = 10 + 13.*(1:length(powerVec)).^2;
 
 transWaitTime=20;
     
@@ -66,7 +98,9 @@ pnax.params.points = 3201;
 % pnax.params.power = -40;
 pnax.params.power = powerVec(pdx); % with external attenuation of 30 dB
 
-pnax.params.averages = 65536;
+% pnax.params.averages = 65536;
+% pnax.params.averages = 6000;
+pnax.params.averages = 15000;
 pnax.params.ifbandwidth = 10e3;
 pnax.AvgClear(1);
 ftrans = pnax.ReadAxis();
@@ -83,28 +117,18 @@ clear vtraj ftraj
 % fstart=[-3.5 0.0 0.0];
 % fstop=[3.5 0.0 0.0];fsteps=30;
 
-% fstart=[leftQubitMin (rightQubitResonance-0.15) 0.22];
-% fstop=[leftQubitMin (rightQubitResonance+0.15) 0.22];fsteps=40;
+% fstart=[(leftQubitResonance+0.2) rightQubitMin 0.0];
+% fstop=[(leftQubitResonance-0.1) rightQubitMin 0.0];fsteps=20;
 
-% fstart=[leftQubitResonace (rightQubitResonace-0.15) 0];
-% fstop=[leftQubitResonace (rightQubitResonace+0.15) 0];fsteps=6;
+% fstart=[leftQubitMin 0.0 -1.0];
+% fstop=[leftQubitMin 0.0 1.0];fsteps=20;
+% fstart=[leftQubitMin -1.0 0.0];
+% fstop=[leftQubitMin 1.0 0.0];fsteps=40;
+% fstart=[leftQubitMin -0.75 0.0];
+% fstop=[leftQubitMin -0.25 0.0];fsteps=20;
+fstart=[leftQubitMax 0 0.0];
+fstop=[leftQubitMin 0 0.0];fsteps=20;
 
-% fstart=[leftQubitMin (rightQubitResonance-0.15) 0];
-% fstop=[leftQubitMin (rightQubitResonance+0.15) 0];fsteps=20;
-
-% fstart=[leftQubitMin rightQubitMin couplerMinJ];
-% fstop=[leftQubitMin rightQubitResonance couplerMinJ];fsteps=25;
-
-% fstart=[leftQubitMin rightQubitMin 0.0];
-% fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=20;
-
-% fstart=[leftQubitMin rightQubitMin 0.0];
-% fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=10;
-
-% fstart=[(leftQubitResonance-0.1) rightQubitMin 0.0];
-% fstop=[(leftQubitResonance+0.2) rightQubitMin 0.0];fsteps=20;
-fstart=[(leftQubitResonance+0.2) rightQubitMin 0.0];
-fstop=[(leftQubitResonance-0.1) rightQubitMin 0.0];fsteps=20;
 
 vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 
@@ -132,8 +156,8 @@ for index=1:steps
         tStart=tic;
         time=clock;
         timestr = datestr(time,'yyyymmdd_HHss'); %year(4)month(2)day(2)_hour(2)second(2), hour in military time
-%         filename=['matrixCalibration_rightInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
-        filename=['matrixCalibration_leftInput_' num2str(powerVec(pdx)-30) 'wAtten_'  timestr];
+%         filename=['matrixCalibration_rightInput_' num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
+        filename=['matrixCalibration_leftInput_' num2str(powerVec(pdx)-PNAXattenuation) 'wAtten_'  timestr];
         
     end
     % update flux/voltage
@@ -172,6 +196,11 @@ for index=1:steps
             round(estimatedTime),'second'))]);
     end
 end
+full_path_info = mfilename('fullpath');
+folder_breaks = regexp(full_path_info,'\');
+current_file_location = full_path_info(1:max(folder_breaks));
+AllFiles = funclib.TextSave(current_file_location);
+
 pnaxSettings=pnax.params.toStruct();
 saveFolder = ['Z:\Mattias\Data\tunableDimer\PNAX_Calibrations_' runDate '\'];
 if exist(saveFolder)==0
@@ -179,7 +208,7 @@ if exist(saveFolder)==0
 end
 save([saveFolder filename '.mat'],...
     'CM','f0','fc','transWaitTime','pnaxSettings','ftrans','ftraj','vtraj','time','steps',...
-    'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS41AlongTrajectoryAmp','transS41AlongTrajectoryPhase')
+    'transS21AlongTrajectoryAmp','transS21AlongTrajectoryPhase','transS41AlongTrajectoryAmp','transS41AlongTrajectoryPhase', 'AllFiles')
 
 title(filename)
 savefig([saveFolder filename '.fig']);
@@ -189,10 +218,10 @@ title([filename '_traj'])
 savefig([saveFolder filename '_traj.fig']);
 toc
 
-currFilePath = mfilename('fullpath');
-savePath = [saveFolder filename 'AK' '.mat'];
-% funclib.save_all(savePath);
-funclib.save_all(savePath, currFilePath);
+% currFilePath = mfilename('fullpath');
+% savePath = [saveFolder filename 'AK' '.mat'];
+% % funclib.save_all(savePath);
+% funclib.save_all(savePath, currFilePath);
 
 end
 fc.currentVoltage=[0 0 0];

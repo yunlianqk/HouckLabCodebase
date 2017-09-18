@@ -7,6 +7,13 @@ addpath('C:\Users\Cheesesteak\Documents\GitHub\HouckLabMeasurementCode\JJR\Tunab
 time = clock;
 runDate = datestr(time,'mmddyy');
 
+%% set up the twpa pump
+twpagen.ModOff();
+twpagen.freq = 8.265e9;
+twpagen.power = 16.3; %20 dB external, splitter, power amp
+twpagen.PowerOn();
+% twpagen.PowerOff();
+
 %%
 % %% Set flux controller with crosstalk matrix and offset vector
 % defined by f_vector = CM*v_vector + f_0   and vector is [lq; rq; cp]
@@ -19,12 +26,15 @@ yoko3.rampstep=.002;yoko3.rampinterval=.01;
 % CM = [1 0 0; 0 1 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated 8/12 to include qubit effects on coupler
 % CM = [1 0 0; 0 1/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Changed the diagonal element for the right qubit
 % CM = [0.07512 0 0; 0 0.9198/1.9 0; 120/(7*41) -120/(7*40) 1/0.45];  % Updated left and right qubit diagonal elements at 9:30 am on 8/17/17
-CM = [0.07512 -0.009225 -0.001525; -0.003587 0.4841 0.002462; 0.4181 -0.4286 2.2222];  % Alicia update from scans over the past few days. Up 8/17/17
+% CM = [0.07512 -0.009225 -0.001525; -0.003587 0.4841 0.002462; 0.4181 -0.4286 2.2222];  % Alicia update from scans over the past few days. Up 8/17/17
+CM = [0.0743 -0.004 -0.0164; -0.0061 0.4759 0.0118; 0.4181 -0.4286 2.2815];  %Alicia update with new sign convention 9/15/17
 
 
 % f0 = [0; -0.2; -0.25]; % updated 08/17/17 at 12 pm
 % f0 = [0; -0.2; -0.05]; % updated 08/17/17 at 12 pm
-f0 = [0; -0.2; -0.1083]; % updated 08/22/17 at 6:30 pm
+% f0 = [0; -0.2; -0.1083]; % updated 08/22/17 at 6:30 pm
+f0 = [0; -0.30237; -0.035899]; % updated 09/15/17 at 5:30 pm, not yet double checked
+
 fc=fluxController(CM,f0);
 fc2 = fluxController2;
 EcLeft = 298e6;
@@ -34,8 +44,20 @@ EjSumRight = 29.342e9;
 fc2.leftQubitFluxToFreqFunc = @(x) sqrt(8.*EcLeft.*EjSumLeft.*abs(cos(pi.*x)))-EcLeft;
 fc2.rightQubitFluxToFreqFunc = @(x) sqrt(8.*EcRight.*EjSumRight.*abs(cos(pi.*x)))-EcRight;
 
-% added these as of 08/17/17
-rightQubitMin=-0.48;
+% % added these as of 08/17/17
+% rightQubitMin=-0.48;
+% rightQubitResonance=-0.3;
+% rightQubitMax=0;
+% 
+% leftQubitMin=0.11;
+% leftQubitResonance=-0.088;
+% leftQubitMax=-0.22;
+% 
+% couplerMinJ=0.44;
+% couplerMaxJ=0; 
+
+% reasonable guesses as of 09/15/17, not much changed
+rightQubitMin=-0.5;
 rightQubitResonance=-0.3;
 rightQubitMax=0;
 
@@ -47,6 +69,7 @@ couplerMinJ=0.44;
 couplerMaxJ=0; 
 
 
+voltageCutoff = 3.5;
 %% calculate where to sit for flux points
 % % fstart=[leftQubitMin rightQubitMin couplerMinJ];
 % % fstop=[leftQubitMin rightQubitResonance couplerMinJ];fsteps=25;
@@ -71,182 +94,140 @@ couplerMaxJ=0;
 % 
 
 %% set up acquisitions
-clear acquisitionPoints m
+clear acquisitionPoints mp
 tempdx = 0;
+PNAXattenuation = 40; %external attenuation on output of PNAX
 
-
-
-
-
-
-%%%%%%%%%%%%%
-%%%parameters for overnight 9/1-9/2
-%%%%%%%%%%
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitResonance rightQubitMin 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-for ldx = 1:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_LQCsweep_lowerPeak_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx);
-    mp.startPower = -20; %external attenuation removed from PNAX
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.825e9,5.85e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 9:13
-for ldx = 2:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_RQCsweep_lowerPeak_powerSweep_vtraj' num2str(ldx)]; %right qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx); 
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-    mp.startPower = -20; %external attenuation removed from PNAX, splitter added
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.825e9,5.85e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitResonance rightQubitResonance 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 9:13
-for ldx = 2:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_BQCsweep_lowerPeak_powerSweep_vtraj' num2str(ldx)]; %both qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx); 
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-    mp.startPower = -20; %external attenuation removed from PNAX, splitter added
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.825e9,5.85e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitResonance rightQubitMin 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-for ldx = 1:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_LQCsweep_upperPeak_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx);
-    mp.startPower = -20; %external attenuation removed from PNAX
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.88e9,5.92e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 9:13
-for ldx = 2:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_RQCsweep_upperPeak_powerSweep_vtraj' num2str(ldx)]; %right qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx); 
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-    mp.startPower = -20; %external attenuation removed from PNAX, splitter added
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.88e9,5.92e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-fstart=[leftQubitMin rightQubitMin 0.0];
-fstop=[leftQubitResonance rightQubitResonance 0.0];fsteps=5;
-vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 9:13
-for ldx = 2:fsteps
-    tempdx = tempdx+1;
-    mp = {};
-    mp.name = ['maxJ_DDDO_BQCsweep_upperPeak_powerSweep_vtraj' num2str(ldx)]; %both qubit resonant 
-    mp.voltagePoint = vtraj(:,ldx); 
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-    mp.startPower = -20; %external attenuation removed from PNAX, splitter added
-    mp.stopPower = 10;
-    mp.powerNumPoints = 301;
-    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-    mp.driveFreqs = linspace(5.888e9,5.92e9,20*3.5);
-    mp.freqNumPoints = length(mp.driveFreqs);
-    mp.waitTime = 10;
-    acquisitionPoints(tempdx) = mp;
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% fstart=[(leftQubitResonance+0.2) rightQubitMin 0.0];
-% fstop=[(leftQubitResonance-0.1) rightQubitMin 0.0];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = [15,3]
-%     tempdx = tempdx+1;
-%     mp = {};
-% %     mp.name = ['maxJ_DDDO_LQCdispShiftSearch_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-%     mp.name = ['maxJ_DDDO_LQCdispShiftSearch_AttnPowerSweep_vtraj' num2str(ldx)]; %left qubit resonant
-%     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 12;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-%     mp.driveFreqs = linspace(5.825e9,5.86e9,50);
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
 
 
 %%%%%%%%%%%%%%
-%%%%big overnight parameter scan.
+%%%%suggested weekend parameter scan.
 %%%%%%%%%%%
-% fstart=[leftQubitMin rightQubitMin 0.0];
-% fstop=[leftQubitResonance rightQubitMin 0.0];fsteps=8;
+fstart=[leftQubitMin rightQubitMin couplerMinJ];
+fstop=[leftQubitMin rightQubitMin couplerMaxJ];
+fsteps=8;
+vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+    disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+    return
+end
+for ldx = 1:fsteps
+% for ldx = [1, 3, 5]
+    tempdx = tempdx+1;
+    mp = {};
+    mp.name = ['JSweep_detuned_DDDO_powerSweep_vtraj' num2str(ldx)]; 
+    mp.voltagePoint = vtraj(:,ldx);
+    mp.startPower = -70 + PNAXattenuation;
+    mp.stopPower = -30 + PNAXattenuation;
+    mp.powerNumPoints = 401;
+    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
+    mp.driveFreqs = linspace(5.825e9,5.925e9,220);
+%     mp.driveFreqs = linspace(5.905e9,5.915e9,10);
+%     mp.driveFreqs = linspace(5.83e9,5.86e9,15);
+    mp.freqNumPoints = length(mp.driveFreqs);
+    mp.waitTime = 7;
+    acquisitionPoints(tempdx) = mp;
+end
+
+fstart=[leftQubitResonance rightQubitResonance couplerMinJ];
+fstop=[leftQubitResonance rightQubitResonance couplerMaxJ];
+fsteps=8;
+vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+    disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+    return
+end
+for ldx = 1:fsteps
+% for ldx = [1, 3, 5]
+    tempdx = tempdx+1;
+    mp = {};
+    mp.name = ['JSweep_resonance_DDDO_powerSweep_vtraj' num2str(ldx)]; 
+    mp.voltagePoint = vtraj(:,ldx);
+    mp.startPower = -70 + PNAXattenuation;
+    mp.stopPower = -30 + PNAXattenuation;
+    mp.powerNumPoints = 401;
+    mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
+    mp.driveFreqs = linspace(5.825e9,5.925e9,220);
+%     mp.driveFreqs = linspace(5.905e9,5.915e9,10);
+%     mp.driveFreqs = linspace(5.83e9,5.86e9,15);
+    mp.freqNumPoints = length(mp.driveFreqs);
+    mp.waitTime = 7;
+    acquisitionPoints(tempdx) = mp;
+end
+%
+% %%%%%%%%%%%%%%
+% %%%%suggested weekend parameter scan.
+% %%%%%%%%%%%
+% fstart=[(leftQubitMax+0.25)/2 -1 0.0];
+% fstop=[(leftQubitMax+0.25)/2 1 0.0];
+% fsteps=10;
 % vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% for ldx = 1:fsteps
+% % for ldx = [1, 3, 5]
+%     tempdx = tempdx+1;
+%     mp = {};
+%     mp.name = ['maxJ_DDDO_FunnyTransmissionSpot_powerSweep_vtraj' num2str(ldx)]; 
+%     mp.voltagePoint = vtraj(:,ldx);
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -10 + PNAXattenuation;
+%     mp.powerNumPoints = 401;
+%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
+%     mp.driveFreqs = linspace(5.825e9,5.925e9,80*3.5);
+% %     mp.driveFreqs = linspace(5.905e9,5.915e9,10);
+% %     mp.driveFreqs = linspace(5.83e9,5.86e9,15);
+%     mp.freqNumPoints = length(mp.driveFreqs);
+%     mp.waitTime = 5;
+%     acquisitionPoints(tempdx) = mp;
+% end
+
+% fstart=[leftQubitMin rightQubitMin 0.0];
+% fstop=[leftQubitResonance rightQubitMin 0.0];
+% fsteps=2;
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
 % for ldx = 1:fsteps
 %     tempdx = tempdx+1;
 %     mp = {};
-%     mp.name = ['maxJ_DDDO_LQCsweep_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
+%     mp.name = ['maxJ_DDDO_LQCsweep_powerSweep_vtraj' num2str(ldx)];  
 %     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
+%     mp.powerNumPoints = 301;
+%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
+% %     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
+%     mp.driveFreqs = linspace(5.905e9,5.915e9,10);
+%     mp.freqNumPoints = length(mp.driveFreqs);
+%     mp.waitTime = 5;
+%     acquisitionPoints(tempdx) = mp;
+% end
+
+% fstart=[leftQubitMin rightQubitMin 0.0];
+% fstop=[leftQubitMin rightQubitResonance 0.0];
+% fsteps=3;
+% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
+% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
+% for ldx = 2:fsteps
+%     tempdx = tempdx+1;
+%     mp = {};
+%     mp.name = ['maxJ_DDDO_RQCsweep_powerSweep_vtraj' num2str(ldx)];  
+%     mp.voltagePoint = vtraj(:,ldx); 
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
 %     mp.powerNumPoints = 301;
 %     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
 %     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
@@ -256,41 +237,21 @@ end
 % end
 % 
 % fstart=[leftQubitMin rightQubitMin 0.0];
-% fstop=[leftQubitMin rightQubitResonance 0.0];fsteps=8;
+% fstop=[leftQubitResonance rightQubitResonance 0.0];
+% fsteps=3;
 % vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% % for ldx = 9:13
-% for ldx = 2:fsteps
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['maxJ_DDDO_RQCsweep_powerSweep_vtraj' num2str(ldx)]; %right qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx); 
-% %     mp.startPower = -50; %external attenuation removed from PNAX
-% %     mp.stopPower = -5;
-%     mp.startPower = -45; %external attenuation removed from PNAX, splitter added
-%     mp.stopPower = 5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-%     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
 % end
-% 
-% fstart=[leftQubitMin rightQubitMin 0.0];
-% fstop=[leftQubitResonance rightQubitResonance 0.0];fsteps=8;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% % for ldx = 9:13
 % for ldx = 2:fsteps
 %     tempdx = tempdx+1;
 %     mp = {};
-%     mp.name = ['maxJ_DDDO_BQCsweep_powerSweep_vtraj' num2str(ldx)]; %both qubit resonant 
+%     mp.name = ['maxJ_DDDO_BQCsweep_powerSweep_vtraj' num2str(ldx)]; 
 %     mp.voltagePoint = vtraj(:,ldx); 
-% %     mp.startPower = -50; %external attenuation removed from PNAX
-% %     mp.stopPower = -5;
-%     mp.startPower = -45; %external attenuation removed from PNAX, splitter added
-%     mp.stopPower = 5;
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
 %     mp.powerNumPoints = 301;
 %     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
 %     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
@@ -302,60 +263,72 @@ end
 % %%%%%%%%%%%%%%minJ
 % 
 % fstart=[leftQubitMin rightQubitMin couplerMinJ];
-% fstop=[leftQubitResonance rightQubitMin couplerMinJ];fsteps=4;
+% fstop=[leftQubitResonance rightQubitMin couplerMinJ];
+% fsteps=3;
 % vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
 % for ldx = 1:fsteps
 %     tempdx = tempdx+1;
 %     mp = {};
-%     mp.name = ['minJ_DDDO_LQCsweep_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
+%     mp.name = ['minJ_DDDO_LQCsweep_powerSweep_vtraj' num2str(ldx)]; 
 %     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
 %     mp.powerNumPoints = 301;
 %     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.driveFreqs = linspace(5.825e9,5.905e9,55);
+%     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
 %     mp.freqNumPoints = length(mp.driveFreqs);
 %     mp.waitTime = 10;
 %     acquisitionPoints(tempdx) = mp;
 % end
 % 
 % fstart=[leftQubitMin rightQubitMin couplerMinJ];
-% fstop=[leftQubitMin rightQubitResonance couplerMinJ];fsteps=4;
+% fstop=[leftQubitMin rightQubitResonance couplerMinJ];
+% fsteps=3;
 % vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
 % for ldx = 2:fsteps
 %     tempdx = tempdx+1;
 %     mp = {};
-%     mp.name = ['minJ_DDDO_RQCsweep_powerSweep_vtraj' num2str(ldx)]; %right qubit resonant 
+%     mp.name = ['minJ_DDDO_RQCsweep_powerSweep_vtraj' num2str(ldx)]; 
 %     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
 %     mp.powerNumPoints = 301;
 %     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.driveFreqs = linspace(5.825e9,5.905e9,55);
+%     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
 %     mp.freqNumPoints = length(mp.driveFreqs);
 %     mp.waitTime = 10;
 %     acquisitionPoints(tempdx) = mp;
 % end
 % 
 % fstart=[leftQubitMin rightQubitMin couplerMinJ];
-% fstop=[leftQubitResonance rightQubitResonance couplerMinJ];fsteps=4;
+% fstop=[leftQubitResonance rightQubitResonance couplerMinJ];
+% fsteps=3;
 % vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
 % vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
+% if (any(abs(vstart)>voltageCutoff) | any(abs(vstop)>voltageCutoff))
+%     disp('VOLTAGE IN TRAJECTORY IS TOO HIGH')
+%     return
+% end
 % for ldx = 2:fsteps
 %     tempdx = tempdx+1;
 %     mp = {};
-%     mp.name = ['minJ_DDDO_BQCsweep_powerSweep_vtraj' num2str(ldx)]; %both qubits resonant 
+%     mp.name = ['minJ_DDDO_BQCsweep_powerSweep_vtraj' num2str(ldx)];  
 %     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
+%     mp.startPower = -70 + PNAXattenuation;
+%     mp.stopPower = -30 + PNAXattenuation;
 %     mp.powerNumPoints = 301;
 %     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.driveFreqs = linspace(5.825e9,5.905e9,55);
+%     mp.driveFreqs = linspace(5.825e9,5.925e9,20*3.5);
 %     mp.freqNumPoints = length(mp.driveFreqs);
 %     mp.waitTime = 10;
 %     acquisitionPoints(tempdx) = mp;
@@ -368,142 +341,43 @@ end
 
 
 
-
-% fstart=[leftQubitResonance+0.2 rightQubitMin couplerMinJ];
-% fstop=[leftQubitResonance-0.1 rightQubitMin couplerMinJ];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 15
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['minJ_DDDO_LQC_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.driveFreqs = linspace(5.855e9,5.875e9,15) ;
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
-
-% fstart=[leftQubitResonance+0.2 rightQubitMin 0.0];
-% fstop=[leftQubitResonance-0.1 rightQubitMin 0.0];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 15
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['maxJ_DDDO_LQC_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -45; %external attenuation removed from PNAX
-%     mp.stopPower = 5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-%     mp.driveFreqs = linspace(5.82e9,6.93e9,70)];
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
-
-% fstart=[leftQubitMin rightQubitResonance-0.15 0.0];
-% fstop=[leftQubitMin rightQubitResonance+0.15 0.0];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% % for ldx = 9:13
-% for ldx = 9
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['maxJ_DDDO_RQC_powerSweep_vtraj' num2str(ldx)]; %right qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx); 
-% %     mp.startPower = -50; %external attenuation removed from PNAX
-% %     mp.stopPower = -5;
-%     mp.startPower = -45; %external attenuation removed from PNAX, splitter added
-%     mp.stopPower = 5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.driveFreqs = [linspace(5.82e9,5.87e9,35) linspace(5.88e9,5.93e9,35)];
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
-
-% fstart=[leftQubitResonance+0.2 rightQubitMin 0.0];
-% fstop=[leftQubitResonance-0.1 rightQubitMin 0.0];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = 15
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['maxJ_SDDO_LQC_powerSweepLeftCav_vtraj' num2str(ldx)]; %left qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-% %     mp.driveFreqs = linspace(5.82e9,5.87e9,35);
-%     mp.driveFreqs = linspace(5.88e9,5.93e9,35);
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
-
-% fstart=[leftQubitResonance+0.2 rightQubitMin 0.0];
-% fstop=[leftQubitResonance-0.1 rightQubitMin 0.0];fsteps=20;
-% vstart=fc.calculateVoltagePoint(fstart);vstop=fc.calculateVoltagePoint(fstop);
-% vtraj=fc.generateTrajectory(vstart,vstop,fsteps);
-% for ldx = [9 10 11 13 15]
-%     tempdx = tempdx+1;
-%     mp = {};
-%     mp.name = ['maxJ_SDDO_LQC_powerSweep_vtraj' num2str(ldx)]; %left qubit resonant 
-%     mp.voltagePoint = vtraj(:,ldx);
-%     mp.startPower = -50; %external attenuation removed from PNAX
-%     mp.stopPower = -5;
-%     mp.powerNumPoints = 301;
-%     mp.drivePowers = linspace(mp.startPower,mp.stopPower,mp.powerNumPoints);
-%     mp.driveFreqs = linspace(5.8e9,5.95e9,20*8);
-%     mp.freqNumPoints = length(mp.driveFreqs);
-%     mp.waitTime = 10;
-%     acquisitionPoints(tempdx) = mp;
-% end
 
 
 %% Update and read transmission channel
-
-pnax.params = paramlib.pnax.psweep;
-
-% m = {};
-% m.startPower = -20;
-% m.stopPower = 10;
-% m.powerNumPoints = 301;
-% m.drivePowers = linspace(m.startPower,m.stopPower,m.powerNumPoints);
-% m.driveFreqs = linspace(5.86e9,5.92e9,20);
-% m.freqNumPoints = length(m.driveFreqs);
-% m.waitTime = 10;
-
-
-
-
-pnax.DeleteChannel(3);
-
-pnax.SetActiveTrace(1);
-
-% pnax.params.start = 5.75e9;
-% pnax.params.stop = 5.97e9;
-
-% pnax.params.points = 2201;
-
-% powerVec = linspace(-20,10,10);
-
-% pnax.params.power = -35;
-pnax.PowerOn()
-pnax.params.averages = 65536;
-pnax.params.ifbandwidth = 10e3;
-pnax.AvgClear(1);
-% ftrans = pnax.ReadAxis();
+% 
+% % pnax.params = paramlib.pnax.psweep;
+% pnax.params = paramlib.pnax.psweep();
+% % m = {};
+% % m.startPower = -20;
+% % m.stopPower = 10;
+% % m.powerNumPoints = 301;
+% % m.drivePowers = linspace(m.startPower,m.stopPower,m.powerNumPoints);
+% % m.driveFreqs = linspace(5.86e9,5.92e9,20);
+% % m.freqNumPoints = length(m.driveFreqs);
+% % m.waitTime = 10;
+% 
+% 
+% 
+% 
+% % pnax.DeleteChannel(3); %maybe this is the problem
+% 
+% pnax.SetActiveTrace(1);
+% 
+% % pnax.params.start = 5.75e9;
+% % pnax.params.stop = 5.97e9;
+% 
+% % pnax.params.points = 2201;
+% 
+% % powerVec = linspace(-20,10,10);
+% 
+% % pnax.params.power = -35;
+% pnax.PowerOn()
+% pnax.AvgClear(1);
+% % ftrans = pnax.ReadAxis();
+% 
+% pnax.params = paramlib.pnax.psweep();
+% pnax.params.averages = 65536;
+% pnax.params.ifbandwidth = 10e3;
 
 %% Transmission power scan
 
@@ -533,6 +407,24 @@ for acq = 1:numAcquisitions
             m.filename=[m.name '_'  timestr];
             
         end
+        %trying to reset everything to how it should be for constant
+        %frequency power sweeps. I shouldn't need to do this every time,
+        %but something is going wrong.
+%         pnax.params = paramlib.pnax.psweep();
+        psweepparams = paramlib.pnax.psweep();
+        psweepparams.trace = 1;
+        psweepparams.meastype = 'S21';
+        pnax.params = psweepparams;
+        
+        psweepparams = paramlib.pnax.psweep();
+        psweepparams.trace = 2;
+        psweepparams.meastype = 'S41';
+        pnax.params = psweepparams;
+        
+        pnax.params.averages = 65536;
+        pnax.params.ifbandwidth = 10e3;
+        pnax.AvgOn();
+        
         pnax.params.cwfreq = m.driveFreqs(idx);
         pnax.params.points = m.powerNumPoints;
 
@@ -546,7 +438,7 @@ for acq = 1:numAcquisitions
         end
 
         pnax.SetActiveTrace(1);
-        pnax.AvgClear(1);
+        pnax.AvgClear();
         pause(m.waitTime);
         pnax.SetActiveTrace(1);
         [data_transS21A data_transS21P] = pnax.ReadAmpAndPhase();
@@ -599,40 +491,42 @@ for acq = 1:numAcquisitions
 
         % plot low -> high
         subplot(3,2,1,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS21AlongTrajectoryAmpUp(:,1:idx)); 
-        title('Sweeping Low -> High'); ylabel('Drive Power [dBm]');xlabel('Right Output Frequency [GHz]');
+%         subplot(1,2,1,'Parent',p);
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS21AlongTrajectoryAmpUp(:,1:idx)); 
+        title('Sweeping Low -> High'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Right Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
 
         subplot(3,2,2,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS41AlongTrajectoryAmpUp(:,1:idx)); 
-        title('Sweeping Low -> High'); ylabel('Drive Power [dBm]');xlabel('Left Output Frequency [GHz]');
+%         subplot(1,2,2,'Parent',p);
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS41AlongTrajectoryAmpUp(:,1:idx)); 
+        title('Sweeping Low -> High'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Left Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
         % plot high -> low
         subplot(3,2,3,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS21AlongTrajectoryAmpDown(:,1:idx)); 
-        title('Sweeping High -> Low'); ylabel('Drive Power [dBm]');xlabel('Right Output Frequency [GHz]');
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS21AlongTrajectoryAmpDown(:,1:idx)); 
+        title('Sweeping High -> Low'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Right Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
         subplot(3,2,4,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS41AlongTrajectoryAmpDown(:,1:idx)); 
-        title('Sweeping High -> Low'); ylabel('Drive Power [dBm]');xlabel('Left Output Frequency [GHz]');
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS41AlongTrajectoryAmpDown(:,1:idx)); 
+        title('Sweeping High -> Low'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Left Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
         % plot difference
         subplot(3,2,5,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS21AlongTrajectoryAmpUp(:,1:idx)-transS21AlongTrajectoryAmpDown(:,1:idx)); 
-        title('Difference (Up-Down)'); ylabel('Drive Power [dBm]');xlabel('Right Output Frequency [GHz]');
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS21AlongTrajectoryAmpUp(:,1:idx)-transS21AlongTrajectoryAmpDown(:,1:idx)); 
+        title('Difference (Up-Down)'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Right Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
         subplot(3,2,6,'Parent',p);
-        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers,transS41AlongTrajectoryAmpUp(:,1:idx)-transS41AlongTrajectoryAmpDown(:,1:idx));
-        title('Difference (Up-Down)'); ylabel('Drive Power [dBm]');xlabel('Left Output Frequency [GHz]');
+        imagesc(m.driveFreqs(1:idx)/1e9,m.drivePowers-PNAXattenuation,transS41AlongTrajectoryAmpUp(:,1:idx)-transS41AlongTrajectoryAmpDown(:,1:idx));
+        title('Difference (Up-Down)'); ylabel('Drive Power with Ext. Atten [dBm]');xlabel('Left Output Frequency [GHz]');
         colorbar(); set(gca,'YDir','normal');
 
 
-        if idx==1
+        if idx==1 && acq == 1
             deltaT=toc(tStart);
             estimatedTime=deltaT*m.freqNumPoints*numAcquisitions;
             disp(['Estimated Time is '...
