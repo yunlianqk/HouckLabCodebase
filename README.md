@@ -17,12 +17,9 @@ Equipment-indepdent programs can then be built with these interfaces.
 Update and maintanence of the code will be done through GitHub.
 
 ## Installation and maintanence
-All measurement computers use houcklab GitHub account:
-- Username: houcklab
-- Password: "eletrcon charge"
-- Email: houcklabprinceton@gmail.com
+All measurement computers use houcklab GitHub account.
 
-For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first log in as *houcklab* using the credentials above, and then go to *Settings -> Collaborators & terms*.
+For your own PC, it is suggested to use your own GitHub account and add it as a collaborator. To do this, first log in as *houcklab*, and then go to *Settings -> Collaborators & terms*.
 
 ![AddUser](./AddUser.png)
 
